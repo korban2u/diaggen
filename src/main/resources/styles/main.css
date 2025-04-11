@@ -1,0 +1,59 @@
+.root {
+    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-font-size: 12px;
+    -fx-background-color: #f5f5f5;
+}
+
+.menu-bar, .tool-bar {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 0 0 1 0;
+}
+
+.button {
+    -fx-background-color: #e0e0e0;
+    -fx-background-radius: 3;
+    -fx-border-color: #b0b0b0;
+    -fx-border-radius: 3;
+    -fx-padding: 5 10 5 10;
+}
+
+.button:hover {
+    -fx-background-color: #d0d0d0;
+}
+
+.button:pressed {
+    -fx-background-color: #c0c0c0;
+}
+
+.list-view {
+    -fx-background-color: white;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1;
+}
+
+.list-cell:selected {
+    -fx-background-color: #4a89dc;
+    -fx-text-fill: white;
+}
+
+.diagram-canvas {
+    -fx-background-color: white;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1;
+}
+
+.class-node {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0, 0, 1);
+}
+
+.class-node:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 8, 0, 0, 2);
+}
+
+.class-node .separator {
+    -fx-stroke: #cccccc;
+    -fx-stroke-width: 1;
+}
+
+
