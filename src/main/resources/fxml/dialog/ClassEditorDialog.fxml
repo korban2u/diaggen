@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<DialogPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.diaggen.view.dialog.controller.ClassEditorController">
+    <content>
+        <TabPane>
+            <Tab text="Général" closable="false">
+                <GridPane hgap="10" vgap="10">
+                    <padding>
+                        <Insets top="20" right="20" bottom="10" left="10"/>
+                    </padding>
+
+                    <Label text="Nom:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <TextField fx:id="nameField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                    <Label text="Package:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                    <TextField fx:id="packageField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                    <Label text="Type:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                    <ComboBox fx:id="typeComboBox" GridPane.columnIndex="1" GridPane.rowIndex="2" maxWidth="Infinity"/>
+                </GridPane>
+            </Tab>
+            <Tab text="Attributs" closable="false">
+                <VBox spacing="10">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+
+                    <ListView fx:id="attributesListView" VBox.vgrow="ALWAYS"/>
+
+                    <HBox spacing="10">
+                        <Button fx:id="addAttributeButton" text="Ajouter" onAction="#handleAddAttribute"/>
+                        <Button fx:id="editAttributeButton" text="Modifier" onAction="#handleEditAttribute"/>
+                        <Button fx:id="removeAttributeButton" text="Supprimer" onAction="#handleRemoveAttribute"/>
+                    </HBox>
+                </VBox>
+            </Tab>
+            <Tab text="Méthodes" closable="false">
+                <VBox spacing="10">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+
+                    <ListView fx:id="methodsListView" VBox.vgrow="ALWAYS"/>
+
+                    <HBox spacing="10">
+                        <Button fx:id="addMethodButton" text="Ajouter" onAction="#handleAddMethod"/>
+                        <Button fx:id="editMethodButton" text="Modifier" onAction="#handleEditMethod"/>
+                        <Button fx:id="removeMethodButton" text="Supprimer" onAction="#handleRemoveMethod"/>
+                    </HBox>
+                </VBox>
+            </Tab>
+        </TabPane>
+    </content>
+    <ButtonType fx:constant="OK"/>
+    <ButtonType fx:constant="CANCEL"/>
+</DialogPane>

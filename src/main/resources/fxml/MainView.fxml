@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.diaggen.view.controller.MainViewController"
+            prefWidth="1280" prefHeight="800">
+    <top>
+        <VBox>
+            <!-- Menu Bar -->
+            <MenuBar>
+                <Menu text="Fichier">
+                    <MenuItem text="Nouveau" onAction="#handleNewDiagram"/>
+                    <MenuItem text="Ouvrir..." onAction="#handleOpenDiagram"/>
+                    <SeparatorMenuItem />
+                    <MenuItem text="Enregistrer" onAction="#handleSaveDiagram"/>
+                    <MenuItem text="Enregistrer sous..." onAction="#handleSaveAsDiagram"/>
+                    <SeparatorMenuItem />
+                    <MenuItem text="Quitter" onAction="#handleExit"/>
+                </Menu>
+                <Menu text="Édition">
+                    <MenuItem text="Annuler" onAction="#handleUndo"/>
+                    <MenuItem text="Rétablir" onAction="#handleRedo"/>
+                </Menu>
+                <Menu text="Diagramme">
+                    <MenuItem text="Ajouter une classe" onAction="#handleAddClass"/>
+                    <MenuItem text="Modifier la classe sélectionnée" onAction="#handleEditClass"/>
+                    <MenuItem text="Supprimer la classe sélectionnée" onAction="#handleDeleteClass"/>
+                    <SeparatorMenuItem />
+                    <MenuItem text="Ajouter une relation" onAction="#handleAddRelation"/>
+                    <MenuItem text="Modifier la relation sélectionnée" onAction="#handleEditRelation"/>
+                    <MenuItem text="Supprimer la relation sélectionnée" onAction="#handleDeleteRelation"/>
+                </Menu>
+                <Menu text="Import/Export">
+                    <MenuItem text="Importer du code Java..." onAction="#handleImportJavaCode"/>
+                    <SeparatorMenuItem />
+                    <MenuItem text="Exporter en PNG..." onAction="#handleExportImage"/>
+                    <MenuItem text="Exporter en SVG..." onAction="#handleExportSVG"/>
+                    <MenuItem text="Exporter en PlantUML..." onAction="#handleExportPlantUML"/>
+                    <MenuItem text="Générer du code Java..." onAction="#handleExportJavaCode"/>
+                </Menu>
+                <Menu text="Aide">
+                    <MenuItem text="À propos" onAction="#handleAbout"/>
+                </Menu>
+            </MenuBar>
+
+            <!-- Tool Bar -->
+            <ToolBar>
+                <Button text="Nouveau" onAction="#handleNewDiagram"/>
+                <Button text="Enregistrer" onAction="#handleSaveDiagram"/>
+                <Button text="Ouvrir" onAction="#handleOpenDiagram"/>
+                <Separator orientation="VERTICAL"/>
+                <Button text="+ Classe" onAction="#handleAddClass"/>
+                <Button text="Éditer Classe" onAction="#handleEditClass"/>
+                <Button text="- Classe" onAction="#handleDeleteClass"/>
+                <Separator orientation="VERTICAL"/>
+                <Button text="+ Relation" onAction="#handleAddRelation"/>
+                <Button text="Éditer Relation" onAction="#handleEditRelation"/>
+                <Button text="- Relation" onAction="#handleDeleteRelation"/>
+                <Separator orientation="VERTICAL"/>
+                <Button text="Export PNG" onAction="#handleExportImage"/>
+            </ToolBar>
+        </VBox>
+    </top>
+
+    <center>
+        <SplitPane dividerPositions="0.2">
+            <VBox>
+                <Label text="Diagrammes"/>
+                <ListView fx:id="diagramListView" VBox.vgrow="ALWAYS">
+                    <contextMenu>
+                        <ContextMenu>
+                            <items>
+                                <MenuItem text="Nouveau diagramme" onAction="#handleNewDiagram"/>
+                                <MenuItem text="Renommer" onAction="#handleEditDiagram"/>
+                                <MenuItem text="Supprimer" onAction="#handleDeleteDiagram"/>
+                            </items>
+                        </ContextMenu>
+                    </contextMenu>
+                </ListView>
+            </VBox>
+            <StackPane fx:id="diagramCanvasContainer"/>
+        </SplitPane>
+    </center>
+
+    <bottom>
+        <HBox fx:id="statusBarContainer" spacing="10">
+            <padding>
+                <Insets top="5" right="5" bottom="5" left="5"/>
+            </padding>
+            <Label fx:id="statusLabel" text="Prêt"/>
+        </HBox>
+    </bottom>
+</BorderPane>

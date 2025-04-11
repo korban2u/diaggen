@@ -129,7 +129,7 @@ public class JavaCodeParser {
 
     private Visibility determineVisibility(Object declaration) {
         try {
-            // Utiliser la réflexion pour appeler les méthodes de visibilité
+
             java.lang.reflect.Method isPublicMethod = declaration.getClass().getMethod("isPublic");
             java.lang.reflect.Method isPrivateMethod = declaration.getClass().getMethod("isPrivate");
             java.lang.reflect.Method isProtectedMethod = declaration.getClass().getMethod("isProtected");
@@ -148,7 +148,6 @@ public class JavaCodeParser {
                 return Visibility.PACKAGE;
             }
         } catch (Exception e) {
-            // En cas d'erreur, retourner la visibilité par défaut
             return Visibility.PACKAGE;
         }
     }

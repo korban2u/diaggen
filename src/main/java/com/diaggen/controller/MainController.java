@@ -1,115 +1,90 @@
 package com.diaggen.controller;
 
+import com.diaggen.controller.command.AddClassCommand;
+import com.diaggen.controller.command.CommandManager;
+import com.diaggen.controller.command.RemoveClassCommand;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramClass;
-import com.diaggen.model.DiagramStore;
 import com.diaggen.model.DiagramRelation;
-import com.diaggen.model.export.DiagramExporter;
-import com.diaggen.model.export.JavaCodeExporter;
-import com.diaggen.model.export.PNGExporter;
-import com.diaggen.model.export.PlantUMLExporter;
-import com.diaggen.model.export.SVGExporter;
+import com.diaggen.model.DiagramStore;
 import com.diaggen.model.java.JavaCodeParser;
 import com.diaggen.model.persist.DiagramSerializer;
-import com.diaggen.view.MainView;
-import com.diaggen.view.ViewFactory;
-import com.diaggen.view.dialog.ClassEditorDialog;
-import com.diaggen.view.dialog.DiagramPropertiesDialog;
-import com.diaggen.view.dialog.RelationEditorDialog;
+import com.diaggen.service.ExportService;
+import com.diaggen.view.controller.MainViewController;
 import com.diaggen.view.diagram.DiagramCanvas;
-import javafx.collections.ObservableList;
+import com.diaggen.view.dialog.DialogFactory;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import javafx.stage.Window;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Optional;
 
 public class MainController {
+
     private final DiagramStore diagramStore;
-    private final ViewFactory viewFactory;
-    private MainView mainView;
+    private final DialogFactory dialogFactory;
+    private final ExportService exportService;
+    private final CommandManager commandManager;
+
+    private MainViewController viewController;
     private DiagramCanvas diagramCanvas;
 
-    public MainController(DiagramStore diagramStore, ViewFactory viewFactory) {
+    public MainController(DiagramStore diagramStore, DialogFactory dialogFactory, ExportService exportService) {
         this.diagramStore = diagramStore;
-        this.viewFactory = viewFactory;
-        initialize();
+        this.dialogFactory = dialogFactory;
+        this.exportService = exportService;
+        this.commandManager = new CommandManager();
     }
 
-    private void initialize() {
-        mainView = viewFactory.createMainView();
-        diagramCanvas = mainView.getDiagramCanvas();
+    public void setMainViewController(MainViewController viewController) {
+        this.viewController = viewController;
+        this.diagramCanvas = viewController.getDiagramCanvas();
+    }
 
-        bindEventHandlers();
-        updateDiagramList();
+    public void initialize() {
+        viewController.updateDiagramList(diagramStore.getDiagrams());
 
         if (diagramStore.getActiveDiagram() != null) {
             loadDiagram(diagramStore.getActiveDiagram());
         }
-    }
 
-    private void bindEventHandlers() {
-        mainView.setOnNewDiagram(this::handleNewDiagram);
-        mainView.setOnEditDiagram(this::handleEditDiagram);
-        mainView.setOnDeleteDiagram(this::handleDeleteDiagram);
-        mainView.setOnSelectDiagram(this::handleSelectDiagram);
-
-        mainView.setOnAddClass(this::handleAddClass);
-        mainView.setOnEditClass(this::handleEditClass);
-        mainView.setOnDeleteClass(this::handleDeleteClass);
-
-        mainView.setOnAddRelation(this::handleAddRelation);
-        mainView.setOnEditRelation(this::handleEditRelation);
-        mainView.setOnDeleteRelation(this::handleDeleteRelation);
-
-        mainView.setOnSave(this::handleSave);
-        mainView.setOnSaveAs(this::handleSaveAs);
-        mainView.setOnOpen(this::handleOpen);
-
-        mainView.setOnImportJavaCode(this::handleImportJavaCode);
-        mainView.setOnExportImage(this::handleExportImage);
-        mainView.setOnExportSVG(this::handleExportSVG);
-        mainView.setOnExportPlantUML(this::handleExportPlantUML);
-        mainView.setOnExportJavaCode(this::handleExportJavaCode);
-    }
-
-    private void updateDiagramList() {
-        mainView.updateDiagramList(diagramStore.getDiagrams());
+        // Configurer le canvas pour qu'il notifie le contrôleur lors d'une demande d'ajout de classe
+        diagramCanvas.setOnAddClassRequest(this::handleAddClass);
     }
 
     private void loadDiagram(ClassDiagram diagram) {
         diagramStore.setActiveDiagram(diagram);
         diagramCanvas.loadDiagram(diagram);
-        mainView.updateSelectedDiagram(diagram);
+        viewController.updateSelectedDiagram(diagram);
     }
 
-    public MainView getMainView() {
-        return mainView;
-    }
-
-    private void handleNewDiagram() {
-        ClassDiagram diagram = diagramStore.createNewDiagram("Nouveau diagramme");
-        updateDiagramList();
+    public void handleSelectDiagram(ClassDiagram diagram) {
         loadDiagram(diagram);
     }
 
-    private void handleEditDiagram() {
+    public void handleNewDiagram() {
+        ClassDiagram diagram = diagramStore.createNewDiagram("Nouveau diagramme");
+        viewController.updateDiagramList(diagramStore.getDiagrams());
+        loadDiagram(diagram);
+    }
+
+    public void handleEditDiagram() {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram == null) return;
 
-        DiagramPropertiesDialog dialog = viewFactory.createDiagramPropertiesDialog(currentDiagram);
+        var dialog = dialogFactory.createDiagramPropertiesDialog(currentDiagram);
         dialog.showAndWait().ifPresent(result -> {
             currentDiagram.setName(result);
-            updateDiagramList();
-            mainView.updateSelectedDiagram(currentDiagram);
+            viewController.updateDiagramList(diagramStore.getDiagrams());
+            viewController.updateSelectedDiagram(currentDiagram);
         });
     }
 
-    private void handleDeleteDiagram() {
+    public void handleDeleteDiagram() {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram == null) return;
 
@@ -121,7 +96,7 @@ public class MainController {
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             diagramStore.removeDiagram(currentDiagram);
-            updateDiagramList();
+            viewController.updateDiagramList(diagramStore.getDiagrams());
 
             if (diagramStore.getActiveDiagram() != null) {
                 loadDiagram(diagramStore.getActiveDiagram());
@@ -131,22 +106,26 @@ public class MainController {
         }
     }
 
-    private void handleSelectDiagram(ClassDiagram diagram) {
-        loadDiagram(diagram);
-    }
-
-    private void handleAddClass() {
+    /**
+     * Gestion de l'ajout d'une classe
+     */
+    public void handleAddClass() {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram == null) return;
 
-        ClassEditorDialog dialog = viewFactory.createClassEditorDialog(null);
+        var dialog = dialogFactory.createClassEditorDialog(null);
         dialog.showAndWait().ifPresent(diagramClass -> {
-            currentDiagram.addClass(diagramClass);
+
+            AddClassCommand command = new AddClassCommand(currentDiagram, diagramClass);
+            commandManager.executeCommand(command);
+
             diagramCanvas.refresh();
+
+            viewController.setStatus("Classe " + diagramClass.getName() + " ajoutée");
         });
     }
 
-    private void handleEditClass() {
+    public void handleEditClass() {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram == null) return;
 
@@ -157,11 +136,11 @@ public class MainController {
             return;
         }
 
-        ClassEditorDialog dialog = viewFactory.createClassEditorDialog(selectedClass);
+        var dialog = dialogFactory.createClassEditorDialog(selectedClass);
         dialog.showAndWait().ifPresent(updatedClass -> diagramCanvas.refresh());
     }
 
-    private void handleDeleteClass() {
+    public void handleDeleteClass() {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram == null) return;
 
@@ -179,30 +158,37 @@ public class MainController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            currentDiagram.removeClass(selectedClass);
+            // Créer et exécuter la commande
+            RemoveClassCommand command = new RemoveClassCommand(currentDiagram, selectedClass);
+            commandManager.executeCommand(command);
+
+            // Rafraîchir le canvas
             diagramCanvas.refresh();
+
+            // Mettre à jour le statut
+            viewController.setStatus("Classe " + selectedClass.getName() + " supprimée");
         }
     }
 
-    private void handleAddRelation() {
+    public void handleAddRelation() {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram == null) return;
 
-        ObservableList<DiagramClass> classes = currentDiagram.getClasses();
+        var classes = currentDiagram.getClasses();
         if (classes.size() < 2) {
             showWarning("Impossible d'ajouter une relation",
                     "Vous devez avoir au moins deux classes pour créer une relation.");
             return;
         }
 
-        RelationEditorDialog dialog = viewFactory.createRelationEditorDialog(null, classes);
+        var dialog = dialogFactory.createRelationEditorDialog(null, classes);
         dialog.showAndWait().ifPresent(relation -> {
             currentDiagram.addRelation(relation);
             diagramCanvas.refresh();
         });
     }
 
-    private void handleEditRelation() {
+    public void handleEditRelation() {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram == null) return;
 
@@ -213,12 +199,12 @@ public class MainController {
             return;
         }
 
-        RelationEditorDialog dialog = viewFactory.createRelationEditorDialog(
+        var dialog = dialogFactory.createRelationEditorDialog(
                 selectedRelation, currentDiagram.getClasses());
         dialog.showAndWait().ifPresent(updatedRelation -> diagramCanvas.refresh());
     }
 
-    private void handleDeleteRelation() {
+    public void handleDeleteRelation() {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram == null) return;
 
@@ -241,7 +227,7 @@ public class MainController {
         }
     }
 
-    private void handleSave() {
+    public void handleSave() {
         File currentFile = diagramStore.getCurrentFile();
         if (currentFile != null) {
             saveToFile(currentFile);
@@ -250,13 +236,15 @@ public class MainController {
         }
     }
 
-    private void handleSaveAs() {
+    public void handleSaveAs() {
+        Window window = viewController.getWindow();
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Enregistrer le diagramme");
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Fichiers DiagGen (*.dgn)", "*.dgn"));
 
-        File file = fileChooser.showSaveDialog(mainView.getScene().getWindow());
+        File file = fileChooser.showSaveDialog(window);
         if (file != null) {
             if (!file.getName().endsWith(".dgn")) {
                 file = new File(file.getAbsolutePath() + ".dgn");
@@ -277,13 +265,15 @@ public class MainController {
         }
     }
 
-    private void handleOpen() {
+    public void handleOpen() {
+        Window window = viewController.getWindow();
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Ouvrir un diagramme");
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Fichiers DiagGen (*.dgn)", "*.dgn"));
 
-        File file = fileChooser.showOpenDialog(mainView.getScene().getWindow());
+        File file = fileChooser.showOpenDialog(window);
         if (file != null) {
             try {
                 DiagramSerializer serializer = new DiagramSerializer();
@@ -291,7 +281,7 @@ public class MainController {
 
                 diagramStore.getDiagrams().add(diagram);
                 diagramStore.setCurrentFile(file);
-                updateDiagramList();
+                viewController.updateDiagramList(diagramStore.getDiagrams());
                 loadDiagram(diagram);
 
                 showInfo("Chargement réussi", "Le diagramme a été chargé avec succès.");
@@ -302,20 +292,22 @@ public class MainController {
         }
     }
 
-    private void handleImportJavaCode() {
+    public void handleImportJavaCode() {
+        Window window = viewController.getWindow();
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Importer du code Java");
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Fichiers Java (*.java)", "*.java"));
 
-        File file = fileChooser.showOpenDialog(mainView.getScene().getWindow());
+        File file = fileChooser.showOpenDialog(window);
         if (file != null) {
             try {
                 JavaCodeParser parser = new JavaCodeParser();
                 ClassDiagram diagram = parser.parseFile(file);
 
                 diagramStore.getDiagrams().add(diagram);
-                updateDiagramList();
+                viewController.updateDiagramList(diagramStore.getDiagrams());
                 loadDiagram(diagram);
 
                 showInfo("Importation réussie", "Le code Java a été importé avec succès.");
@@ -326,42 +318,21 @@ public class MainController {
         }
     }
 
-    private void handleImportJavaProject() {
-        DirectoryChooser directoryChooser = new DirectoryChooser();
-        directoryChooser.setTitle("Importer un projet Java");
+    public void handleExportImage() {
+        Window window = viewController.getWindow();
 
-        File directory = directoryChooser.showDialog(mainView.getScene().getWindow());
-        if (directory != null) {
-            try {
-                JavaCodeParser parser = new JavaCodeParser();
-                ClassDiagram diagram = parser.parseProject(directory.toPath());
-
-                diagramStore.getDiagrams().add(diagram);
-                updateDiagramList();
-                loadDiagram(diagram);
-
-                showInfo("Importation réussie", "Le projet Java a été importé avec succès.");
-            } catch (Exception e) {
-                showError("Erreur lors de l'importation",
-                        "Une erreur est survenue lors de l'importation du projet Java : " + e.getMessage());
-            }
-        }
-    }
-
-    private void handleExportImage() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Exporter en image PNG");
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Fichiers PNG (*.png)", "*.png"));
 
-        File file = fileChooser.showSaveDialog(mainView.getScene().getWindow());
+        File file = fileChooser.showSaveDialog(window);
         if (file != null) {
             if (!file.getName().endsWith(".png")) {
                 file = new File(file.getAbsolutePath() + ".png");
             }
             try {
-                DiagramExporter exporter = new PNGExporter(diagramCanvas);
-                exporter.export(diagramStore.getActiveDiagram(), file);
+                exportService.exportDiagram(diagramStore.getActiveDiagram(), "png", file);
                 showInfo("Exportation réussie", "Le diagramme a été exporté en PNG avec succès.");
             } catch (IOException e) {
                 showError("Erreur lors de l'exportation",
@@ -370,20 +341,21 @@ public class MainController {
         }
     }
 
-    private void handleExportSVG() {
+    public void handleExportSVG() {
+        Window window = viewController.getWindow();
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Exporter en SVG");
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Fichiers SVG (*.svg)", "*.svg"));
 
-        File file = fileChooser.showSaveDialog(mainView.getScene().getWindow());
+        File file = fileChooser.showSaveDialog(window);
         if (file != null) {
             if (!file.getName().endsWith(".svg")) {
                 file = new File(file.getAbsolutePath() + ".svg");
             }
             try {
-                DiagramExporter exporter = new SVGExporter();
-                exporter.export(diagramStore.getActiveDiagram(), file);
+                exportService.exportDiagram(diagramStore.getActiveDiagram(), "svg", file);
                 showInfo("Exportation réussie", "Le diagramme a été exporté en SVG avec succès.");
             } catch (IOException e) {
                 showError("Erreur lors de l'exportation",
@@ -392,20 +364,21 @@ public class MainController {
         }
     }
 
-    private void handleExportPlantUML() {
+    public void handleExportPlantUML() {
+        Window window = viewController.getWindow();
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Exporter en PlantUML");
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Fichiers PlantUML (*.puml)", "*.puml"));
 
-        File file = fileChooser.showSaveDialog(mainView.getScene().getWindow());
+        File file = fileChooser.showSaveDialog(window);
         if (file != null) {
             if (!file.getName().endsWith(".puml")) {
                 file = new File(file.getAbsolutePath() + ".puml");
             }
             try {
-                DiagramExporter exporter = new PlantUMLExporter();
-                exporter.export(diagramStore.getActiveDiagram(), file);
+                exportService.exportDiagram(diagramStore.getActiveDiagram(), "puml", file);
                 showInfo("Exportation réussie", "Le diagramme a été exporté en PlantUML avec succès.");
             } catch (IOException e) {
                 showError("Erreur lors de l'exportation",
@@ -414,15 +387,16 @@ public class MainController {
         }
     }
 
-    private void handleExportJavaCode() {
+    public void handleExportJavaCode() {
+        Window window = viewController.getWindow();
+
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Exporter en code Java");
 
-        File directory = directoryChooser.showDialog(mainView.getScene().getWindow());
+        File directory = directoryChooser.showDialog(window);
         if (directory != null) {
             try {
-                DiagramExporter exporter = new JavaCodeExporter();
-                exporter.export(diagramStore.getActiveDiagram(), directory);
+                exportService.exportDiagram(diagramStore.getActiveDiagram(), "java", directory);
                 showInfo("Exportation réussie", "Le diagramme a été exporté en code Java avec succès.");
             } catch (IOException e) {
                 showError("Erreur lors de l'exportation",
@@ -454,6 +428,20 @@ public class MainController {
         alert.setContentText(message);
         alert.showAndWait();
     }
+
+    public void handleUndo() {
+        if (commandManager.canUndo()) {
+            commandManager.undo();
+            diagramCanvas.refresh();
+            viewController.setStatus("Action annulée");
+        }
+    }
+
+    public void handleRedo() {
+        if (commandManager.canRedo()) {
+            commandManager.redo();
+            diagramCanvas.refresh();
+            viewController.setStatus("Action rétablie");
+        }
+    }
 }
-
-

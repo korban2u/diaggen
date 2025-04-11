@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<DialogPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.diaggen.view.dialog.controller.MethodEditorController">
+    <content>
+        <VBox spacing="10">
+            <padding>
+                <Insets top="20" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <GridPane hgap="10" vgap="10">
+                <Label text="Nom:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <TextField fx:id="nameField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                <Label text="Type de retour:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <TextField fx:id="returnTypeField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                <Label text="Visibilité:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <ComboBox fx:id="visibilityComboBox" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                    <CheckBox fx:id="abstractCheckBox" text="Abstract"/>
+                    <CheckBox fx:id="staticCheckBox" text="Static"/>
+                </HBox>
+            </GridPane>
+
+            <Label text="Paramètres:"/>
+
+            <ListView fx:id="parametersListView" prefHeight="150"/>
+
+            <HBox spacing="10">
+                <Button fx:id="addParameterButton" text="Ajouter" onAction="#handleAddParameter"/>
+                <Button fx:id="editParameterButton" text="Modifier" onAction="#handleEditParameter"/>
+                <Button fx:id="removeParameterButton" text="Supprimer" onAction="#handleRemoveParameter"/>
+            </HBox>
+        </VBox>
+    </content>
+    <buttonTypes>
+        <ButtonType fx:constant="OK"/>
+        <ButtonType fx:constant="CANCEL"/>
+    </buttonTypes>
+</DialogPane>

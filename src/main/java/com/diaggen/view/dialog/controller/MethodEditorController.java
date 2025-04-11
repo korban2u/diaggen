@@ -1,0 +1,186 @@
+package com.diaggen.view.dialog.controller;
+
+import com.diaggen.model.Method;
+import com.diaggen.model.Parameter;
+import com.diaggen.model.Visibility;
+import com.diaggen.view.dialog.DialogFactory;
+import javafx.collections.FXCollections;
+import javafx.fxml.FXML;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.TextFieldListCell;
+import javafx.util.Callback;
+import javafx.util.StringConverter;
+
+import java.util.ArrayList;
+
+public class MethodEditorController {
+
+    @FXML
+    private TextField nameField;
+
+    @FXML
+    private TextField returnTypeField;
+
+    @FXML
+    private ComboBox<Visibility> visibilityComboBox;
+
+    @FXML
+    private CheckBox abstractCheckBox;
+
+    @FXML
+    private CheckBox staticCheckBox;
+
+    @FXML
+    private ListView<Parameter> parametersListView;
+
+    @FXML
+    private Button addParameterButton;
+
+    @FXML
+    private Button editParameterButton;
+
+    @FXML
+    private Button removeParameterButton;
+
+    private Method method;
+    private Dialog<Method> dialog;
+
+    @FXML
+    public void initialize() {
+        // Configuration du ComboBox de visibilité
+        visibilityComboBox.setItems(FXCollections.observableArrayList(Visibility.values()));
+        visibilityComboBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(Visibility visibility) {
+                return visibility != null ? visibility.getSymbol() + " " + visibility.name() : "";
+            }
+
+            @Override
+            public Visibility fromString(String string) {
+                return null;
+            }
+        });
+
+        // Configuration de la ListView des paramètres
+        parametersListView.setCellFactory(param -> new ParameterListCell());
+    }
+
+    /**
+     * Configure le dialogue et définit la méthode à éditer
+     * @param dialog Le dialogue à configurer
+     * @param method La méthode à éditer (null pour création)
+     */
+    public void setDialog(Dialog<Method> dialog, Method method) {
+        this.dialog = dialog;
+        this.method = method;
+
+        // Définir le titre du dialogue
+        dialog.setTitle(method == null ? "Ajouter une méthode" : "Modifier une méthode");
+        dialog.setHeaderText(method == null ? "Créer une nouvelle méthode" : "Modifier la méthode");
+
+        // Initialiser les champs avec les valeurs de la méthode existante
+        if (method != null) {
+            nameField.setText(method.getName());
+            returnTypeField.setText(method.getReturnType());
+            visibilityComboBox.getSelectionModel().select(method.getVisibility());
+            abstractCheckBox.setSelected(method.isAbstract());
+            staticCheckBox.setSelected(method.isStatic());
+            parametersListView.setItems(method.getParameters());
+        } else {
+            // Valeurs par défaut pour une nouvelle méthode
+            returnTypeField.setText("void");
+            visibilityComboBox.getSelectionModel().select(Visibility.PUBLIC);
+            parametersListView.setItems(FXCollections.observableArrayList());
+        }
+
+        // Configurer le convertisseur de résultat
+        dialog.setResultConverter(createResultConverter());
+    }
+
+    /**
+     * Gestion de l'ajout d'un paramètre
+     */
+    @FXML
+    public void handleAddParameter() {
+        DialogFactory dialogFactory = DialogFactory.getInstance();
+        Dialog<Parameter> dialog = dialogFactory.createParameterEditorDialog(null);
+
+        dialog.showAndWait().ifPresent(parameter -> {
+            parametersListView.getItems().add(parameter);
+        });
+    }
+
+    /**
+     * Gestion de la modification d'un paramètre
+     */
+    @FXML
+    public void handleEditParameter() {
+        Parameter selectedParameter = parametersListView.getSelectionModel().getSelectedItem();
+        if (selectedParameter != null) {
+            DialogFactory dialogFactory = DialogFactory.getInstance();
+            Dialog<Parameter> dialog = dialogFactory.createParameterEditorDialog(selectedParameter);
+
+            dialog.showAndWait();
+            parametersListView.refresh();
+        }
+    }
+
+    /**
+     * Gestion de la suppression d'un paramètre
+     */
+    @FXML
+    public void handleRemoveParameter() {
+        Parameter selectedParameter = parametersListView.getSelectionModel().getSelectedItem();
+        if (selectedParameter != null) {
+            parametersListView.getItems().remove(selectedParameter);
+        }
+    }
+
+    /**
+     * Crée un convertisseur de résultat pour le dialogue
+     */
+    private Callback<ButtonType, Method> createResultConverter() {
+        return dialogButton -> {
+            if (dialogButton == ButtonType.OK) {
+                Visibility selectedVisibility = visibilityComboBox.getSelectionModel().getSelectedItem();
+
+                if (method == null) {
+                    // Créer une nouvelle méthode
+                    return new Method(
+                            nameField.getText(),
+                            returnTypeField.getText(),
+                            new ArrayList<>(parametersListView.getItems()),
+                            selectedVisibility,
+                            abstractCheckBox.isSelected(),
+                            staticCheckBox.isSelected());
+                } else {
+                    // Mettre à jour la méthode existante
+                    method.setName(nameField.getText());
+                    method.setReturnType(returnTypeField.getText());
+                    return method;
+                }
+            }
+            return null;
+        };
+    }
+
+    /**
+     * Classe interne pour l'affichage des paramètres dans la ListView
+     */
+    private static class ParameterListCell extends TextFieldListCell<Parameter> {
+        public ParameterListCell() {
+            setConverter(new StringConverter<>() {
+                @Override
+                public String toString(Parameter parameter) {
+                    return parameter != null ?
+                            parameter.getName() + " : " + parameter.getType() : "";
+                }
+
+                @Override
+                public Parameter fromString(String string) {
+                    return null;
+                }
+            });
+        }
+    }
+}
