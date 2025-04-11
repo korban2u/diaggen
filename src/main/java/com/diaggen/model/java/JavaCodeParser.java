@@ -88,11 +88,11 @@ public class JavaCodeParser {
     private void parseFields(TypeDeclaration<?> typeDecl, DiagramClass diagramClass) {
         typeDecl.getFields().forEach(field -> {
             field.getVariables().forEach(variable -> {
-                Visibility visibility = getVisibility(field);
+                Visibility visibility = determineVisibility(field);
                 Member member = new Member(
-                    variable.getNameAsString(),
-                    field.getElementType().asString(),
-                    visibility
+                        variable.getNameAsString(),
+                        field.getElementType().asString(),
+                        visibility
                 );
                 diagramClass.addAttribute(member);
             });
@@ -104,36 +104,51 @@ public class JavaCodeParser {
             List<Parameter> parameters = new ArrayList<>();
             method.getParameters().forEach(param -> {
                 parameters.add(new Parameter(
-                    param.getNameAsString(),
-                    param.getType().asString()
+                        param.getNameAsString(),
+                        param.getType().asString()
                 ));
             });
 
-            Visibility visibility = getVisibility(method);
+            Visibility visibility = determineVisibility(method);
             boolean isAbstract = method.isAbstract();
             boolean isStatic = method.isStatic();
 
-            Method diagramMethod = new Method(
-                method.getNameAsString(),
-                method.getType().asString(),
-                parameters,
-                visibility,
-                isAbstract,
-                isStatic
+            // Utiliser le nom complet pour éviter la confusion avec java.lang.reflect.Method
+            com.diaggen.model.Method diagramMethod = new com.diaggen.model.Method(
+                    method.getNameAsString(),
+                    method.getType().asString(),
+                    parameters,
+                    visibility,
+                    isAbstract,
+                    isStatic
             );
 
             diagramClass.addMethod(diagramMethod);
         });
     }
 
-    private Visibility getVisibility(BodyDeclaration<?> declaration) {
-        if (declaration.isPublic()) {
-            return Visibility.PUBLIC;
-        } else if (declaration.isPrivate()) {
-            return Visibility.PRIVATE;
-        } else if (declaration.isProtected()) {
-            return Visibility.PROTECTED;
-        } else {
+    private Visibility determineVisibility(Object declaration) {
+        try {
+            // Utiliser la réflexion pour appeler les méthodes de visibilité
+            java.lang.reflect.Method isPublicMethod = declaration.getClass().getMethod("isPublic");
+            java.lang.reflect.Method isPrivateMethod = declaration.getClass().getMethod("isPrivate");
+            java.lang.reflect.Method isProtectedMethod = declaration.getClass().getMethod("isProtected");
+
+            Boolean isPublic = (Boolean) isPublicMethod.invoke(declaration);
+            Boolean isPrivate = (Boolean) isPrivateMethod.invoke(declaration);
+            Boolean isProtected = (Boolean) isProtectedMethod.invoke(declaration);
+
+            if (isPublic) {
+                return Visibility.PUBLIC;
+            } else if (isPrivate) {
+                return Visibility.PRIVATE;
+            } else if (isProtected) {
+                return Visibility.PROTECTED;
+            } else {
+                return Visibility.PACKAGE;
+            }
+        } catch (Exception e) {
+            // En cas d'erreur, retourner la visibilité par défaut
             return Visibility.PACKAGE;
         }
     }
@@ -141,39 +156,52 @@ public class JavaCodeParser {
     private void collectRelationships(ClassOrInterfaceDeclaration classDecl, DiagramClass diagramClass, String packageName) {
         classDecl.getExtendedTypes().forEach(extendedType -> {
             relationInfos.add(new RelationInfo(
-                diagramClass,
-                getFullClassName(packageName, extendedType.getNameAsString()),
-                RelationType.INHERITANCE,
-                "", "", ""
+                    diagramClass,
+                    getFullClassName(packageName, extendedType.getNameAsString()),
+                    RelationType.INHERITANCE,
+                    "", "", ""
             ));
         });
 
         classDecl.getImplementedTypes().forEach(implementedType -> {
             relationInfos.add(new RelationInfo(
-                diagramClass,
-                getFullClassName(packageName, implementedType.getNameAsString()),
-                RelationType.IMPLEMENTATION,
-                "", "", ""
+                    diagramClass,
+                    getFullClassName(packageName, implementedType.getNameAsString()),
+                    RelationType.IMPLEMENTATION,
+                    "", "", ""
             ));
         });
 
         classDecl.getFields().forEach(field -> {
             String fieldType = field.getElementType().asString();
             if (!isPrimitive(fieldType)) {
-                RelationType relationType = field.getModifiers().contains(Modifier.nodeFromModifier(Modifier.Keyword.FINAL))
-                    ? RelationType.COMPOSITION
-                    : RelationType.AGGREGATION;
+                // Vérifier si le champ est final pour déterminer le type de relation
+                boolean isFinal = isFieldFinal(field);
+                RelationType relationType = isFinal
+                        ? RelationType.COMPOSITION
+                        : RelationType.AGGREGATION;
 
                 String multiplicity = isCollection(fieldType) ? "0..*" : "0..1";
 
                 relationInfos.add(new RelationInfo(
-                    diagramClass,
-                    getFullClassName(packageName, stripGenerics(fieldType)),
-                    relationType,
-                    "1", multiplicity, field.getVariable(0).getNameAsString()
+                        diagramClass,
+                        getFullClassName(packageName, stripGenerics(fieldType)),
+                        relationType,
+                        "1", multiplicity, field.getVariable(0).getNameAsString()
                 ));
             }
         });
+    }
+
+    private boolean isFieldFinal(FieldDeclaration field) {
+        try {
+            // Utiliser la réflexion pour vérifier si le champ est final
+            java.lang.reflect.Method isFinalMethod = field.getClass().getMethod("isFinal");
+            return (Boolean) isFinalMethod.invoke(field);
+        } catch (Exception e) {
+            // En cas d'erreur, essayer une approche alternative ou retourner une valeur par défaut
+            return false;
+        }
     }
 
     private void createRelations(ClassDiagram diagram) {
@@ -181,12 +209,12 @@ public class JavaCodeParser {
             DiagramClass targetClass = classMap.get(info.targetClassName);
             if (targetClass != null) {
                 DiagramRelation relation = new DiagramRelation(
-                    info.sourceClass,
-                    targetClass,
-                    info.relationType,
-                    info.sourceMultiplicity,
-                    info.targetMultiplicity,
-                    info.label
+                        info.sourceClass,
+                        targetClass,
+                        info.relationType,
+                        info.sourceMultiplicity,
+                        info.targetMultiplicity,
+                        info.label
                 );
                 diagram.addRelation(relation);
             }
@@ -199,23 +227,23 @@ public class JavaCodeParser {
 
     private boolean isPrimitive(String typeName) {
         return typeName.equals("int") ||
-               typeName.equals("long") ||
-               typeName.equals("double") ||
-               typeName.equals("float") ||
-               typeName.equals("boolean") ||
-               typeName.equals("char") ||
-               typeName.equals("byte") ||
-               typeName.equals("short") ||
-               typeName.equals("String") ||
-               typeName.startsWith("java.lang.");
+                typeName.equals("long") ||
+                typeName.equals("double") ||
+                typeName.equals("float") ||
+                typeName.equals("boolean") ||
+                typeName.equals("char") ||
+                typeName.equals("byte") ||
+                typeName.equals("short") ||
+                typeName.equals("String") ||
+                typeName.startsWith("java.lang.");
     }
 
     private boolean isCollection(String typeName) {
         return typeName.contains("List") ||
-               typeName.contains("Set") ||
-               typeName.contains("Map") ||
-               typeName.contains("Collection") ||
-               typeName.contains("[]");
+                typeName.contains("Set") ||
+                typeName.contains("Map") ||
+                typeName.contains("Collection") ||
+                typeName.contains("[]");
     }
 
     private String stripGenerics(String typeName) {
@@ -243,5 +271,3 @@ public class JavaCodeParser {
         }
     }
 }
-
-
