@@ -36,10 +36,11 @@ public class ClassEditorDialog extends Dialog<DiagramClass> {
     private final ListView<Member> attributesListView;
     private final ListView<Method> methodsListView;
 
-    private DiagramClass diagramClass;
+    // Déclaré final pour signifier qu'il ne sera pas réassigné
+    private final DiagramClass originalDiagramClass;
 
     public ClassEditorDialog(DiagramClass diagramClass) {
-        this.diagramClass = diagramClass;
+        this.originalDiagramClass = diagramClass;
 
         setTitle(diagramClass == null ? "Ajouter une classe" : "Modifier une classe");
         setHeaderText(diagramClass == null ? "Créer une nouvelle classe" : "Modifier la classe " + diagramClass.getName());
@@ -100,6 +101,8 @@ public class ClassEditorDialog extends Dialog<DiagramClass> {
 
         if (diagramClass != null) {
             attributesListView.setItems(diagramClass.getAttributes());
+        } else {
+            attributesListView.setItems(FXCollections.observableArrayList());
         }
 
         HBox attributesButtonsBox = new HBox(10);
@@ -128,6 +131,8 @@ public class ClassEditorDialog extends Dialog<DiagramClass> {
 
         if (diagramClass != null) {
             methodsListView.setItems(diagramClass.getMethods());
+        } else {
+            methodsListView.setItems(FXCollections.observableArrayList());
         }
 
         HBox methodsButtonsBox = new HBox(10);
@@ -150,27 +155,33 @@ public class ClassEditorDialog extends Dialog<DiagramClass> {
         setResultConverter(dialogButton -> {
             if (dialogButton == ButtonType.OK) {
                 ClassType selectedType = typeComboBox.getSelectionModel().getSelectedItem();
+                DiagramClass resultClass;
 
-                if (diagramClass == null) {
-                    diagramClass = new DiagramClass(
+                if (originalDiagramClass == null) {
+                    // Créer une nouvelle instance si on est en mode création
+                    resultClass = new DiagramClass(
                             nameField.getText(),
                             packageField.getText(),
                             selectedType);
 
+                    // Ajouter les attributs et méthodes à la nouvelle classe
                     for (Member attribute : attributesListView.getItems()) {
-                        diagramClass.addAttribute(attribute);
+                        resultClass.addAttribute(attribute);
                     }
 
                     for (Method method : methodsListView.getItems()) {
-                        diagramClass.addMethod(method);
+                        resultClass.addMethod(method);
                     }
                 } else {
-                    diagramClass.setName(nameField.getText());
-                    diagramClass.setPackageName(packageField.getText());
-                    diagramClass.setClassType(selectedType);
+                    // Mettre à jour l'instance existante en mode modification
+                    resultClass = originalDiagramClass;
+                    resultClass.setName(nameField.getText());
+                    resultClass.setPackageName(packageField.getText());
+                    resultClass.setClassType(selectedType);
+                    // Note: attributs et méthodes sont directement mis à jour via les ObservableLists
                 }
 
-                return diagramClass;
+                return resultClass;
             }
             return null;
         });
@@ -178,12 +189,7 @@ public class ClassEditorDialog extends Dialog<DiagramClass> {
 
     private void handleAddAttribute() {
         AttributeEditorDialog dialog = new AttributeEditorDialog(null);
-        dialog.showAndWait().ifPresent(attribute -> {
-            if (attributesListView.getItems() == null) {
-                attributesListView.setItems(FXCollections.observableArrayList());
-            }
-            attributesListView.getItems().add(attribute);
-        });
+        dialog.showAndWait().ifPresent(attributesListView.getItems()::add);
     }
 
     private void handleEditAttribute() {
@@ -191,6 +197,8 @@ public class ClassEditorDialog extends Dialog<DiagramClass> {
         if (selectedAttribute != null) {
             AttributeEditorDialog dialog = new AttributeEditorDialog(selectedAttribute);
             dialog.showAndWait();
+            // Rafraîchir la vue si nécessaire
+            attributesListView.refresh();
         }
     }
 
@@ -203,12 +211,7 @@ public class ClassEditorDialog extends Dialog<DiagramClass> {
 
     private void handleAddMethod() {
         MethodEditorDialog dialog = new MethodEditorDialog(null);
-        dialog.showAndWait().ifPresent(method -> {
-            if (methodsListView.getItems() == null) {
-                methodsListView.setItems(FXCollections.observableArrayList());
-            }
-            methodsListView.getItems().add(method);
-        });
+        dialog.showAndWait().ifPresent(methodsListView.getItems()::add);
     }
 
     private void handleEditMethod() {
@@ -216,6 +219,8 @@ public class ClassEditorDialog extends Dialog<DiagramClass> {
         if (selectedMethod != null) {
             MethodEditorDialog dialog = new MethodEditorDialog(selectedMethod);
             dialog.showAndWait();
+            // Rafraîchir la vue si nécessaire
+            methodsListView.refresh();
         }
     }
 
@@ -233,7 +238,7 @@ public class ClassEditorDialog extends Dialog<DiagramClass> {
                 public String toString(Member member) {
                     return member != null ?
                             member.getVisibility().getSymbol() + " " +
-                            member.getName() + " : " + member.getType() : "";
+                                    member.getName() + " : " + member.getType() : "";
                 }
 
                 @Override
@@ -286,5 +291,3 @@ public class ClassEditorDialog extends Dialog<DiagramClass> {
         }
     }
 }
-
-

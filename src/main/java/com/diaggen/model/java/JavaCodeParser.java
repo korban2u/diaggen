@@ -1,6 +1,7 @@
 package com.diaggen.model.java;
 
 import com.diaggen.model.*;
+import com.diaggen.model.Parameter;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
