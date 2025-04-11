@@ -8,9 +8,6 @@ import javafx.collections.ObservableList;
 
 import java.util.Stack;
 
-/**
- * Gestionnaire de commandes pour l'implémentation de undo/redo
- */
 public class CommandManager {
 
     private final Stack<Command> undoStack = new Stack<>();
@@ -21,13 +18,44 @@ public class CommandManager {
 
     private final ObservableList<String> commandHistory = FXCollections.observableArrayList();
 
+    // CommandGroup en cours de construction (si utilisé)
+    private CommandGroup currentGroup = null;
+
     public void executeCommand(Command command) {
+        // Si nous sommes en train de construire un groupe, ajouter à ce groupe
+        if (currentGroup != null) {
+            currentGroup.addCommand(command);
+            return;
+        }
+
+        // Sinon, exécuter et empiler normalement
         command.execute();
         undoStack.push(command);
         redoStack.clear();
 
         updateProperties();
         updateCommandHistory();
+    }
+
+    public void startCommandGroup(String description) {
+        // Commencer un nouveau groupe de commandes
+        currentGroup = new CommandGroup(description);
+    }
+
+    public void endCommandGroup() {
+        // Terminer le groupe courant et l'exécuter si non vide
+        if (currentGroup != null && !currentGroup.isEmpty()) {
+            Command group = currentGroup;
+            currentGroup = null;
+            executeCommand(group);
+        } else {
+            currentGroup = null;
+        }
+    }
+
+    public void cancelCommandGroup() {
+        // Annuler le groupe en cours sans l'exécuter
+        currentGroup = null;
     }
 
     public void undo() {
@@ -59,7 +87,6 @@ public class CommandManager {
     public boolean canRedo() {
         return !redoStack.isEmpty();
     }
-
 
     public ReadOnlyBooleanProperty canUndoProperty() {
         return canUndoProperty;

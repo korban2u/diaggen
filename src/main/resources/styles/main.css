@@ -56,4 +56,121 @@
     -fx-stroke-width: 1;
 }
 
+/* Styles pour le panneau d'édition */
+.editor-panel {
+    -fx-background-color: #f8f8f8;
+    -fx-border-color: #ddd;
+    -fx-border-width: 0 0 0 1;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, -5, 0);
+}
+
+.editor-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+/* Styles pour les TitledPane */
+.titled-pane {
+    -fx-text-fill: #333;
+}
+
+.titled-pane > .title {
+    -fx-background-color: #eee;
+    -fx-background-radius: 5 5 0 0;
+    -fx-border-color: #ddd;
+    -fx-border-width: 1;
+    -fx-border-radius: 5 5 0 0;
+}
+
+.titled-pane:expanded > .title {
+    -fx-background-color: #e0e0e0;
+}
+
+.titled-pane > .content {
+    -fx-background-color: white;
+    -fx-border-color: #ddd;
+    -fx-border-width: 0 1 1 1;
+    -fx-border-radius: 0 0 5 5;
+}
+
+/* Styles pour les champs */
+.text-field, .combo-box {
+    -fx-background-color: white;
+    -fx-border-color: #ccc;
+    -fx-border-radius: 3;
+}
+
+.text-field:focused, .combo-box:focused {
+    -fx-border-color: #4a89dc;
+}
+
+/* Styles pour les listes */
+.list-view {
+    -fx-background-color: white;
+    -fx-border-color: #ccc;
+    -fx-border-radius: 3;
+}
+
+.list-view .list-cell:selected {
+    -fx-background-color: #4a89dc;
+    -fx-text-fill: white;
+}
+
+/* Styles pour les boutons */
+.button {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #ccc;
+    -fx-border-radius: 3;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #e8e8e8;
+}
+
+.button:pressed {
+    -fx-background-color: #d8d8d8;
+}
+
+/* Styles pour les classes sélectionnées dans le diagramme */
+.class-node.selected {
+    -fx-border-color: #4a89dc;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(three-pass-box, rgba(74,137,220,0.5), 10, 0, 0, 0);
+}
+
+/* Styles pour les relations sélectionnées */
+.relation-line.selected .line {
+    -fx-stroke: #4a89dc;
+    -fx-stroke-width: 2;
+}
+
+.relation-line.selected .arrow-head {
+    -fx-stroke: #4a89dc;
+    -fx-fill: #4a89dc;
+}
+
+/* Animation de sélection */
+@keyframes pulse {
+    0% { -fx-border-color: #4a89dc; }
+    50% { -fx-border-color: #87b1eb; }
+    100% { -fx-border-color: #4a89dc; }
+}
+
+.class-node.selected {
+    -fx-animation: pulse 2s infinite;
+}
+
+/* Style pour les labels et titres */
+.label {
+    -fx-text-fill: #333;
+}
+
+/* Style pour les séparateurs */
+.separator .line {
+    -fx-border-color: #ddd;
+    -fx-border-width: 1;
+}
+
 

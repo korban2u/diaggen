@@ -27,11 +27,9 @@
                 </Menu>
                 <Menu text="Diagramme">
                     <MenuItem text="Ajouter une classe" onAction="#handleAddClass"/>
-                    <MenuItem text="Modifier la classe sélectionnée" onAction="#handleEditClass"/>
                     <MenuItem text="Supprimer la classe sélectionnée" onAction="#handleDeleteClass"/>
                     <SeparatorMenuItem />
                     <MenuItem text="Ajouter une relation" onAction="#handleAddRelation"/>
-                    <MenuItem text="Modifier la relation sélectionnée" onAction="#handleEditRelation"/>
                     <MenuItem text="Supprimer la relation sélectionnée" onAction="#handleDeleteRelation"/>
                 </Menu>
                 <Menu text="Import/Export">
@@ -54,12 +52,10 @@
                 <Button text="Ouvrir" onAction="#handleOpenDiagram"/>
                 <Separator orientation="VERTICAL"/>
                 <Button text="+ Classe" onAction="#handleAddClass"/>
-                <Button text="Éditer Classe" onAction="#handleEditClass"/>
-                <Button text="- Classe" onAction="#handleDeleteClass"/>
+                <Button text="- Classe" onAction="#handleDeleteClass" fx:id="deleteClassButton"/>
                 <Separator orientation="VERTICAL"/>
                 <Button text="+ Relation" onAction="#handleAddRelation"/>
-                <Button text="Éditer Relation" onAction="#handleEditRelation"/>
-                <Button text="- Relation" onAction="#handleDeleteRelation"/>
+                <Button text="- Relation" onAction="#handleDeleteRelation" fx:id="deleteRelationButton"/>
                 <Separator orientation="VERTICAL"/>
                 <Button text="Export PNG" onAction="#handleExportImage"/>
             </ToolBar>
@@ -67,23 +63,40 @@
     </top>
 
     <center>
-        <SplitPane dividerPositions="0.2">
-            <VBox>
-                <Label text="Diagrammes"/>
-                <ListView fx:id="diagramListView" VBox.vgrow="ALWAYS">
-                    <contextMenu>
-                        <ContextMenu>
-                            <items>
-                                <MenuItem text="Nouveau diagramme" onAction="#handleNewDiagram"/>
-                                <MenuItem text="Renommer" onAction="#handleEditDiagram"/>
-                                <MenuItem text="Supprimer" onAction="#handleDeleteDiagram"/>
-                            </items>
-                        </ContextMenu>
-                    </contextMenu>
-                </ListView>
+        <HBox>
+            <SplitPane dividerPositions="0.2" HBox.hgrow="ALWAYS">
+                <VBox>
+                    <Label text="Diagrammes"/>
+                    <ListView fx:id="diagramListView" VBox.vgrow="ALWAYS">
+                        <contextMenu>
+                            <ContextMenu>
+                                <items>
+                                    <MenuItem text="Nouveau diagramme" onAction="#handleNewDiagram"/>
+                                    <MenuItem text="Renommer" onAction="#handleEditDiagram"/>
+                                    <MenuItem text="Supprimer" onAction="#handleDeleteDiagram"/>
+                                </items>
+                            </ContextMenu>
+                        </contextMenu>
+                    </ListView>
+                </VBox>
+                <StackPane fx:id="diagramCanvasContainer"/>
+            </SplitPane>
+
+            <!-- Panneau d'édition (toujours à droite) -->
+            <VBox fx:id="editorPanel" prefWidth="300" styleClass="editor-panel" visible="false">
+                <Label text="Éditeur" styleClass="editor-title">
+                    <padding>
+                        <Insets top="10" right="15" bottom="10" left="15"/>
+                    </padding>
+                </Label>
+                <Separator/>
+                <VBox fx:id="editorContent" VBox.vgrow="ALWAYS" spacing="10">
+                    <padding>
+                        <Insets top="15" right="15" bottom="15" left="15"/>
+                    </padding>
+                </VBox>
             </VBox>
-            <StackPane fx:id="diagramCanvasContainer"/>
-        </SplitPane>
+        </HBox>
     </center>
 
     <bottom>

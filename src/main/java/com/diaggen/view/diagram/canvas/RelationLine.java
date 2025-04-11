@@ -1,23 +1,17 @@
 package com.diaggen.view.diagram.canvas;
 
 import com.diaggen.model.DiagramRelation;
-import com.diaggen.model.RelationType;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Polygon;
-
 
 public class RelationLine extends Pane {
 
     private final DiagramRelation relation;
     private final ClassNode sourceNode;
     private final ClassNode targetNode;
-    private final Line line;
-    private final Polygon arrowHead;
+    private final ArrowRenderer arrowRenderer;
     private final Label sourceMultiplicityLabel;
     private final Label targetMultiplicityLabel;
     private final Label relationLabel;
@@ -27,14 +21,8 @@ public class RelationLine extends Pane {
         this.sourceNode = sourceNode;
         this.targetNode = targetNode;
 
-        // Créer la ligne
-        line = new Line();
-        line.setStrokeWidth(1.5);
-        line.getStrokeDashArray().clear();
-
-        // Créer la tête de flèche
-        arrowHead = new Polygon();
-        arrowHead.getPoints().addAll(0.0, 0.0, -10.0, -5.0, -10.0, 5.0);
+        // Créer le renderer de flèche
+        arrowRenderer = new ArrowRenderer();
 
         // Créer les étiquettes
         sourceMultiplicityLabel = new Label();
@@ -46,20 +34,12 @@ public class RelationLine extends Pane {
         relationLabel = new Label();
         relationLabel.setStyle("-fx-font-size: 11;");
 
-        getChildren().addAll(line, arrowHead, sourceMultiplicityLabel, targetMultiplicityLabel, relationLabel);
-
-        // Définir le style selon le type de relation
-        if (relation.getRelationType() == RelationType.IMPLEMENTATION ||
-                relation.getRelationType() == RelationType.DEPENDENCY) {
-            line.getStrokeDashArray().addAll(10.0, 5.0);
-        }
-
-        updateArrowStyle();
+        getChildren().addAll(arrowRenderer.getArrowGroup(), sourceMultiplicityLabel,
+                targetMultiplicityLabel, relationLabel);
 
         // Planifier une mise à jour après le rendu complet de la scène
         Platform.runLater(this::update);
     }
-
 
     public DiagramRelation getRelation() {
         return relation;
@@ -86,84 +66,67 @@ public class RelationLine extends Pane {
         Point2D sourcePoint = sourceNode.getConnectionPoint(targetCenter);
         Point2D targetPoint = targetNode.getConnectionPoint(sourceCenter);
 
-        // Mettre à jour la ligne
-        line.setStartX(sourcePoint.getX());
-        line.setStartY(sourcePoint.getY());
-        line.setEndX(targetPoint.getX());
-        line.setEndY(targetPoint.getY());
+        // Mettre à jour la flèche
+        arrowRenderer.updateArrow(sourcePoint, targetPoint, relation.getRelationType());
 
-        // Calculer l'angle pour la tête de flèche
-        double angle = Math.atan2(
-                targetPoint.getY() - sourcePoint.getY(),
-                targetPoint.getX() - sourcePoint.getX());
-
-        // Positionner et orienter la tête de flèche
-        arrowHead.setTranslateX(targetPoint.getX());
-        arrowHead.setTranslateY(targetPoint.getY());
-        arrowHead.setRotate(Math.toDegrees(angle));
-
-        // Mettre à jour les étiquettes de multiplicité
-        sourceMultiplicityLabel.setText(relation.getSourceMultiplicity());
-        sourceMultiplicityLabel.setTranslateX(sourcePoint.getX() + 15);
-        sourceMultiplicityLabel.setTranslateY(sourcePoint.getY() - 15);
-
-        targetMultiplicityLabel.setText(relation.getTargetMultiplicity());
-        targetMultiplicityLabel.setTranslateX(targetPoint.getX() - 15);
-        targetMultiplicityLabel.setTranslateY(targetPoint.getY() - 15);
-
-        // Mettre à jour l'étiquette de la relation
-        relationLabel.setText(relation.getLabel());
-
-        // Positionner l'étiquette de la relation au milieu de la ligne
-        double midX = (sourcePoint.getX() + targetPoint.getX()) / 2;
-        double midY = (sourcePoint.getY() + targetPoint.getY()) / 2;
-
-        relationLabel.applyCss();
-        relationLabel.layout();
-
-        relationLabel.setTranslateX(midX - relationLabel.getWidth() / 2);
-        relationLabel.setTranslateY(midY - 20);
+        // Mettre à jour les étiquettes
+        updateLabels(sourcePoint, targetPoint);
     }
 
-    private void updateArrowStyle() {
-        RelationType type = relation.getRelationType();
+    private void updateLabels(Point2D sourcePoint, Point2D targetPoint) {
+        // Calculer le vecteur directeur
+        double dx = targetPoint.getX() - sourcePoint.getX();
+        double dy = targetPoint.getY() - sourcePoint.getY();
+        double length = Math.sqrt(dx * dx + dy * dy);
 
-        switch (type) {
-            case INHERITANCE:
-            case IMPLEMENTATION:
-                arrowHead.setFill(Color.WHITE);
-                arrowHead.setStroke(Color.BLACK);
-                arrowHead.setStrokeWidth(1.5);
-                break;
-            case ASSOCIATION:
-                arrowHead.setFill(Color.BLACK);
-                arrowHead.setStroke(Color.BLACK);
-                break;
-            case DEPENDENCY:
-                arrowHead.setFill(Color.BLACK);
-                arrowHead.setStroke(Color.BLACK);
-                break;
-            case AGGREGATION:
-                arrowHead.setFill(Color.WHITE);
-                arrowHead.setStroke(Color.BLACK);
-                arrowHead.setStrokeWidth(1.5);
-                break;
-            case COMPOSITION:
-                arrowHead.setFill(Color.BLACK);
-                arrowHead.setStroke(Color.BLACK);
-                arrowHead.setStrokeWidth(1.5);
-                break;
+        if (length == 0) return;
+
+        // Vecteurs unitaires
+        double ux = dx / length;
+        double uy = dy / length;
+
+        // Vecteur perpendiculaire
+        double perpX = -uy;
+        double perpY = ux;
+
+        // Décalage pour les étiquettes de multiplicité
+        double offset = 15.0;
+
+        // Position pour la multiplicité source
+        sourceMultiplicityLabel.setText(relation.getSourceMultiplicity());
+        if (!relation.getSourceMultiplicity().isEmpty()) {
+            sourceMultiplicityLabel.setTranslateX(sourcePoint.getX() + perpX * offset);
+            sourceMultiplicityLabel.setTranslateY(sourcePoint.getY() + perpY * offset);
+        }
+
+        // Position pour la multiplicité cible
+        targetMultiplicityLabel.setText(relation.getTargetMultiplicity());
+        if (!relation.getTargetMultiplicity().isEmpty()) {
+            targetMultiplicityLabel.setTranslateX(targetPoint.getX() + perpX * offset);
+            targetMultiplicityLabel.setTranslateY(targetPoint.getY() + perpY * offset);
+        }
+
+        // Position pour l'étiquette de relation
+        relationLabel.setText(relation.getLabel());
+        if (!relation.getLabel().isEmpty()) {
+            // Point milieu de la ligne
+            double midX = (sourcePoint.getX() + targetPoint.getX()) / 2;
+            double midY = (sourcePoint.getY() + targetPoint.getY()) / 2;
+
+            // Décalage perpendiculaire
+            double labelOffset = 15.0;
+            midX += perpX * labelOffset;
+            midY += perpY * labelOffset;
+
+            relationLabel.applyCss();
+            relationLabel.layout();
+
+            relationLabel.setTranslateX(midX - relationLabel.getWidth() / 2);
+            relationLabel.setTranslateY(midY - relationLabel.getHeight() / 2);
         }
     }
 
     public void setSelected(boolean selected) {
-        if (selected) {
-            line.setStroke(Color.BLUE);
-            arrowHead.setStroke(Color.BLUE);
-        } else {
-            line.setStroke(Color.BLACK);
-            arrowHead.setStroke(Color.BLACK);
-            updateArrowStyle();
-        }
+        arrowRenderer.setSelected(selected);
     }
 }

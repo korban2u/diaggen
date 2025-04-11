@@ -8,20 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Commande pour supprimer une classe du diagramme
- */
 public class RemoveClassCommand implements Command {
 
     private final ClassDiagram diagram;
     private final DiagramClass diagramClass;
     private final List<DiagramRelation> affectedRelations = new ArrayList<>();
 
-    /**
-     * Constructeur
-     * @param diagram Le diagramme
-     * @param diagramClass La classe à supprimer
-     */
     public RemoveClassCommand(ClassDiagram diagram, DiagramClass diagramClass) {
         this.diagram = diagram;
         this.diagramClass = diagramClass;
@@ -34,12 +26,21 @@ public class RemoveClassCommand implements Command {
 
     @Override
     public void execute() {
+        // Supprimer d'abord les relations associées
+        for (DiagramRelation relation : affectedRelations) {
+            diagram.removeRelation(relation);
+        }
+
+        // Puis supprimer la classe
         diagram.removeClass(diagramClass);
     }
 
     @Override
     public void undo() {
+        // Ajouter d'abord la classe
         diagram.addClass(diagramClass);
+
+        // Puis restaurer les relations
         for (DiagramRelation relation : affectedRelations) {
             diagram.addRelation(relation);
         }

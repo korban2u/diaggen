@@ -1,8 +1,6 @@
 package com.diaggen.controller;
 
-import com.diaggen.controller.command.AddClassCommand;
-import com.diaggen.controller.command.CommandManager;
-import com.diaggen.controller.command.RemoveClassCommand;
+import com.diaggen.controller.command.*;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramClass;
 import com.diaggen.model.DiagramRelation;
@@ -183,8 +181,16 @@ public class MainController {
 
         var dialog = dialogFactory.createRelationEditorDialog(null, classes);
         dialog.showAndWait().ifPresent(relation -> {
-            currentDiagram.addRelation(relation);
+            // Créer et exécuter la commande pour ajouter une relation
+            AddRelationCommand command = new AddRelationCommand(currentDiagram, relation);
+            commandManager.executeCommand(command);
+
+            // Rafraîchir le canvas
             diagramCanvas.refresh();
+
+            // Mettre à jour le statut
+            viewController.setStatus("Relation ajoutée entre " + relation.getSourceClass().getName() +
+                    " et " + relation.getTargetClass().getName());
         });
     }
 
@@ -201,8 +207,16 @@ public class MainController {
 
         var dialog = dialogFactory.createRelationEditorDialog(
                 selectedRelation, currentDiagram.getClasses());
-        dialog.showAndWait().ifPresent(updatedRelation -> diagramCanvas.refresh());
+        dialog.showAndWait().ifPresent(updatedRelation -> {
+            // Rafraîchir le canvas sans avoir besoin de commande
+            // puisque l'objet relation est déjà modifié par le dialogue
+            diagramCanvas.refresh();
+
+            // Mettre à jour le statut
+            viewController.setStatus("Relation modifiée");
+        });
     }
+
 
     public void handleDeleteRelation() {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
@@ -222,8 +236,15 @@ public class MainController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            currentDiagram.removeRelation(selectedRelation);
+            // Créer et exécuter la commande pour supprimer une relation
+            RemoveRelationCommand command = new RemoveRelationCommand(currentDiagram, selectedRelation);
+            commandManager.executeCommand(command);
+
+            // Rafraîchir le canvas
             diagramCanvas.refresh();
+
+            // Mettre à jour le statut
+            viewController.setStatus("Relation supprimée");
         }
     }
 
@@ -442,6 +463,33 @@ public class MainController {
             commandManager.redo();
             diagramCanvas.refresh();
             viewController.setStatus("Action rétablie");
+        }
+    }
+
+    /**
+     * Donne accès au DiagramStore pour des opérations spéciales
+     * @return le DiagramStore
+     */
+    public DiagramStore getDiagramStore() {
+        return diagramStore;
+    }
+
+    /**
+     * Ajoute une nouvelle classe directement au diagramme actif
+     * @param newClass la classe à ajouter
+     */
+    public void addNewClass(DiagramClass newClass) {
+        ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
+        if (currentDiagram != null) {
+            // Créer et exécuter la commande pour ajouter une classe
+            AddClassCommand command = new AddClassCommand(currentDiagram, newClass);
+            commandManager.executeCommand(command);
+
+            // Rafraîchir le canvas
+            diagramCanvas.refresh();
+
+            // Mettre à jour le statut
+            viewController.setStatus("Classe " + newClass.getName() + " ajoutée");
         }
     }
 }

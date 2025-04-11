@@ -2,17 +2,16 @@ package com.diaggen.view.controller;
 
 import com.diaggen.controller.MainController;
 import com.diaggen.model.ClassDiagram;
+import com.diaggen.model.ClassType;
 import com.diaggen.model.DiagramClass;
 import com.diaggen.model.DiagramRelation;
+import com.diaggen.view.dialog.DialogFactory;
 import com.diaggen.view.diagram.DiagramCanvas;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.SelectionMode;
+import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
@@ -27,12 +26,29 @@ public class MainViewController {
     @FXML
     private Label statusLabel;
 
+    @FXML
+    private VBox editorPanel;
+
+    @FXML
+    private VBox editorContent;
+
+    @FXML
+    private Button deleteClassButton;
+
+    @FXML
+    private Button deleteRelationButton;
+
     private MainController mainController;
     private DiagramCanvas diagramCanvas;
+    private EditorPanelController editorController;
+    private DialogFactory dialogFactory;
+
+    private DiagramClass selectedClass;
+    private DiagramRelation selectedRelation;
 
     @FXML
     public void initialize() {
-
+        // Configurer la liste des diagrammes
         diagramListView.setCellFactory(param -> new ListCell<>() {
             @Override
             protected void updateItem(ClassDiagram item, boolean empty) {
@@ -52,8 +68,88 @@ public class MainViewController {
             }
         });
 
+        // Initialiser le canvas
         diagramCanvas = new DiagramCanvas();
         diagramCanvasContainer.getChildren().add(diagramCanvas);
+
+        // Initialiser le factory de dialogues
+        dialogFactory = DialogFactory.getInstance();
+
+        // Initialiser le contrôleur du panneau d'édition
+        editorController = new EditorPanelController(editorContent, dialogFactory);
+
+        // Configurer les boutons de suppression (désactivés par défaut)
+        deleteClassButton.setDisable(true);
+        deleteRelationButton.setDisable(true);
+
+        // Configurer le mécanisme de sélection
+        setupSelectionHandling();
+    }
+
+    private void setupSelectionHandling() {
+        // Configurer le gestionnaire d'événements pour la sélection de classe
+        diagramCanvas.setClassSelectionListener(diagramClass -> {
+            // Désélectionner la relation si une classe est sélectionnée
+            if (diagramClass != null) {
+                selectedClass = diagramClass;
+                selectedRelation = null;
+                diagramCanvas.selectRelation(null);
+
+                // Mettre à jour l'état des boutons
+                deleteClassButton.setDisable(false);
+                deleteRelationButton.setDisable(true);
+
+                // Afficher le panneau d'édition de classe
+                editorPanel.setVisible(true);
+                editorController.showClassEditor(diagramClass);
+
+                // Mettre à jour le statut
+                setStatus("Classe sélectionnée: " + diagramClass.getName());
+            } else {
+                selectedClass = null;
+                deleteClassButton.setDisable(true);
+
+                // Vérifier si une relation est sélectionnée
+                if (selectedRelation == null) {
+                    editorPanel.setVisible(false);
+                }
+
+                setStatus("Prêt");
+            }
+        });
+
+        // Configurer le gestionnaire d'événements pour la sélection de relation
+        diagramCanvas.setRelationSelectionListener(relation -> {
+            // Désélectionner la classe si une relation est sélectionnée
+            if (relation != null) {
+                selectedRelation = relation;
+                selectedClass = null;
+                diagramCanvas.selectClass(null);
+
+                // Mettre à jour l'état des boutons
+                deleteRelationButton.setDisable(false);
+                deleteClassButton.setDisable(true);
+
+                // Afficher le panneau d'édition de relation
+                editorPanel.setVisible(true);
+                editorController.showRelationEditor(relation);
+
+                // Mettre à jour le statut
+                setStatus("Relation sélectionnée: " + relation.getRelationType().getDisplayName() +
+                        " entre " + relation.getSourceClass().getName() +
+                        " et " + relation.getTargetClass().getName());
+            } else {
+                selectedRelation = null;
+                deleteRelationButton.setDisable(true);
+
+                // Vérifier si une classe est sélectionnée
+                if (selectedClass == null) {
+                    editorPanel.setVisible(false);
+                }
+
+                setStatus("Prêt");
+            }
+        });
     }
 
     public void setMainController(MainController mainController) {
@@ -127,20 +223,35 @@ public class MainViewController {
     @FXML
     private void handleAddClass() {
         if (mainController != null) {
-            mainController.handleAddClass();
+            // on crée une nouvelle implémentation dans le contrôleur principal
+
+            // Créer une nouvelle classe avec un nom par défaut
+            int classCount = 1;
+            // Si possible, obtenez le nombre actuel de classes pour le nom par défaut
+            ClassDiagram currentDiagram = mainController.getDiagramStore().getActiveDiagram();
+            if (currentDiagram != null) {
+                classCount = currentDiagram.getClasses().size() + 1;
+            }
+
+            String defaultName = "Classe" + classCount;
+
+            // Créer la classe avec un type par défaut et l'ajouter directement
+            DiagramClass newClass = new DiagramClass(defaultName, "", ClassType.CLASS);
+
+            // Positionner la classe à un emplacement visible
+            newClass.setX(100 + (classCount % 5) * 220);
+            newClass.setY(100 + (classCount / 5) * 150);
+
+            // Utiliser le mainController pour ajouter la classe
+            mainController.addNewClass(newClass);
+
+            // Sélectionner la nouvelle classe
+            diagramCanvas.selectClass(newClass);
         }
     }
-
-    @FXML
-    private void handleEditClass() {
-        if (mainController != null) {
-            mainController.handleEditClass();
-        }
-    }
-
     @FXML
     private void handleDeleteClass() {
-        if (mainController != null) {
+        if (mainController != null && selectedClass != null) {
             mainController.handleDeleteClass();
         }
     }
@@ -153,15 +264,8 @@ public class MainViewController {
     }
 
     @FXML
-    private void handleEditRelation() {
-        if (mainController != null) {
-            mainController.handleEditRelation();
-        }
-    }
-
-    @FXML
     private void handleDeleteRelation() {
-        if (mainController != null) {
+        if (mainController != null && selectedRelation != null) {
             mainController.handleDeleteRelation();
         }
     }
@@ -235,7 +339,6 @@ public class MainViewController {
         );
         alert.showAndWait();
     }
-
 
     @FXML
     private void handleExit() {

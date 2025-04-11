@@ -11,8 +11,11 @@ import com.diaggen.view.diagram.canvas.RelationManager;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 
+import java.util.function.Consumer;
 
 public class DiagramCanvas extends Pane {
 
@@ -23,6 +26,8 @@ public class DiagramCanvas extends Pane {
     private final RelationManager relationManager;
 
     private Runnable onAddClassRequest;
+    private Consumer<DiagramClass> classSelectionListener;
+    private Consumer<DiagramRelation> relationSelectionListener;
 
     public DiagramCanvas() {
         getStyleClass().add("diagram-canvas");
@@ -52,16 +57,42 @@ public class DiagramCanvas extends Pane {
             contextMenu.show(this, e.getScreenX(), e.getScreenY());
         });
 
+        // Gérer le clic sur le fond pour désélectionner
+        setOnMousePressed(e -> {
+            if (e.getButton() == MouseButton.PRIMARY && e.getTarget() == this) {
+                deselectAll();
+            }
+        });
+
         widthProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
         heightProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
         gridRenderer.drawGrid();
 
+        // Configurer les écouteurs de sélection
         nodeManager.setNodeSelectionListener(node -> {
-            relationManager.selectRelation(null);
+            if (node != null) {
+                relationManager.selectRelation(null);
+                if (classSelectionListener != null) {
+                    classSelectionListener.accept(node.getDiagramClass());
+                }
+            } else {
+                if (classSelectionListener != null) {
+                    classSelectionListener.accept(null);
+                }
+            }
         });
 
         relationManager.setRelationSelectionListener(line -> {
-            nodeManager.selectNode(null);
+            if (line != null) {
+                nodeManager.selectNode(null);
+                if (relationSelectionListener != null) {
+                    relationSelectionListener.accept(line.getRelation());
+                }
+            } else {
+                if (relationSelectionListener != null) {
+                    relationSelectionListener.accept(null);
+                }
+            }
         });
     }
 
@@ -105,6 +136,11 @@ public class DiagramCanvas extends Pane {
         relationManager.clear();
     }
 
+    public void deselectAll() {
+        nodeManager.selectNode(null);
+        relationManager.selectRelation(null);
+    }
+
     public DiagramClass getSelectedClass() {
         return nodeManager.getSelectedClass();
     }
@@ -139,5 +175,14 @@ public class DiagramCanvas extends Pane {
         if (line != null) {
             relationManager.selectRelation(line);
         }
+    }
+
+    // Nouveaux accesseurs pour les écouteurs de sélection
+    public void setClassSelectionListener(Consumer<DiagramClass> listener) {
+        this.classSelectionListener = listener;
+    }
+
+    public void setRelationSelectionListener(Consumer<DiagramRelation> listener) {
+        this.relationSelectionListener = listener;
     }
 }

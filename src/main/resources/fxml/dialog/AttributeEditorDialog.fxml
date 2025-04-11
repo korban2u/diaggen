@@ -1,14 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
+<DialogPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="fxml.dialog.AttributeEditorDialog"
-            prefHeight="400.0" prefWidth="600.0">
+            fx:controller="com.diaggen.view.dialog.controller.AttributeEditorController">
+    <content>
+        <GridPane hgap="10" vgap="10">
+            <padding>
+                <Insets top="20" right="20" bottom="10" left="10"/>
+            </padding>
 
-</AnchorPane>
+            <Label text="Nom:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <TextField fx:id="nameField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+            <Label text="Type:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <TextField fx:id="typeField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+            <Label text="Visibilité:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+            <ComboBox fx:id="visibilityComboBox" GridPane.columnIndex="1" GridPane.rowIndex="2" maxWidth="Infinity"/>
+        </GridPane>
+    </content>
+    <ButtonType fx:constant="OK"/>
+    <ButtonType fx:constant="CANCEL"/>
+</DialogPane>
