@@ -43,17 +43,84 @@
     -fx-border-width: 1;
 }
 
+/* Styles améliorés pour les nœuds de classe */
 .class-node {
+    -fx-background-color: white;
+    -fx-border-color: #1a1a1a;
+    -fx-border-width: 1;
+    -fx-border-radius: 5;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0, 0, 1);
+    -fx-cursor: hand;
 }
 
 .class-node:hover {
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 8, 0, 0, 2);
+    -fx-border-color: #666666;
+}
+
+/* Style amélioré pour les classes sélectionnées */
+.class-node.selected {
+    -fx-border-color: #4a89dc;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(three-pass-box, rgba(74,137,220,0.5), 10, 0, 0, 0);
+    -fx-animation: pulse 2s infinite;
 }
 
 .class-node .separator {
     -fx-stroke: #cccccc;
     -fx-stroke-width: 1;
+}
+
+/* Styles améliorés pour les relations */
+.relation-line {
+    -fx-cursor: hand;
+}
+
+.relation-line .line {
+    -fx-stroke: #1a1a1a;
+    -fx-stroke-width: 1.8;
+}
+
+.relation-line .arrow-head {
+    -fx-stroke: #1a1a1a;
+    -fx-stroke-width: 1.8;
+}
+
+/* Styles améliorés pour les relations sélectionnées */
+.relation-line.selected .line {
+    -fx-stroke: #4a89dc;
+    -fx-stroke-width: 2.5;
+    -fx-effect: dropshadow(gaussian, rgba(74,137,220,0.5), 3, 0, 0, 0);
+}
+
+.relation-line.selected .arrow-head {
+    -fx-stroke: #4a89dc;
+    -fx-stroke-width: 2.5;
+    -fx-effect: dropshadow(gaussian, rgba(74,137,220,0.5), 3, 0, 0, 0);
+}
+
+/* Styles pour les étiquettes de relation */
+.relation-name-label {
+    -fx-background-color: rgba(255, 255, 255, 0.8);
+    -fx-padding: 2 4 2 4;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-color: #dddddd;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 2, 0, 0, 0);
+}
+
+.multiplicity-label {
+    -fx-background-color: rgba(255, 255, 255, 0.8);
+    -fx-padding: 1 3 1 3;
+    -fx-background-radius: 2;
+}
+
+/* Animation de pulsation pour les éléments sélectionnés */
+@keyframes pulse {
+    0% { -fx-border-color: #4a89dc; }
+    50% { -fx-border-color: #87b1eb; }
+    100% { -fx-border-color: #4a89dc; }
 }
 
 /* Styles pour le panneau d'édition */
@@ -133,35 +200,6 @@
     -fx-background-color: #d8d8d8;
 }
 
-/* Styles pour les classes sélectionnées dans le diagramme */
-.class-node.selected {
-    -fx-border-color: #4a89dc;
-    -fx-border-width: 2;
-    -fx-effect: dropshadow(three-pass-box, rgba(74,137,220,0.5), 10, 0, 0, 0);
-}
-
-/* Styles pour les relations sélectionnées */
-.relation-line.selected .line {
-    -fx-stroke: #4a89dc;
-    -fx-stroke-width: 2;
-}
-
-.relation-line.selected .arrow-head {
-    -fx-stroke: #4a89dc;
-    -fx-fill: #4a89dc;
-}
-
-/* Animation de sélection */
-@keyframes pulse {
-    0% { -fx-border-color: #4a89dc; }
-    50% { -fx-border-color: #87b1eb; }
-    100% { -fx-border-color: #4a89dc; }
-}
-
-.class-node.selected {
-    -fx-animation: pulse 2s infinite;
-}
-
 /* Style pour les labels et titres */
 .label {
     -fx-text-fill: #333;
@@ -173,4 +211,13 @@
     -fx-border-width: 1;
 }
 
-
+/* Styles pour l'infobulles */
+.tooltip {
+    -fx-background-color: #333333;
+    -fx-text-fill: white;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0, 0, 1);
+    -fx-font-size: 12px;
+    -fx-padding: 8;
+}

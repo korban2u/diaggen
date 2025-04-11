@@ -13,9 +13,19 @@ public class ArrowRenderer {
     private final Line line = new Line();
     private final Polygon arrowHead = new Polygon();
 
+    private static final Color DEFAULT_COLOR = Color.BLACK;
+    private static final Color SELECTED_COLOR = Color.web("#4a89dc"); // Bleu de sélection
+
     public ArrowRenderer() {
-        arrowGroup.getChildren().addAll(line, arrowHead);
+        // Appliquer les styles CSS
+        line.getStyleClass().add("line");
+        arrowHead.getStyleClass().add("arrow-head");
+
+        // Configuration par défaut
         line.setStrokeWidth(1.8);  // Ligne légèrement plus épaisse
+        arrowHead.setStroke(DEFAULT_COLOR);
+
+        arrowGroup.getChildren().addAll(line, arrowHead);
     }
 
     public Group getArrowGroup() {
@@ -115,7 +125,7 @@ public class ArrowRenderer {
         );
 
         arrowHead.setFill(Color.WHITE);
-        arrowHead.setStroke(Color.BLACK);
+        arrowHead.setStroke(line.getStroke()); // Utiliser la même couleur que la ligne
         arrowHead.setStrokeWidth(1.8);
     }
 
@@ -142,8 +152,8 @@ public class ArrowRenderer {
                 rightX, rightY           // Coin droit
         );
 
-        arrowHead.setFill(Color.BLACK);
-        arrowHead.setStroke(Color.BLACK);
+        arrowHead.setFill(line.getStroke()); // Utiliser la même couleur que la ligne
+        arrowHead.setStroke(line.getStroke());
     }
 
     private void createAggregationArrow(Point2D end, double ux, double uy) {
@@ -151,7 +161,7 @@ public class ArrowRenderer {
     }
 
     private void createCompositionArrow(Point2D end, double ux, double uy) {
-        createDiamondArrow(end, ux, uy, Color.BLACK);
+        createDiamondArrow(end, ux, uy, line.getStroke() == DEFAULT_COLOR ? Color.BLACK : (Color)line.getStroke());
     }
 
     private void createDiamondArrow(Point2D end, double ux, double uy, Color fillColor) {
@@ -187,7 +197,7 @@ public class ArrowRenderer {
         );
 
         arrowHead.setFill(fillColor);
-        arrowHead.setStroke(Color.BLACK);
+        arrowHead.setStroke(line.getStroke()); // Utiliser la même couleur que la ligne
         arrowHead.setStrokeWidth(1.8);
     }
 
@@ -205,12 +215,17 @@ public class ArrowRenderer {
     }
 
     public void setSelected(boolean selected) {
-        Color lineColor = selected ? Color.BLUE : Color.BLACK;
-        line.setStroke(lineColor);
-        arrowHead.setStroke(lineColor);
+        Color color = selected ? SELECTED_COLOR : DEFAULT_COLOR;
+        line.setStroke(color);
+        arrowHead.setStroke(color);
 
+        // Pour les types de relation où le remplissage est de la même couleur que le contour
         if (arrowHead.getFill() != Color.WHITE) {
-            arrowHead.setFill(selected ? Color.BLUE : Color.BLACK);
+            arrowHead.setFill(color);
         }
+
+        // Augmenter légèrement l'épaisseur des lignes lorsqu'elles sont sélectionnées
+        line.setStrokeWidth(selected ? 2.5 : 1.8);
+        arrowHead.setStrokeWidth(selected ? 2.5 : 1.8);
     }
 }

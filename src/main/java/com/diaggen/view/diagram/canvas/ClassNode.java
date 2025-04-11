@@ -28,6 +28,7 @@ public class ClassNode extends Region {
         this.diagramClass = diagramClass;
         this.content = new ClassNodeContent(diagramClass);
 
+        // Appliquer les styles CSS
         getStyleClass().add("class-node");
         setStyle("-fx-background-color: white; -fx-border-color: #1a1a1a; -fx-border-width: 1; -fx-border-radius: 5;");
 
@@ -51,11 +52,21 @@ public class ClassNode extends Region {
         return diagramClass;
     }
 
+    /**
+     * Définit l'état de sélection du nœud
+     * @param selected true si le nœud est sélectionné, false sinon
+     */
     public void setSelected(boolean selected) {
+        // Utiliser des classes CSS pour la sélection au lieu de styles en ligne
         if (selected) {
-            setStyle("-fx-background-color: white; -fx-border-color: #0077cc; -fx-border-width: 2; -fx-border-radius: 5;");
+            // S'assurer que la classe selected est ajoutée uniquement si elle n'existe pas déjà
+            if (!getStyleClass().contains("selected")) {
+                getStyleClass().add("selected");
+            }
+            toFront(); // Amener l'élément sélectionné au premier plan
         } else {
-            setStyle("-fx-background-color: white; -fx-border-color: #1a1a1a; -fx-border-width: 1; -fx-border-radius: 5;");
+            // Supprimer la classe selected
+            getStyleClass().remove("selected");
         }
     }
 
@@ -176,6 +187,7 @@ public class ClassNode extends Region {
 
             // Séparateur entre le nom et les attributs
             Line separator1 = new Line(0, 0, prefWidth, 0);
+            separator1.getStyleClass().add("separator");
             getChildren().add(separator1);
 
             // Attributs
@@ -189,6 +201,7 @@ public class ClassNode extends Region {
 
             // Séparateur entre les attributs et les méthodes
             Line separator2 = new Line(0, 0, prefWidth, 0);
+            separator2.getStyleClass().add("separator");
             getChildren().add(separator2);
 
             // Méthodes

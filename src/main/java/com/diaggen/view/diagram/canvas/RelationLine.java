@@ -4,6 +4,8 @@ import com.diaggen.model.DiagramRelation;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 
 public class RelationLine extends Pane {
@@ -16,10 +18,16 @@ public class RelationLine extends Pane {
     private final Label targetMultiplicityLabel;
     private final Label relationLabel;
 
+    // Zone sensible pour améliorer la détection des clics
+    private static final double CLICK_TOLERANCE = 5.0;
+
     public RelationLine(DiagramRelation relation, ClassNode sourceNode, ClassNode targetNode) {
         this.relation = relation;
         this.sourceNode = sourceNode;
         this.targetNode = targetNode;
+
+        // Appliquer les styles CSS
+        getStyleClass().add("relation-line");
 
         // Créer le renderer de flèche
         arrowRenderer = new ArrowRenderer();
@@ -27,18 +35,45 @@ public class RelationLine extends Pane {
         // Créer les étiquettes
         sourceMultiplicityLabel = new Label();
         sourceMultiplicityLabel.setStyle("-fx-font-size: 11;");
+        sourceMultiplicityLabel.getStyleClass().add("multiplicity-label");
 
         targetMultiplicityLabel = new Label();
         targetMultiplicityLabel.setStyle("-fx-font-size: 11;");
+        targetMultiplicityLabel.getStyleClass().add("multiplicity-label");
 
         relationLabel = new Label();
         relationLabel.setStyle("-fx-font-size: 11;");
+        relationLabel.getStyleClass().add("relation-name-label");
 
         getChildren().addAll(arrowRenderer.getArrowGroup(), sourceMultiplicityLabel,
                 targetMultiplicityLabel, relationLabel);
 
+        // Ajouter une infobulle pour la relation
+        updateTooltip();
+
+        // Améliorer la zone de détection des clics
+        setPickOnBounds(false); // Ne pas détecter les clics sur la zone rectangulaire entière
+
         // Planifier une mise à jour après le rendu complet de la scène
         Platform.runLater(this::update);
+    }
+
+    /**
+     * Met à jour l'infobulle avec les informations de la relation
+     */
+    private void updateTooltip() {
+        String tooltipText = relation.getRelationType().getDisplayName() + "\n" +
+                "De: " + relation.getSourceClass().getName() +
+                (relation.getSourceMultiplicity().isEmpty() ? "" : " [" + relation.getSourceMultiplicity() + "]") + "\n" +
+                "Vers: " + relation.getTargetClass().getName() +
+                (relation.getTargetMultiplicity().isEmpty() ? "" : " [" + relation.getTargetMultiplicity() + "]");
+
+        if (!relation.getLabel().isEmpty()) {
+            tooltipText += "\nLabel: " + relation.getLabel();
+        }
+
+        Tooltip tooltip = new Tooltip(tooltipText);
+        Tooltip.install(this, tooltip);
     }
 
     public DiagramRelation getRelation() {
@@ -71,6 +106,9 @@ public class RelationLine extends Pane {
 
         // Mettre à jour les étiquettes
         updateLabels(sourcePoint, targetPoint);
+
+        // Mettre à jour l'infobulle
+        updateTooltip();
     }
 
     private void updateLabels(Point2D sourcePoint, Point2D targetPoint) {
@@ -127,6 +165,78 @@ public class RelationLine extends Pane {
     }
 
     public void setSelected(boolean selected) {
-        arrowRenderer.setSelected(selected);
+        // Utiliser des classes CSS pour la sélection
+        if (selected) {
+            if (!getStyleClass().contains("selected")) {
+                getStyleClass().add("selected");
+            }
+            arrowRenderer.setSelected(true);
+            toFront(); // Amener la relation sélectionnée au premier plan
+        } else {
+            getStyleClass().remove("selected");
+            arrowRenderer.setSelected(false);
+        }
+    }
+
+    /**
+     * Vérifie si le point (x, y) est proche de la ligne de relation
+     * @param x Coordonnée x du point
+     * @param y Coordonnée y du point
+     * @return true si le point est proche de la ligne
+     */
+    public boolean isNearLine(double x, double y) {
+        // Points de connexion des classes
+        Point2D sourceCenter = new Point2D(
+                sourceNode.getLayoutX() + sourceNode.getWidth() / 2,
+                sourceNode.getLayoutY() + sourceNode.getHeight() / 2);
+
+        Point2D targetCenter = new Point2D(
+                targetNode.getLayoutX() + targetNode.getWidth() / 2,
+                targetNode.getLayoutY() + targetNode.getHeight() / 2);
+
+        Point2D sourcePoint = sourceNode.getConnectionPoint(targetCenter);
+        Point2D targetPoint = targetNode.getConnectionPoint(sourceCenter);
+
+        // Calculer la distance du point (x, y) à la ligne définie par sourcePoint et targetPoint
+        return distanceToLine(x, y, sourcePoint.getX(), sourcePoint.getY(),
+                targetPoint.getX(), targetPoint.getY()) <= CLICK_TOLERANCE;
+    }
+
+    /**
+     * Calcule la distance d'un point à une ligne
+     * @param x X du point
+     * @param y Y du point
+     * @param x1 X du début de la ligne
+     * @param y1 Y du début de la ligne
+     * @param x2 X de la fin de la ligne
+     * @param y2 Y de la fin de la ligne
+     * @return La distance du point à la ligne
+     */
+    private double distanceToLine(double x, double y, double x1, double y1, double x2, double y2) {
+        // Longueur de la ligne au carré
+        double lineLengthSquared = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+
+        if (lineLengthSquared == 0) {
+            // Points identiques, retourner la distance au point
+            return Math.sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1));
+        }
+
+        // Calculer la projection du point sur la ligne
+        double t = ((x - x1) * (x2 - x1) + (y - y1) * (y2 - y1)) / lineLengthSquared;
+
+        if (t < 0) {
+            // Le point le plus proche est le début de la ligne
+            return Math.sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1));
+        }
+        if (t > 1) {
+            // Le point le plus proche est la fin de la ligne
+            return Math.sqrt((x - x2) * (x - x2) + (y - y2) * (y - y2));
+        }
+
+        // Le point le plus proche est sur la ligne
+        double projX = x1 + t * (x2 - x1);
+        double projY = y1 + t * (y2 - y1);
+
+        return Math.sqrt((x - projX) * (x - projX) + (y - projY) * (y - projY));
     }
 }

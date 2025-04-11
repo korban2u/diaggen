@@ -9,7 +9,11 @@ import com.diaggen.view.dialog.DialogFactory;
 import com.diaggen.view.diagram.DiagramCanvas;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -84,6 +88,9 @@ public class MainViewController {
 
         // Configurer le mécanisme de sélection
         setupSelectionHandling();
+
+        // Configurer les raccourcis clavier
+        setupKeyboardShortcuts();
     }
 
     private void setupSelectionHandling() {
@@ -93,7 +100,6 @@ public class MainViewController {
             if (diagramClass != null) {
                 selectedClass = diagramClass;
                 selectedRelation = null;
-                diagramCanvas.selectRelation(null);
 
                 // Mettre à jour l'état des boutons
                 deleteClassButton.setDisable(false);
@@ -124,7 +130,6 @@ public class MainViewController {
             if (relation != null) {
                 selectedRelation = relation;
                 selectedClass = null;
-                diagramCanvas.selectClass(null);
 
                 // Mettre à jour l'état des boutons
                 deleteRelationButton.setDisable(false);
@@ -150,6 +155,41 @@ public class MainViewController {
                 setStatus("Prêt");
             }
         });
+
+        // Configurer le gestionnaire de suppression
+        diagramCanvas.setOnDeleteRequest(() -> {
+            if (selectedClass != null) {
+                handleDeleteClass();
+            } else if (selectedRelation != null) {
+                handleDeleteRelation();
+            }
+        });
+    }
+
+    private void setupKeyboardShortcuts() {
+        // Raccourcis clavier globaux
+        Scene scene = diagramCanvasContainer.getScene();
+        if (scene != null) {
+            // Supprimer (Delete)
+            KeyCombination deleteKey = new KeyCodeCombination(KeyCode.DELETE);
+            scene.getAccelerators().put(deleteKey, () -> {
+                if (diagramCanvas.hasSelection()) {
+                    if (selectedClass != null) {
+                        handleDeleteClass();
+                    } else if (selectedRelation != null) {
+                        handleDeleteRelation();
+                    }
+                }
+            });
+
+            // Annuler (Ctrl+Z)
+            KeyCombination undoKey = new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN);
+            scene.getAccelerators().put(undoKey, this::handleUndo);
+
+            // Rétablir (Ctrl+Y)
+            KeyCombination redoKey = new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN);
+            scene.getAccelerators().put(redoKey, this::handleRedo);
+        }
     }
 
     public void setMainController(MainController mainController) {
@@ -177,6 +217,23 @@ public class MainViewController {
             mainController.handleSelectDiagram(diagram);
         }
     }
+
+    /**
+     * Accesseur pour la classe sélectionnée
+     * @return la classe sélectionnée ou null si aucune classe n'est sélectionnée
+     */
+    public DiagramClass getSelectedClass() {
+        return selectedClass;
+    }
+
+    /**
+     * Accesseur pour la relation sélectionnée
+     * @return la relation sélectionnée ou null si aucune relation n'est sélectionnée
+     */
+    public DiagramRelation getSelectedRelation() {
+        return selectedRelation;
+    }
+
 
     @FXML
     private void handleNewDiagram() {
@@ -220,6 +277,7 @@ public class MainViewController {
         }
     }
 
+
     @FXML
     private void handleAddClass() {
         if (mainController != null) {
@@ -249,6 +307,8 @@ public class MainViewController {
             diagramCanvas.selectClass(newClass);
         }
     }
+
+
     @FXML
     private void handleDeleteClass() {
         if (mainController != null && selectedClass != null) {
@@ -291,6 +351,7 @@ public class MainViewController {
         }
     }
 
+
     @FXML
     private void handleExportPlantUML() {
         if (mainController != null) {
@@ -318,6 +379,7 @@ public class MainViewController {
             mainController.handleRedo();
         }
     }
+
 
     public Window getWindow() {
         return diagramCanvasContainer.getScene().getWindow();

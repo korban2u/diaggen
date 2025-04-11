@@ -11,6 +11,8 @@ import com.diaggen.view.diagram.canvas.RelationManager;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -26,6 +28,7 @@ public class DiagramCanvas extends Pane {
     private final RelationManager relationManager;
 
     private Runnable onAddClassRequest;
+    private Runnable onDeleteRequest;
     private Consumer<DiagramClass> classSelectionListener;
     private Consumer<DiagramRelation> relationSelectionListener;
 
@@ -44,18 +47,8 @@ public class DiagramCanvas extends Pane {
 
         nodeManager.setRelationManager(relationManager);
 
-        ContextMenu contextMenu = new ContextMenu();
-        MenuItem addClassItem = new MenuItem("Ajouter une classe");
-        addClassItem.setOnAction(e -> {
-            if (onAddClassRequest != null) {
-                onAddClassRequest.run();
-            }
-        });
-        contextMenu.getItems().add(addClassItem);
-
-        setOnContextMenuRequested(e -> {
-            contextMenu.show(this, e.getScreenX(), e.getScreenY());
-        });
+        // Menu contextuel pour le canvas
+        setupContextMenu();
 
         // Gérer le clic sur le fond pour désélectionner
         setOnMousePressed(e -> {
@@ -64,10 +57,60 @@ public class DiagramCanvas extends Pane {
             }
         });
 
+        // Configurer la gestion des touches clavier
+        setupKeyHandlers();
+
         widthProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
         heightProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
         gridRenderer.drawGrid();
 
+        // Configurer les écouteurs de sélection
+        setupSelectionListeners();
+    }
+
+    private void setupContextMenu() {
+        ContextMenu contextMenu = new ContextMenu();
+
+        MenuItem addClassItem = new MenuItem("Ajouter une classe");
+        addClassItem.setOnAction(e -> {
+            if (onAddClassRequest != null) {
+                onAddClassRequest.run();
+            }
+        });
+
+        contextMenu.getItems().add(addClassItem);
+
+        setOnContextMenuRequested(e -> {
+            // Ne montrer le menu contextuel que si le clic est sur le fond
+            if (e.getTarget() == this) {
+                contextMenu.show(this, e.getScreenX(), e.getScreenY());
+            }
+        });
+    }
+
+    private void setupKeyHandlers() {
+        // Gérer les touches clavier
+        setOnKeyPressed(this::handleKeyPress);
+
+        // S'assurer que le composant peut recevoir le focus et les événements clavier
+        setFocusTraversable(true);
+    }
+
+    private void handleKeyPress(KeyEvent event) {
+        if (event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.BACK_SPACE) {
+            // Si un élément est sélectionné et que la touche Delete est pressée
+            if ((getSelectedClass() != null || getSelectedRelation() != null) && onDeleteRequest != null) {
+                onDeleteRequest.run();
+                event.consume();
+            }
+        } else if (event.getCode() == KeyCode.ESCAPE) {
+            // Echap désélectionne tout
+            deselectAll();
+            event.consume();
+        }
+    }
+
+    private void setupSelectionListeners() {
         // Configurer les écouteurs de sélection
         nodeManager.setNodeSelectionListener(node -> {
             if (node != null) {
@@ -117,6 +160,10 @@ public class DiagramCanvas extends Pane {
      */
     public void refresh() {
         if (diagram != null) {
+            // Sauvegarder l'élément sélectionné
+            DiagramClass selectedClass = getSelectedClass();
+            DiagramRelation selectedRelation = getSelectedRelation();
+
             clear();
 
             for (DiagramClass diagramClass : diagram.getClasses()) {
@@ -128,6 +175,13 @@ public class DiagramCanvas extends Pane {
             }
 
             relationManager.updateAllRelationsLater();
+
+            // Restaurer la sélection si possible
+            if (selectedClass != null) {
+                selectClass(selectedClass);
+            } else if (selectedRelation != null) {
+                selectRelation(selectedRelation);
+            }
         }
     }
 
@@ -139,6 +193,7 @@ public class DiagramCanvas extends Pane {
     public void deselectAll() {
         nodeManager.selectNode(null);
         relationManager.selectRelation(null);
+        requestFocus(); // S'assurer que le canvas a le focus pour les événements clavier
     }
 
     public DiagramClass getSelectedClass() {
@@ -151,6 +206,10 @@ public class DiagramCanvas extends Pane {
 
     public void setOnAddClassRequest(Runnable handler) {
         this.onAddClassRequest = handler;
+    }
+
+    public void setOnDeleteRequest(Runnable handler) {
+        this.onDeleteRequest = handler;
     }
 
     public void selectClass(DiagramClass diagramClass) {
@@ -177,7 +236,15 @@ public class DiagramCanvas extends Pane {
         }
     }
 
-    // Nouveaux accesseurs pour les écouteurs de sélection
+    /**
+     * Vérifie s'il y a une sélection active (classe ou relation)
+     * @return true si une classe ou une relation est sélectionnée
+     */
+    public boolean hasSelection() {
+        return getSelectedClass() != null || getSelectedRelation() != null;
+    }
+
+    // Accesseurs pour les écouteurs de sélection
     public void setClassSelectionListener(Consumer<DiagramClass> listener) {
         this.classSelectionListener = listener;
     }

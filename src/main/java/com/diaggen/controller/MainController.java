@@ -8,6 +8,7 @@ import com.diaggen.model.DiagramStore;
 import com.diaggen.model.java.JavaCodeParser;
 import com.diaggen.model.persist.DiagramSerializer;
 import com.diaggen.service.ExportService;
+import com.diaggen.util.AlertHelper;
 import com.diaggen.view.controller.MainViewController;
 import com.diaggen.view.diagram.DiagramCanvas;
 import com.diaggen.view.dialog.DialogFactory;
@@ -104,6 +105,7 @@ public class MainController {
         }
     }
 
+
     /**
      * Gestion de l'ajout d'une classe
      */
@@ -119,6 +121,9 @@ public class MainController {
 
             diagramCanvas.refresh();
 
+            // Sélectionner automatiquement la nouvelle classe
+            diagramCanvas.selectClass(diagramClass);
+
             viewController.setStatus("Classe " + diagramClass.getName() + " ajoutée");
         });
     }
@@ -127,7 +132,8 @@ public class MainController {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram == null) return;
 
-        DiagramClass selectedClass = diagramCanvas.getSelectedClass();
+        // Utiliser la classe sélectionnée du viewController au lieu du canvas
+        DiagramClass selectedClass = viewController.getSelectedClass();
         if (selectedClass == null) {
             showWarning("Aucune classe sélectionnée",
                     "Veuillez sélectionner une classe à modifier.");
@@ -135,14 +141,20 @@ public class MainController {
         }
 
         var dialog = dialogFactory.createClassEditorDialog(selectedClass);
-        dialog.showAndWait().ifPresent(updatedClass -> diagramCanvas.refresh());
+        dialog.showAndWait().ifPresent(updatedClass -> {
+            // Rafraîchir le canvas pour refléter les changements
+            diagramCanvas.refresh();
+            // Maintenir la sélection
+            diagramCanvas.selectClass(selectedClass);
+        });
     }
 
     public void handleDeleteClass() {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram == null) return;
 
-        DiagramClass selectedClass = diagramCanvas.getSelectedClass();
+        // Utiliser la classe sélectionnée du viewController au lieu du canvas
+        DiagramClass selectedClass = viewController.getSelectedClass();
         if (selectedClass == null) {
             showWarning("Aucune classe sélectionnée",
                     "Veuillez sélectionner une classe à supprimer.");
@@ -162,6 +174,9 @@ public class MainController {
 
             // Rafraîchir le canvas
             diagramCanvas.refresh();
+
+            // Désélectionner tout
+            diagramCanvas.deselectAll();
 
             // Mettre à jour le statut
             viewController.setStatus("Classe " + selectedClass.getName() + " supprimée");
@@ -188,17 +203,22 @@ public class MainController {
             // Rafraîchir le canvas
             diagramCanvas.refresh();
 
+            // Sélectionner automatiquement la nouvelle relation
+            diagramCanvas.selectRelation(relation);
+
             // Mettre à jour le statut
             viewController.setStatus("Relation ajoutée entre " + relation.getSourceClass().getName() +
                     " et " + relation.getTargetClass().getName());
         });
     }
 
+
     public void handleEditRelation() {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram == null) return;
 
-        DiagramRelation selectedRelation = diagramCanvas.getSelectedRelation();
+        // Utiliser la relation sélectionnée du viewController au lieu du canvas
+        DiagramRelation selectedRelation = viewController.getSelectedRelation();
         if (selectedRelation == null) {
             showWarning("Aucune relation sélectionnée",
                     "Veuillez sélectionner une relation à modifier.");
@@ -212,17 +232,20 @@ public class MainController {
             // puisque l'objet relation est déjà modifié par le dialogue
             diagramCanvas.refresh();
 
+            // Maintenir la sélection
+            diagramCanvas.selectRelation(selectedRelation);
+
             // Mettre à jour le statut
             viewController.setStatus("Relation modifiée");
         });
     }
 
-
     public void handleDeleteRelation() {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram == null) return;
 
-        DiagramRelation selectedRelation = diagramCanvas.getSelectedRelation();
+        // Utiliser la relation sélectionnée du viewController au lieu du canvas
+        DiagramRelation selectedRelation = viewController.getSelectedRelation();
         if (selectedRelation == null) {
             showWarning("Aucune relation sélectionnée",
                     "Veuillez sélectionner une relation à supprimer.");
@@ -243,10 +266,14 @@ public class MainController {
             // Rafraîchir le canvas
             diagramCanvas.refresh();
 
+            // Désélectionner tout
+            diagramCanvas.deselectAll();
+
             // Mettre à jour le statut
             viewController.setStatus("Relation supprimée");
         }
     }
+
 
     public void handleSave() {
         File currentFile = diagramStore.getCurrentFile();
@@ -427,27 +454,16 @@ public class MainController {
     }
 
     private void showInfo(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        AlertHelper.showInfo(title, message);
     }
 
+
     private void showWarning(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        AlertHelper.showWarning(title, message);
     }
 
     private void showError(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        AlertHelper.showError(title, message);
     }
 
     public void handleUndo() {
@@ -487,6 +503,9 @@ public class MainController {
 
             // Rafraîchir le canvas
             diagramCanvas.refresh();
+
+            // Sélectionner la nouvelle classe
+            diagramCanvas.selectClass(newClass);
 
             // Mettre à jour le statut
             viewController.setStatus("Classe " + newClass.getName() + " ajoutée");

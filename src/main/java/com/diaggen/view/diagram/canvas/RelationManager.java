@@ -4,6 +4,7 @@ import com.diaggen.model.DiagramClass;
 import com.diaggen.model.DiagramRelation;
 import javafx.application.Platform;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 
 import java.util.HashMap;
@@ -30,14 +31,24 @@ public class RelationManager {
         if (sourceNode != null && targetNode != null) {
             RelationLine relationLine = new RelationLine(relation, sourceNode, targetNode);
 
-            relationLine.setOnMousePressed(e -> {
+            // Améliorer la détection des clics sur les relations
+            container.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
+                // Vérifier si le clic est sur cette relation
                 if (e.getButton() == MouseButton.PRIMARY) {
-                    selectRelation(relationLine);
-                    e.consume();
+                    // Calculer la position du clic relatif au conteneur
+                    double x = e.getX();
+                    double y = e.getY();
+
+                    // Vérifier si le clic est proche de la ligne
+                    if (relationLine.isNearLine(x, y)) {
+                        selectRelation(relationLine);
+                        e.consume(); // Empêcher la propagation de l'événement
+                    }
                 }
             });
 
-            container.getChildren().add(0, relationLine); // En dessous des nœuds
+            // Ajouter la ligne au conteneur (en-dessous des nœuds)
+            container.getChildren().add(0, relationLine);
             relationLines.put(relation.getId(), relationLine);
 
             return relationLine;
@@ -53,7 +64,7 @@ public class RelationManager {
             relationLines.remove(relation.getId());
 
             if (selectedRelation == line) {
-                selectedRelation = null;
+                selectRelation(null);
             }
         }
     }
@@ -80,8 +91,6 @@ public class RelationManager {
             selectedRelation.setSelected(false);
         }
 
-        nodeManager.selectNode(null);
-
         selectedRelation = line;
 
         if (line != null) {
@@ -91,6 +100,10 @@ public class RelationManager {
             // Notifier l'écouteur
             if (selectionListener != null) {
                 selectionListener.onRelationSelected(line);
+            }
+        } else {
+            if (selectionListener != null) {
+                selectionListener.onRelationSelected(null);
             }
         }
     }
@@ -103,11 +116,13 @@ public class RelationManager {
         return selectedRelation != null ? selectedRelation.getRelation() : null;
     }
 
-
     public RelationLine getLineById(String relationId) {
         return relationLines.get(relationId);
     }
 
+    public Map<String, RelationLine> getRelationLines() {
+        return relationLines;
+    }
 
     public void setRelationSelectionListener(RelationSelectionListener listener) {
         this.selectionListener = listener;
