@@ -13,11 +13,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
 
-/**
- * Manages zoom and pan navigation for a diagram canvas.
- * Implements Observer pattern for notifying changes to viewport transformation.
- */
-public class NavigationManager {
+DiagramCanvaspublic class NavigationManager {
     private final Pane targetPane;
     private final ViewportTransform transform;
 
@@ -44,11 +40,8 @@ public class NavigationManager {
     }
 
     private void setupEventHandlers() {
-        // Zoom with scroll wheel
-        targetPane.addEventFilter(ScrollEvent.SCROLL, this::handleScroll);
-
-        // Panning with middle mouse button
-        targetPane.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+DiagramCanvas        targetPane.addEventFilter(ScrollEvent.SCROLL, this::handleScroll);
+DiagramCanvas        targetPane.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             if (event.getButton() == MouseButton.MIDDLE) {
                 startPanning(event.getX(), event.getY());
                 event.consume();
@@ -71,9 +64,7 @@ public class NavigationManager {
                 event.consume();
             }
         });
-
-        // Space key panning
-        targetPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+DiagramCanvas        targetPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.SPACE && !isPanning()) {
                 previousCursor = targetPane.getCursor();
                 startPanning(targetPane.getWidth() / 2, targetPane.getHeight() / 2);
@@ -92,8 +83,7 @@ public class NavigationManager {
     }
 
     private void handleScroll(ScrollEvent event) {
-        // Skip if CTRL key is pressed (common for horizontal scrolling)
-        if (event.isControlDown()) {
+DiagramCanvas        if (event.isControlDown()) {
             return;
         }
 
@@ -104,12 +94,8 @@ public class NavigationManager {
 
         double oldScale = transform.getScale();
         double newScale = oldScale * scaleFactor;
-
-        // Ensure the scale is within bounds
-        transform.setScale(newScale);
-
-        // Adjust position to zoom at mouse position
-        if (newScale != oldScale) {
+DiagramCanvas        transform.setScale(newScale);
+DiagramCanvas        if (newScale != oldScale) {
             Point2D newMouse = contentToViewport(contentPoint);
             transform.setTranslateX(transform.getTranslateX() + (mousePoint.getX() - newMouse.getX()));
             transform.setTranslateY(transform.getTranslateY() + (mousePoint.getY() - newMouse.getY()));
@@ -153,9 +139,7 @@ public class NavigationManager {
             resetView();
             return;
         }
-
-        // Find bounds of all classes
-        double minX = Double.MAX_VALUE;
+DiagramCanvas        double minX = Double.MAX_VALUE;
         double minY = Double.MAX_VALUE;
         double maxX = Double.MIN_VALUE;
         double maxY = Double.MIN_VALUE;
@@ -165,9 +149,7 @@ public class NavigationManager {
             hasClasses = true;
             double nodeX = diagramClass.getX();
             double nodeY = diagramClass.getY();
-
-            // Use default sizes if actual sizes are not available
-            double nodeWidth = 200;
+DiagramCanvas            double nodeWidth = 200;
             double nodeHeight = 150;
 
             minX = Math.min(minX, nodeX);
@@ -180,9 +162,7 @@ public class NavigationManager {
             resetView();
             return;
         }
-
-        // Add padding
-        minX -= padding;
+DiagramCanvas        minX -= padding;
         minY -= padding;
         maxX += padding;
         maxY += padding;
@@ -194,19 +174,13 @@ public class NavigationManager {
             resetView();
             return;
         }
-
-        // Calculate scale to fit
-        double scaleX = targetPane.getWidth() / contentWidth;
+DiagramCanvas        double scaleX = targetPane.getWidth() / contentWidth;
         double scaleY = targetPane.getHeight() / contentHeight;
         double scale = Math.min(scaleX, scaleY);
-
-        // Adjust scale to bounds
-        scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
+DiagramCanvas        scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
 
         transform.setScale(scale);
-
-        // Center the content
-        double contentCenterX = (minX + maxX) / 2;
+DiagramCanvas        double contentCenterX = (minX + maxX) / 2;
         double contentCenterY = (minY + maxY) / 2;
         double viewportCenterX = targetPane.getWidth() / 2;
         double viewportCenterY = targetPane.getHeight() / 2;
@@ -218,9 +192,7 @@ public class NavigationManager {
     public void zoomIn() {
         double currentScale = transform.getScale();
         double newScale = currentScale * ZOOM_FACTOR;
-
-        // Zoom towards the center
-        double centerX = targetPane.getWidth() / 2;
+DiagramCanvas        double centerX = targetPane.getWidth() / 2;
         double centerY = targetPane.getHeight() / 2;
         Point2D contentPoint = viewportToContent(new Point2D(centerX, centerY));
 
@@ -234,9 +206,7 @@ public class NavigationManager {
     public void zoomOut() {
         double currentScale = transform.getScale();
         double newScale = currentScale / ZOOM_FACTOR;
-
-        // Zoom towards the center
-        double centerX = targetPane.getWidth() / 2;
+DiagramCanvas        double centerX = targetPane.getWidth() / 2;
         double centerY = targetPane.getHeight() / 2;
         Point2D contentPoint = viewportToContent(new Point2D(centerX, centerY));
 

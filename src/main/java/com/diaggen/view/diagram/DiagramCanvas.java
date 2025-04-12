@@ -39,9 +39,7 @@ public class DiagramCanvas extends AnchorPane {
     private final EventBus eventBus = EventBus.getInstance();
     private final ViewportTransform viewportTransform;
     private final NavigationManager navigationManager;
-
-    // UI components
-    private final StackPane canvasContainer = new StackPane();
+DiagramCanvas    private final StackPane canvasContainer = new StackPane();
     private final Pane contentPane = new Pane();
     private final NavigationControls navigationControls;
     private final MiniMapView miniMapView;
@@ -55,83 +53,51 @@ public class DiagramCanvas extends AnchorPane {
         getStyleClass().add("diagram-canvas");
         setStyle("-fx-background-color: white;");
         setPrefSize(800, 600);
-
-        // Set up the canvas container
-        canvasContainer.getStyleClass().add("canvas-container");
+DiagramCanvas        canvasContainer.getStyleClass().add("canvas-container");
         canvasContainer.setStyle("-fx-background-color: white;");
-
-        // Set up the grid canvas
-        gridCanvas = new Canvas();
+DiagramCanvas        gridCanvas = new Canvas();
         gridCanvas.widthProperty().bind(canvasContainer.widthProperty());
         gridCanvas.heightProperty().bind(canvasContainer.heightProperty());
-
-        // Add content pane to the container
-        canvasContainer.getChildren().addAll(gridCanvas, contentPane);
-
-        // Position canvasContainer to fill the entire parent
-        AnchorPane.setTopAnchor(canvasContainer, 0.0);
+DiagramCanvas        canvasContainer.getChildren().addAll(gridCanvas, contentPane);
+DiagramCanvas        AnchorPane.setTopAnchor(canvasContainer, 0.0);
         AnchorPane.setRightAnchor(canvasContainer, 0.0);
         AnchorPane.setBottomAnchor(canvasContainer, 0.0);
         AnchorPane.setLeftAnchor(canvasContainer, 0.0);
         getChildren().add(canvasContainer);
-
-        // Initialize viewport transform
-        viewportTransform = new ViewportTransform();
-
-        // Create the modern grid renderer
-        gridRenderer = new GridRenderer(gridCanvas, 10, 50);
-
-        // Initialize node and relation managers
-        nodeManager = new NodeManager(contentPane);
+DiagramCanvas        viewportTransform = new ViewportTransform();
+DiagramCanvas        gridRenderer = new GridRenderer(gridCanvas, 10, 50);
+DiagramCanvas        nodeManager = new NodeManager(contentPane);
         relationManager = new RelationManager(contentPane, nodeManager);
         nodeManager.setRelationManager(relationManager);
-
-        // Set up navigation manager
-        navigationManager = new NavigationManager(canvasContainer, viewportTransform);
-
-        // Create navigation controls
-        navigationControls = new NavigationControls(
+DiagramCanvas        navigationManager = new NavigationManager(canvasContainer, viewportTransform);
+DiagramCanvas        navigationControls = new NavigationControls(
                 viewportTransform,
                 navigationManager,
                 gridRenderer
         );
         navigationControls.getStyleClass().add("navigation-controls");
         navigationControls.setPrefHeight(40);
-
-        // Position navigation controls at the bottom
-        AnchorPane.setBottomAnchor(navigationControls, 10.0);
+DiagramCanvas        AnchorPane.setBottomAnchor(navigationControls, 10.0);
         AnchorPane.setLeftAnchor(navigationControls, 10.0);
         getChildren().add(navigationControls);
-
-        // Create and add mini-map
-        miniMapView = new MiniMapView(canvasContainer, viewportTransform);
+DiagramCanvas        miniMapView = new MiniMapView(canvasContainer, viewportTransform);
         miniMapView.getStyleClass().add("mini-map");
         miniMapView.setPrefSize(150, 120);
-
-        // Position mini-map at top-right
-        AnchorPane.setTopAnchor(miniMapView, 10.0);
+DiagramCanvas        AnchorPane.setTopAnchor(miniMapView, 10.0);
         AnchorPane.setRightAnchor(miniMapView, 10.0);
         getChildren().add(miniMapView);
-
-        // Configure UI
-        setupContextMenu();
+DiagramCanvas        setupContextMenu();
         setupKeyHandlers();
         setupSelectionListeners();
         setupEventBusListeners();
-
-        // Listen for transform changes and update
-        viewportTransform.scaleProperty().addListener((obs, oldVal, newVal) -> updateTransform());
+DiagramCanvas        viewportTransform.scaleProperty().addListener((obs, oldVal, newVal) -> updateTransform());
         viewportTransform.translateXProperty().addListener((obs, oldVal, newVal) -> updateTransform());
         viewportTransform.translateYProperty().addListener((obs, oldVal, newVal) -> updateTransform());
-
-        // Initial grid draw
-        canvasContainer.widthProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
+DiagramCanvas        canvasContainer.widthProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
         canvasContainer.heightProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
 
         Platform.runLater(gridRenderer::drawGrid);
-
-        // Handle background clicks for deselection
-        canvasContainer.setOnMousePressed(e -> {
+DiagramCanvas        canvasContainer.setOnMousePressed(e -> {
             if (e.getButton() == MouseButton.PRIMARY) {
                 if (e.getTarget() == canvasContainer || e.getTarget() == gridCanvas) {
                     deselectAll();
@@ -146,20 +112,15 @@ public class DiagramCanvas extends AnchorPane {
                 e.consume();
             }
         });
-
-        // Make the canvas focusable
-        setFocusTraversable(true);
+DiagramCanvas        setFocusTraversable(true);
     }
 
     private void updateTransform() {
-        // Apply transform to the content pane
-        contentPane.setScaleX(viewportTransform.getScale());
+DiagramCanvas        contentPane.setScaleX(viewportTransform.getScale());
         contentPane.setScaleY(viewportTransform.getScale());
         contentPane.setTranslateX(viewportTransform.getTranslateX());
         contentPane.setTranslateY(viewportTransform.getTranslateY());
-
-        // Update grid with the same transform
-        gridRenderer.setTransform(
+DiagramCanvas        gridRenderer.setTransform(
                 viewportTransform.getScale(),
                 viewportTransform.getTranslateX(),
                 viewportTransform.getTranslateY()
@@ -202,20 +163,16 @@ public class DiagramCanvas extends AnchorPane {
             deselectAll();
             event.consume();
         } else if (event.isControlDown() && event.getCode() == KeyCode.EQUALS) {
-            // Ctrl + + for zoom in
-            navigationManager.zoomIn();
+DiagramCanvas            navigationManager.zoomIn();
             event.consume();
         } else if (event.isControlDown() && event.getCode() == KeyCode.MINUS) {
-            // Ctrl + - for zoom out
-            navigationManager.zoomOut();
+DiagramCanvas            navigationManager.zoomOut();
             event.consume();
         } else if (event.isControlDown() && event.getCode() == KeyCode.DIGIT0) {
-            // Ctrl + 0 for reset zoom
-            navigationManager.resetView();
+DiagramCanvas            navigationManager.resetView();
             event.consume();
         } else if (event.isControlDown() && event.getCode() == KeyCode.F) {
-            // Ctrl + F for fit to view
-            zoomToFit();
+DiagramCanvas            zoomToFit();
             event.consume();
         }
     }
@@ -288,12 +245,8 @@ public class DiagramCanvas extends AnchorPane {
 
             relationManager.updateAllRelations();
             requestLayout();
-
-            // Update the mini-map
-            miniMapView.updateContent(diagram.getClasses());
-
-            // Fit the diagram to view after loading
-            Platform.runLater(this::zoomToFit);
+DiagramCanvas            miniMapView.updateContent(diagram.getClasses());
+DiagramCanvas            Platform.runLater(this::zoomToFit);
         });
     }
 
@@ -312,9 +265,7 @@ public class DiagramCanvas extends AnchorPane {
             for (ClassNode node : nodeManager.getNodes().values()) {
                 existingClasses.put(node.getDiagramClass().getId(), node.getDiagramClass());
             }
-
-            // Add new classes
-            for (DiagramClass diagramClass : diagram.getClasses()) {
+DiagramCanvas            for (DiagramClass diagramClass : diagram.getClasses()) {
                 if (!existingClasses.containsKey(diagramClass.getId())) {
                     nodeManager.createClassNode(diagramClass);
                 } else {
@@ -324,16 +275,12 @@ public class DiagramCanvas extends AnchorPane {
                     }
                 }
             }
-
-            // Add new relations
-            for (DiagramRelation relation : diagram.getRelations()) {
+DiagramCanvas            for (DiagramRelation relation : diagram.getRelations()) {
                 if (!existingRelations.containsKey(relation.getId())) {
                     relationManager.createRelationLine(relation);
                 }
             }
-
-            // Remove deleted classes
-            List<String> classesToRemove = new ArrayList<>();
+DiagramCanvas            List<String> classesToRemove = new ArrayList<>();
             for (String classId : existingClasses.keySet()) {
                 boolean found = false;
                 for (DiagramClass diagramClass : diagram.getClasses()) {
@@ -350,9 +297,7 @@ public class DiagramCanvas extends AnchorPane {
             for (String classId : classesToRemove) {
                 nodeManager.removeClassNode(existingClasses.get(classId));
             }
-
-            // Remove deleted relations
-            List<String> relationsToRemove = new ArrayList<>();
+DiagramCanvas            List<String> relationsToRemove = new ArrayList<>();
             for (String relationId : existingRelations.keySet()) {
                 boolean found = false;
                 for (DiagramRelation relation : diagram.getRelations()) {
@@ -371,12 +316,8 @@ public class DiagramCanvas extends AnchorPane {
             }
 
             relationManager.updateAllRelationsLater();
-
-            // Update the mini-map
-            miniMapView.updateContent(diagram.getClasses());
-
-            // Handle selection state
-            if (selectedClass != null && diagram.getClasses().contains(selectedClass)) {
+DiagramCanvas            miniMapView.updateContent(diagram.getClasses());
+DiagramCanvas            if (selectedClass != null && diagram.getClasses().contains(selectedClass)) {
                 selectClass(selectedClass);
             } else if (selectedRelation != null && diagram.getRelations().contains(selectedRelation)) {
                 selectRelation(selectedRelation);

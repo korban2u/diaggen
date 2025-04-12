@@ -66,9 +66,7 @@ public class MainViewController {
     @FXML
     public void initialize() {
         LOGGER.log(Level.INFO, "Initializing MainViewController");
-
-        // Setup diagram list view
-        diagramListView.setCellFactory(param -> new ListCell<>() {
+DiagramCanvas        diagramListView.setCellFactory(param -> new ListCell<>() {
             @Override
             protected void updateItem(ClassDiagram item, boolean empty) {
                 super.updateItem(item, empty);
@@ -91,20 +89,14 @@ public class MainViewController {
                 }
             }
         });
-
-        // Create and setup the enhanced diagram canvas
-        diagramCanvas = new DiagramCanvas();
+DiagramCanvas        diagramCanvas = new DiagramCanvas();
         diagramCanvasContainer.getChildren().add(diagramCanvas);
-
-        // Setup editor panel
-        editorController = new EditorPanelController(editorContent);
+DiagramCanvas        editorController = new EditorPanelController(editorContent);
         StackPane editorPaneContainer = (StackPane) editorPanel.getParent().getParent();
         editorPanel.visibleProperty().addListener((obs, wasVisible, isVisible) -> {
             editorPaneContainer.setMouseTransparent(!isVisible);
         });
-
-        // Add close button to editor panel
-        Button closeButton = new Button("×");
+DiagramCanvas        Button closeButton = new Button("×");
         closeButton.getStyleClass().add("close-button");
         closeButton.setOnAction(e -> {
             editorPanel.setVisible(false);
@@ -112,9 +104,7 @@ public class MainViewController {
                 diagramCanvas.deselectAll();
             }
         });
-
-        // Replace the title with a title bar containing the close button
-        Label editorTitleLabel = (Label) editorPanel.getChildren().stream()
+DiagramCanvas        Label editorTitleLabel = (Label) editorPanel.getChildren().stream()
                 .filter(node -> node instanceof Label && ((Label) node).getText().equals("Éditeur"))
                 .findFirst()
                 .orElse(null);
@@ -133,9 +123,7 @@ public class MainViewController {
             editorPanel.getChildren().add(labelIndex, titleBox);
             titleBox.setPadding(new Insets(10, 15, 10, 15));
         }
-
-        // Set initial button states
-        deleteClassButton.setDisable(true);
+DiagramCanvas        deleteClassButton.setDisable(true);
         deleteRelationButton.setDisable(true);
 
         setupSelectionHandling();
@@ -271,8 +259,7 @@ public class MainViewController {
     private void setupKeyboardShortcuts() {
         Scene scene = diagramCanvasContainer.getScene();
         if (scene != null) {
-            // Selection and deletion shortcuts
-            KeyCombination deleteKey = new KeyCodeCombination(KeyCode.DELETE);
+DiagramCanvas            KeyCombination deleteKey = new KeyCodeCombination(KeyCode.DELETE);
             scene.getAccelerators().put(deleteKey, () -> {
                 if (diagramCanvas.hasSelection()) {
                     if (selectedClass != null) {
@@ -282,16 +269,12 @@ public class MainViewController {
                     }
                 }
             });
-
-            // Undo/redo shortcuts
-            KeyCombination undoKey = new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN);
+DiagramCanvas            KeyCombination undoKey = new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN);
             scene.getAccelerators().put(undoKey, this::handleUndo);
 
             KeyCombination redoKey = new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN);
             scene.getAccelerators().put(redoKey, this::handleRedo);
-
-            // Zoom shortcuts
-            KeyCombination zoomInKey = new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.CONTROL_DOWN);
+DiagramCanvas            KeyCombination zoomInKey = new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.CONTROL_DOWN);
             scene.getAccelerators().put(zoomInKey, () -> diagramCanvas.getNavigationManager().zoomIn());
 
             KeyCombination zoomOutKey = new KeyCodeCombination(KeyCode.MINUS, KeyCombination.CONTROL_DOWN);
@@ -302,17 +285,13 @@ public class MainViewController {
 
             KeyCombination fitToViewKey = new KeyCodeCombination(KeyCode.F, KeyCombination.CONTROL_DOWN);
             scene.getAccelerators().put(fitToViewKey, () -> diagramCanvas.zoomToFit());
-
-            // Add class shortcut
-            KeyCombination addClassKey = new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN);
+DiagramCanvas            KeyCombination addClassKey = new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN);
             scene.getAccelerators().put(addClassKey, () -> {
                 if (mainController != null) {
                     mainController.handleAddClass();
                 }
             });
-
-            // Add relation shortcut
-            KeyCombination addRelationKey = new KeyCodeCombination(KeyCode.R, KeyCombination.CONTROL_DOWN);
+DiagramCanvas            KeyCombination addRelationKey = new KeyCodeCombination(KeyCode.R, KeyCombination.CONTROL_DOWN);
             scene.getAccelerators().put(addRelationKey, () -> {
                 if (mainController != null) {
                     mainController.handleAddRelation();

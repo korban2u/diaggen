@@ -7,11 +7,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 
-/**
- * Renders a modern, interactive grid with support for zooming and panning.
- * Features major and minor grid lines with different visual weights.
- */
-public class GridRenderer {
+DiagramCanvaspublic class GridRenderer {
     private final Canvas canvas;
     private final int minorGridSize;
     private final int majorGridSize;
@@ -20,9 +16,7 @@ public class GridRenderer {
     private double translateY = 0;
     private boolean showGrid = true;
     private boolean showCoordinates = true;
-
-    // Grid colors
-    private final Color minorLineColor = Color.rgb(240, 240, 240);
+DiagramCanvas    private final Color minorLineColor = Color.rgb(240, 240, 240);
     private final Color majorLineColor = Color.rgb(220, 220, 220);
     private final Color originLineColor = Color.rgb(200, 200, 200, 0.7);
     private final Color textColor = Color.rgb(150, 150, 150);
@@ -63,17 +57,11 @@ public class GridRenderer {
         if (!showGrid) {
             return;
         }
-
-        // Calculate logical coordinates of the viewport corners
-        Point2D topLeft = viewportToContent(new Point2D(0, 0));
+DiagramCanvas        Point2D topLeft = viewportToContent(new Point2D(0, 0));
         Point2D bottomRight = viewportToContent(new Point2D(width, height));
-
-        // Determine grid spacing based on scale
-        double adjustedMinorSize = Math.max(minorGridSize * scale, 5);
+DiagramCanvas        double adjustedMinorSize = Math.max(minorGridSize * scale, 5);
         double adjustedMajorSize = Math.max(majorGridSize * scale, 50);
-
-        // Use different grid sizes based on zoom level
-        int visibleMinorGridSize = minorGridSize;
+DiagramCanvas        int visibleMinorGridSize = minorGridSize;
         int visibleMajorGridSize = majorGridSize;
 
         if (scale < 0.5) {
@@ -82,15 +70,11 @@ public class GridRenderer {
         } else if (scale > 2.0) {
             visibleMinorGridSize = minorGridSize / 2;
         }
-
-        // Calculate grid line positions
-        double minorOffsetX = (translateX % (visibleMinorGridSize * scale)) / scale;
+DiagramCanvas        double minorOffsetX = (translateX % (visibleMinorGridSize * scale)) / scale;
         double minorOffsetY = (translateY % (visibleMinorGridSize * scale)) / scale;
         double majorOffsetX = (translateX % (visibleMajorGridSize * scale)) / scale;
         double majorOffsetY = (translateY % (visibleMajorGridSize * scale)) / scale;
-
-        // Calculate the first visible grid coordinates
-        int startX = (int)(topLeft.getX() / visibleMinorGridSize) * visibleMinorGridSize;
+DiagramCanvas        int startX = (int)(topLeft.getX() / visibleMinorGridSize) * visibleMinorGridSize;
         int startY = (int)(topLeft.getY() / visibleMinorGridSize) * visibleMinorGridSize;
         int endX = (int)(bottomRight.getX() / visibleMinorGridSize + 1) * visibleMinorGridSize;
         int endY = (int)(bottomRight.getY() / visibleMinorGridSize + 1) * visibleMinorGridSize;
@@ -99,9 +83,7 @@ public class GridRenderer {
         int startMajorY = (int)(topLeft.getY() / visibleMajorGridSize) * visibleMajorGridSize;
         int endMajorX = (int)(bottomRight.getX() / visibleMajorGridSize + 1) * visibleMajorGridSize;
         int endMajorY = (int)(bottomRight.getY() / visibleMajorGridSize + 1) * visibleMajorGridSize;
-
-        // Draw minor grid lines
-        gc.setStroke(minorLineColor);
+DiagramCanvas        gc.setStroke(minorLineColor);
         gc.setLineWidth(0.5);
 
         for (int x = startX; x <= endX; x += visibleMinorGridSize) {
@@ -115,18 +97,14 @@ public class GridRenderer {
             Point2D p2 = contentToViewport(new Point2D(bottomRight.getX(), y));
             gc.strokeLine(p1.getX(), p1.getY(), p2.getX(), p2.getY());
         }
-
-        // Draw major grid lines
-        gc.setStroke(majorLineColor);
+DiagramCanvas        gc.setStroke(majorLineColor);
         gc.setLineWidth(1.0);
 
         for (int x = startMajorX; x <= endMajorX; x += visibleMajorGridSize) {
             Point2D p1 = contentToViewport(new Point2D(x, topLeft.getY()));
             Point2D p2 = contentToViewport(new Point2D(x, bottomRight.getY()));
             gc.strokeLine(p1.getX(), p1.getY(), p2.getX(), p2.getY());
-
-            // Draw coordinates
-            if (showCoordinates && scale > 0.4) {
+DiagramCanvas            if (showCoordinates && scale > 0.4) {
                 gc.setFill(textColor);
                 gc.setTextAlign(TextAlignment.CENTER);
                 gc.setFont(new Font("Arial", 10));
@@ -138,32 +116,22 @@ public class GridRenderer {
             Point2D p1 = contentToViewport(new Point2D(topLeft.getX(), y));
             Point2D p2 = contentToViewport(new Point2D(bottomRight.getX(), y));
             gc.strokeLine(p1.getX(), p1.getY(), p2.getX(), p2.getY());
-
-            // Draw coordinates
-            if (showCoordinates && scale > 0.4) {
+DiagramCanvas            if (showCoordinates && scale > 0.4) {
                 gc.setFill(textColor);
                 gc.setTextAlign(TextAlignment.RIGHT);
                 gc.setFont(new Font("Arial", 10));
                 gc.fillText(String.valueOf(y), 15, p1.getY() + 4);
             }
         }
-
-        // Draw origin axes if visible
-        Point2D origin = contentToViewport(new Point2D(0, 0));
+DiagramCanvas        Point2D origin = contentToViewport(new Point2D(0, 0));
         if (origin.getX() >= 0 && origin.getX() <= width &&
                 origin.getY() >= 0 && origin.getY() <= height) {
 
             gc.setStroke(originLineColor);
             gc.setLineWidth(1.5);
-
-            // Y axis
-            gc.strokeLine(origin.getX(), 0, origin.getX(), height);
-
-            // X axis
-            gc.strokeLine(0, origin.getY(), width, origin.getY());
-
-            // Origin marker
-            gc.setFill(originLineColor);
+DiagramCanvas            gc.strokeLine(origin.getX(), 0, origin.getX(), height);
+DiagramCanvas            gc.strokeLine(0, origin.getY(), width, origin.getY());
+DiagramCanvas            gc.setFill(originLineColor);
             gc.fillOval(origin.getX() - 3, origin.getY() - 3, 6, 6);
         }
     }

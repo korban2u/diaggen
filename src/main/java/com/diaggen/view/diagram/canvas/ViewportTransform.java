@@ -4,17 +4,11 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Point2D;
 
-/**
- * Manages the transformation state (scale and translation) for the diagram viewport.
- * This class serves as the model for viewport transformations, centralizing the transformation logic.
- */
-public class ViewportTransform {
+DiagramCanvaspublic class ViewportTransform {
     private final DoubleProperty scale = new SimpleDoubleProperty(1.0);
     private final DoubleProperty translateX = new SimpleDoubleProperty(0.0);
     private final DoubleProperty translateY = new SimpleDoubleProperty(0.0);
-
-    // Minimum and maximum scale limits to prevent extreme zooming
-    private double minScale = 0.1;
+DiagramCanvas    private double minScale = 0.1;
     private double maxScale = 5.0;
 
     public ViewportTransform() {
@@ -76,20 +70,14 @@ public class ViewportTransform {
         }
     }
 
-    /**
-     * Transforms a point from viewport coordinates to content coordinates.
-     */
-    public Point2D transformPoint(Point2D viewportPoint) {
+    DiagramCanvas    public Point2D transformPoint(Point2D viewportPoint) {
         return new Point2D(
                 (viewportPoint.getX() - getTranslateX()) / getScale(),
                 (viewportPoint.getY() - getTranslateY()) / getScale()
         );
     }
 
-    /**
-     * Transforms a point from content coordinates to viewport coordinates.
-     */
-    public Point2D inverseTransformPoint(Point2D contentPoint) {
+    DiagramCanvas    public Point2D inverseTransformPoint(Point2D contentPoint) {
         return new Point2D(
                 contentPoint.getX() * getScale() + getTranslateX(),
                 contentPoint.getY() * getScale() + getTranslateY()

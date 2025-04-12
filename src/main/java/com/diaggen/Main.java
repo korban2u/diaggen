@@ -31,44 +31,27 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // Ensure CSS style directory exists
-        ensureStylesDirectory();
-
-        // Initialize models, services and utilities
-        DiagramStore diagramStore = new DiagramStore();
+DiagramCanvas        ensureStylesDirectory();
+DiagramCanvas        DiagramStore diagramStore = new DiagramStore();
         CommandManager commandManager = new CommandManager();
         DialogFactory dialogFactory = DialogFactory.getInstance();
         EventBus eventBus = EventBus.getInstance();
-
-        // Load the main view
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MainView.fxml"));
+DiagramCanvas        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MainView.fxml"));
         Parent root = loader.load();
         MainViewController viewController = loader.getController();
-
-        // Get the enhanced diagram canvas
-        DiagramCanvas diagramCanvas = viewController.getDiagramCanvas();
-
-        // Initialize services
-        ExportService exportService = new ExportService(diagramCanvas);
-
-        // Initialize controllers
-        ClassController classController = new ClassController(diagramStore, commandManager, dialogFactory);
+DiagramCanvas        DiagramCanvas diagramCanvas = viewController.getDiagramCanvas();
+DiagramCanvas        ExportService exportService = new ExportService(diagramCanvas);
+DiagramCanvas        ClassController classController = new ClassController(diagramStore, commandManager, dialogFactory);
         DiagramController diagramController = new DiagramController(diagramStore, commandManager);
         RelationController relationController = new RelationController(diagramStore, commandManager, dialogFactory, diagramCanvas);
         ExportController exportController = new ExportController(diagramStore, commandManager, exportService, classController, diagramController);
-
-        // Set window references
-        diagramController.setOwnerWindow(primaryStage);
+DiagramCanvas        diagramController.setOwnerWindow(primaryStage);
         exportController.setOwnerWindow(primaryStage);
 
         LOGGER.log(Level.INFO, "Controllers initialized");
-
-        // Configure node manager with command manager for proper undo/redo support
-        NodeManager nodeManager = diagramCanvas.getNodeManager();
+DiagramCanvas        NodeManager nodeManager = diagramCanvas.getNodeManager();
         nodeManager.setCommandManager(commandManager);
-
-        // Create the main controller and connect everything
-        MainController mainController = new MainController(
+DiagramCanvas        MainController mainController = new MainController(
                 diagramStore,
                 commandManager,
                 classController,
@@ -77,46 +60,29 @@ public class Main extends Application {
                 exportController,
                 diagramCanvas
         );
-
-        // Set the main controller in the view controller
-        viewController.setMainController(mainController);
-
-        // Setup event listeners for diagram changes
-        setupEventListeners(eventBus, diagramCanvas, viewController);
-
-        // If a diagram is already active, load it
-        if (diagramStore.getActiveDiagram() != null) {
+DiagramCanvas        viewController.setMainController(mainController);
+DiagramCanvas        setupEventListeners(eventBus, diagramCanvas, viewController);
+DiagramCanvas        if (diagramStore.getActiveDiagram() != null) {
             diagramCanvas.loadDiagram(diagramStore.getActiveDiagram());
             viewController.updateDiagramList(diagramStore.getDiagrams());
             viewController.updateSelectedDiagram(diagramStore.getActiveDiagram());
         }
-
-        // Create and configure the scene
-        Scene scene = new Scene(root, 1280, 800);
-
-        // Add application stylesheets
-        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/main.css")).toExternalForm());
+DiagramCanvas        Scene scene = new Scene(root, 1280, 800);
+DiagramCanvas        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/main.css")).toExternalForm());
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/navigation-styles.css")).toExternalForm());
-
-        // Configure the primary stage
-        primaryStage.setTitle("DiagGen - Générateur de diagrammes de classe");
+DiagramCanvas        primaryStage.setTitle("DiagGen - Générateur de diagrammes de classe");
         primaryStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/icon.png"))));
         primaryStage.setScene(scene);
         primaryStage.setMinWidth(800);
         primaryStage.setMinHeight(600);
-
-        // Show the stage
-        primaryStage.show();
-
-        // After the UI is displayed, fit diagram to view
-        if (diagramStore.getActiveDiagram() != null) {
+DiagramCanvas        primaryStage.show();
+DiagramCanvas        if (diagramStore.getActiveDiagram() != null) {
             diagramCanvas.zoomToFit();
         }
     }
 
     private void setupEventListeners(EventBus eventBus, DiagramCanvas diagramCanvas, MainViewController viewController) {
-        // Listen for diagram changes to refresh the view
-        eventBus.subscribe(DiagramChangedEvent.class, event -> {
+DiagramCanvas        eventBus.subscribe(DiagramChangedEvent.class, event -> {
             diagramCanvas.refresh();
             viewController.setStatus("Diagramme mis à jour");
         });
@@ -124,23 +90,18 @@ public class Main extends Application {
 
     private void ensureStylesDirectory() {
         try {
-            // Check if navigation-styles.css exists, if not create it
-            Path stylesDir = Paths.get(getClass().getResource("/styles").toURI());
+DiagramCanvas            Path stylesDir = Paths.get(getClass().getResource("/styles").toURI());
             Path navigationStylesPath = stylesDir.resolve("navigation-styles.css");
 
             if (!Files.exists(navigationStylesPath)) {
-                // First ensure the directory exists
-                if (!Files.exists(stylesDir)) {
+DiagramCanvas                if (!Files.exists(stylesDir)) {
                     Files.createDirectories(stylesDir);
                 }
-
-                // Then copy the empty styles file from the classpath if needed
-                Files.copy(getClass().getResourceAsStream("/styles/navigation-styles.css"), navigationStylesPath);
+DiagramCanvas                Files.copy(getClass().getResourceAsStream("/styles/navigation-styles.css"), navigationStylesPath);
             }
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to ensure styles directory structure: " + e.getMessage());
-            // Continue execution anyway, this isn't critical
-        }
+DiagramCanvas        }
     }
 
     public static void main(String[] args) {

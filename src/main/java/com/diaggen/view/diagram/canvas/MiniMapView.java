@@ -16,11 +16,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
-/**
- * A miniature view of the diagram for quick navigation.
- * Shows a viewport rectangle that represents the current visible area.
- */
-public class MiniMapView extends Pane {
+DiagramCanvaspublic class MiniMapView extends Pane {
     private final Pane diagramCanvas;
     private final ViewportTransform transform;
     private final Pane contentRepresentation = new Pane();
@@ -32,48 +28,32 @@ public class MiniMapView extends Pane {
     public MiniMapView(Pane diagramCanvas, ViewportTransform transform) {
         this.diagramCanvas = diagramCanvas;
         this.transform = transform;
-
-        // Set up the minimap appearance
-        setPrefSize(150, 120);
+DiagramCanvas        setPrefSize(150, 120);
         setMaxSize(150, 120);
         setBackground(new Background(new BackgroundFill(
                 Color.rgb(250, 250, 250, 0.9), new CornerRadii(5), Insets.EMPTY)));
         setBorder(new Border(new BorderStroke(
                 Color.rgb(180, 180, 180), BorderStrokeStyle.SOLID, new CornerRadii(5), BorderWidths.DEFAULT)));
-
-        // Set up the viewport rectangle
-        viewportRect.setFill(Color.rgb(100, 150, 255, 0.2));
+DiagramCanvas        viewportRect.setFill(Color.rgb(100, 150, 255, 0.2));
         viewportRect.setStroke(Color.rgb(70, 130, 220));
         viewportRect.setStrokeWidth(1);
-
-        // Add padding inside the minimap
-        contentRepresentation.setPadding(new Insets(5));
+DiagramCanvas        contentRepresentation.setPadding(new Insets(5));
 
         getChildren().addAll(contentRepresentation, viewportRect);
-
-        // Add tooltip
-        Tooltip.install(this, new Tooltip("Mini-map: Click to navigate"));
-
-        // Set style class for CSS
-        getStyleClass().add("mini-map");
+DiagramCanvas        Tooltip.install(this, new Tooltip("Mini-map: Click to navigate"));
+DiagramCanvas        getStyleClass().add("mini-map");
         viewportRect.getStyleClass().add("viewport-rect");
-
-        // Add event handlers for navigation
-        setOnMousePressed(this::handleMousePress);
+DiagramCanvas        setOnMousePressed(this::handleMousePress);
         setOnMouseDragged(this::handleMouseDrag);
         setOnMouseReleased(this::handleMouseRelease);
-
-        // Listen for changes in the transform
-        transform.scaleProperty().addListener((obs, oldVal, newVal) -> updateViewportRect());
+DiagramCanvas        transform.scaleProperty().addListener((obs, oldVal, newVal) -> updateViewportRect());
         transform.translateXProperty().addListener((obs, oldVal, newVal) -> updateViewportRect());
         transform.translateYProperty().addListener((obs, oldVal, newVal) -> updateViewportRect());
     }
 
     public void updateContent(Iterable<DiagramClass> classes) {
         contentRepresentation.getChildren().clear();
-
-        // Calculate bounds
-        double minX = Double.MAX_VALUE;
+DiagramCanvas        double minX = Double.MAX_VALUE;
         double minY = Double.MAX_VALUE;
         double maxX = Double.MIN_VALUE;
         double maxY = Double.MIN_VALUE;
@@ -84,9 +64,7 @@ public class MiniMapView extends Pane {
             hasClasses = true;
             double x = diagramClass.getX();
             double y = diagramClass.getY();
-
-            // Assume a minimum size for classes without real dimensions
-            double width = 150;
+DiagramCanvas            double width = 150;
             double height = 100;
 
             minX = Math.min(minX, x);
@@ -96,35 +74,26 @@ public class MiniMapView extends Pane {
         }
 
         if (!hasClasses) {
-            // Default values if no classes
-            minX = 0;
+DiagramCanvas            minX = 0;
             minY = 0;
             maxX = 800;
             maxY = 600;
         }
-
-        // Add padding
-        double padding = 50;
+DiagramCanvas        double padding = 50;
         minX -= padding;
         minY -= padding;
         maxX += padding;
         maxY += padding;
-
-        // Calculate scale to fit in the minimap
-        double contentWidth = maxX - minX;
+DiagramCanvas        double contentWidth = maxX - minX;
         double contentHeight = maxY - minY;
 
         double scaleX = (getWidth() - 10) / contentWidth;
         double scaleY = (getHeight() - 10) / contentHeight;
         miniMapScale = Math.min(scaleX, scaleY);
-
-        // Create rectangles for each class
-        for (DiagramClass diagramClass : classes) {
+DiagramCanvas        for (DiagramClass diagramClass : classes) {
             double x = diagramClass.getX();
             double y = diagramClass.getY();
-
-            // Default size for visualization
-            double width = 150;
+DiagramCanvas            double width = 150;
             double height = 100;
 
             Rectangle rect = new Rectangle(
@@ -146,13 +115,9 @@ public class MiniMapView extends Pane {
     private void updateViewportRect() {
         double contentWidth = diagramCanvas.getWidth() / transform.getScale();
         double contentHeight = diagramCanvas.getHeight() / transform.getScale();
-
-        // Calculate the visible viewport in content coordinates
-        double viewportX = -transform.getTranslateX() / transform.getScale();
+DiagramCanvas        double viewportX = -transform.getTranslateX() / transform.getScale();
         double viewportY = -transform.getTranslateY() / transform.getScale();
-
-        // Find the position within the minimap's scale
-        viewportRect.setX((viewportX - minX()) * miniMapScale + 5);
+DiagramCanvas        viewportRect.setX((viewportX - minX()) * miniMapScale + 5);
         viewportRect.setY((viewportY - minY()) * miniMapScale + 5);
         viewportRect.setWidth(contentWidth * miniMapScale);
         viewportRect.setHeight(contentHeight * miniMapScale);
@@ -215,12 +180,9 @@ public class MiniMapView extends Pane {
     }
 
     private void navigateToPoint(double x, double y) {
-        // Convert minimap coordinates to content coordinates
-        double contentX = (x - 5) / miniMapScale + minX();
+DiagramCanvas        double contentX = (x - 5) / miniMapScale + minX();
         double contentY = (y - 5) / miniMapScale + minY();
-
-        // Adjust the transform to center on this point
-        double viewportWidth = diagramCanvas.getWidth() / transform.getScale();
+DiagramCanvas        double viewportWidth = diagramCanvas.getWidth() / transform.getScale();
         double viewportHeight = diagramCanvas.getHeight() / transform.getScale();
 
         double translateX = -(contentX - viewportWidth / 2) * transform.getScale();
