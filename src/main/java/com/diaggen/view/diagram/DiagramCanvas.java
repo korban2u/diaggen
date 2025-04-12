@@ -166,15 +166,32 @@ public class DiagramCanvas extends Pane {
 
         clear();
 
+        // Première étape : créer tous les nœuds de classe
         for (DiagramClass diagramClass : diagram.getClasses()) {
             nodeManager.createClassNode(diagramClass);
         }
 
+        // Deuxième étape : créer toutes les relations
         for (DiagramRelation relation : diagram.getRelations()) {
             relationManager.createRelationLine(relation);
         }
 
-        relationManager.updateAllRelationsLater();
+        // Force un layout complet après le chargement
+        Platform.runLater(() -> {
+            // Force un rafraîchissement complet de tous les nœuds
+            for (ClassNode node : nodeManager.getNodes().values()) {
+                node.refresh();
+            }
+
+            // Mettre à jour toutes les relations
+            relationManager.updateAllRelations();
+
+            // Demander une mise en page complète
+            requestLayout();
+
+            // Force une seconde passe de mise à jour pour s'assurer que tout est bien positionné
+            Platform.runLater(this::refresh);
+        });
     }
 
     public void refresh() {

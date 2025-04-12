@@ -1,6 +1,7 @@
 package com.diaggen.controller;
 
 import com.diaggen.controller.command.CommandManager;
+import com.diaggen.event.DiagramActivatedEvent;
 import com.diaggen.event.DiagramChangedEvent;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramStore;
@@ -16,11 +17,15 @@ import javafx.stage.Window;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ExportController extends BaseController {
 
+    private static final Logger LOGGER = Logger.getLogger(ExportController.class.getName());
     private final ExportService exportService;
     private final ClassController classController;
+    private final DiagramController diagramController;  // Référence ajoutée au DiagramController
     private Window ownerWindow;
 
     public ExportController(DiagramStore diagramStore, CommandManager commandManager,
@@ -28,6 +33,25 @@ public class ExportController extends BaseController {
         super(diagramStore, commandManager);
         this.exportService = exportService;
         this.classController = classController;
+        this.diagramController = null; // Sera initialisé plus tard
+    }
+
+    // Constructeur avec diagramController (pour injection)
+    public ExportController(DiagramStore diagramStore, CommandManager commandManager,
+                            ExportService exportService, ClassController classController,
+                            DiagramController diagramController) {
+        super(diagramStore, commandManager);
+        this.exportService = exportService;
+        this.classController = classController;
+        this.diagramController = diagramController;
+    }
+
+    // Setter pour le DiagramController (si on ne peut pas utiliser le constructeur)
+    public void setDiagramController(DiagramController diagramController) {
+        LOGGER.log(Level.INFO, "Setting DiagramController in ExportController");
+        if (this.diagramController == null) {
+            LOGGER.log(Level.INFO, "DiagramController initialized");
+        }
     }
 
     public void setOwnerWindow(Window ownerWindow) {
@@ -185,6 +209,8 @@ public class ExportController extends BaseController {
             if (file != null) {
                 try {
                     parsedDiagram = parser.parseFile(file);
+                    // Utiliser le nom du fichier pour le diagramme
+                    parsedDiagram.setName("Diagramme - " + file.getName());
                 } catch (Exception e) {
                     AlertHelper.showError("Erreur d'importation",
                             "Erreur lors de l'analyse du fichier Java: " + e.getMessage());
@@ -201,6 +227,8 @@ public class ExportController extends BaseController {
             if (dir != null) {
                 try {
                     parsedDiagram = parser.parseProject(dir.toPath());
+                    // Utiliser le nom du dossier pour le diagramme
+                    parsedDiagram.setName("Projet - " + dir.getName());
                 } catch (Exception e) {
                     AlertHelper.showError("Erreur d'importation",
                             "Erreur lors de l'analyse du projet Java: " + e.getMessage());
@@ -214,13 +242,24 @@ public class ExportController extends BaseController {
         }
 
         if (parsedDiagram != null) {
+            // Ajouter le diagramme au store
             diagramStore.getDiagrams().add(parsedDiagram);
-            diagramStore.setActiveDiagram(parsedDiagram);
             diagramStore.setCurrentFile(null);
 
-            eventBus.publish(new DiagramChangedEvent(parsedDiagram.getId(),
-                    DiagramChangedEvent.ChangeType.DIAGRAM_RENAMED, null));
+            // Activer le diagramme importé en forçant l'activation si le DiagramController est disponible
+            if (diagramController != null) {
+                LOGGER.log(Level.INFO, "Activating imported diagram using DiagramController");
+                diagramController.activateDiagram(parsedDiagram, true);
+            } else {
+                // Fallback: définir actif et générer les événements manuellement
+                LOGGER.log(Level.INFO, "Activating imported diagram manually (DiagramController not available)");
+                diagramStore.setActiveDiagram(parsedDiagram);
+                eventBus.publish(new DiagramChangedEvent(parsedDiagram.getId(),
+                        DiagramChangedEvent.ChangeType.DIAGRAM_RENAMED, null));
+                eventBus.publish(new DiagramActivatedEvent(parsedDiagram.getId()));
+            }
 
+            // Organiser automatiquement les classes du diagramme
             classController.arrangeClassesAutomatically();
         }
     }

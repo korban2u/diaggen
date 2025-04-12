@@ -1,7 +1,3 @@
-/**
- * Contrôleur principal qui coordonne les sous-contrôleurs.
- * Ce contrôleur sert de façade pour le MainViewController.
- */
 package com.diaggen.controller;
 
 import com.diaggen.controller.command.CommandManager;
@@ -40,7 +36,8 @@ public class MainController {
 
     // Méthodes déléguées au DiagramController
     public void handleNewDiagram() {
-        diagramController.createNewDiagram("Nouveau diagramme");
+        // Utiliser la nouvelle méthode qui affiche une boîte de dialogue pour le nom
+        diagramController.createNewDiagramWithDialog();
     }
 
     public void handleSelectDiagram(ClassDiagram diagram) {
@@ -49,7 +46,8 @@ public class MainController {
 
     public void handleEditDiagram() {
         if (diagramStore.getActiveDiagram() != null) {
-            diagramController.renameDiagram(diagramStore.getActiveDiagram(), "Diagramme renommé");
+            // Utiliser la nouvelle méthode qui affiche une boîte de dialogue pour le renommage
+            diagramController.renameDiagram(diagramStore.getActiveDiagram(), null);
         }
     }
 

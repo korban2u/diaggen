@@ -110,6 +110,8 @@ public class MainViewController {
         LOGGER.log(Level.INFO, "MainViewController initialization complete");
     }
 
+    // Section corrigée pour setupEventBusListeners dans MainViewController.java
+
     private void setupEventBusListeners() {
         // Écouter les changements de diagramme actif
         eventBus.subscribe(DiagramActivatedEvent.class, (EventListener<DiagramActivatedEvent>) event -> {
@@ -133,6 +135,18 @@ public class MainViewController {
                     }
 
                     if (targetDiagram != null) {
+                        // Vider l'éditeur actuel pour éviter d'afficher des données de l'ancien diagramme
+                        if (editorController != null) {
+                            editorController.clearEditor();
+                            editorPanel.setVisible(false);
+                        }
+
+                        // Effacer les sélections actuelles
+                        selectedClass = null;
+                        selectedRelation = null;
+                        deleteClassButton.setDisable(true);
+                        deleteRelationButton.setDisable(true);
+
                         // Vérifier si ce diagramme est déjà sélectionné
                         ClassDiagram selectedDiagram = diagramListView.getSelectionModel().getSelectedItem();
                         if (selectedDiagram != targetDiagram) {
@@ -164,13 +178,14 @@ public class MainViewController {
 
             // Rafraîchir le diagramme si c'est le diagramme actif
             Platform.runLater(() -> {
+                // Rafraîchir la liste des diagrammes
+                diagramListView.refresh();
+
+                // Rafraîchir le canvas si c'est le diagramme actif
                 if (diagramCanvas.getDiagram() != null &&
                         diagramCanvas.getDiagram().getId().equals(event.getDiagramId())) {
                     diagramCanvas.refresh();
                 }
-
-                // Aussi rafraîchir la liste des diagrammes
-                diagramListView.refresh();
             });
         });
     }

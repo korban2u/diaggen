@@ -177,7 +177,7 @@ public class ClassNode extends Region {
         return new Point2D(boundaryX, boundaryY);
     }
 
-        public void refresh() {
+    public void refresh() {
         // Mettre à jour les écouteurs pour les nouveaux éléments
         updateModelListeners();
 
@@ -193,12 +193,23 @@ public class ClassNode extends Region {
         double height = content.getLayoutBounds().getHeight() + PADDING * 2;
         setPrefSize(width, height);
 
+        // Force le redimensionnement immédiat
+        resize(width, height);
+
+        // Force une mise à jour visuelle
+        setVisible(false);
+        setVisible(true);
+
         // Utiliser requestLayout pour s'assurer que le composant se redessine correctement
         requestLayout();
 
+        // Forcer JavaFX à recalculer le layout
+        applyCss();
+        layout();
+
         // Notifier d'éventuels changements de position
         if (positionChangeListener != null) {
-            Platform.runLater(positionChangeListener::run);
+            Platform.runLater(positionChangeListener);
         }
     }
 

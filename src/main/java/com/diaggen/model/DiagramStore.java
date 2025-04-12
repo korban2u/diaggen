@@ -16,7 +16,7 @@ public class DiagramStore {
 
     public DiagramStore() {
         diagrams = FXCollections.observableArrayList();
-        createNewDiagram("Nouveau diagramme");
+        createDefaultDiagram();
     }
 
     public ObservableList<ClassDiagram> getDiagrams() {
@@ -39,10 +39,23 @@ public class DiagramStore {
         this.currentFile = currentFile;
     }
 
+    /**
+     * Crée le diagramme initial par défaut.
+     */
+    private void createDefaultDiagram() {
+        ClassDiagram diagram = new ClassDiagram("Nouveau diagramme");
+        diagrams.add(diagram);
+        activeDiagram = diagram;
+    }
+
+    /**
+     * Crée un nouveau diagramme mais ne l'active PAS automatiquement.
+     * L'activation doit être gérée séparément par le contrôleur.
+     */
     public ClassDiagram createNewDiagram(String name) {
         ClassDiagram diagram = new ClassDiagram(name);
         diagrams.add(diagram);
-        activeDiagram = diagram;
+        // Ne pas définir comme actif automatiquement
         return diagram;
     }
 

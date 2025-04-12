@@ -19,8 +19,12 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Main extends Application {
+
+    private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -43,13 +47,17 @@ public class Main extends Application {
 
         // Créer les contrôleurs spécialisés
         ClassController classController = new ClassController(diagramStore, commandManager, dialogFactory);
-        RelationController relationController = new RelationController(diagramStore, commandManager, dialogFactory, diagramCanvas);
         DiagramController diagramController = new DiagramController(diagramStore, commandManager);
-        ExportController exportController = new ExportController(diagramStore, commandManager, exportService, classController);
+
+        // Créer les contrôleurs qui ont des dépendances circulaires - comme ExportController qui a besoin du DiagramController
+        RelationController relationController = new RelationController(diagramStore, commandManager, dialogFactory, diagramCanvas);
+        ExportController exportController = new ExportController(diagramStore, commandManager, exportService, classController, diagramController);
 
         // Configurer les fenêtres parent pour les dialogues
         diagramController.setOwnerWindow(primaryStage);
         exportController.setOwnerWindow(primaryStage);
+
+        LOGGER.log(Level.INFO, "Controllers initialized");
 
         // Injecter le CommandManager dans NodeManager pour gérer les déplacements
         NodeManager nodeManager = diagramCanvas.getNodeManager();
