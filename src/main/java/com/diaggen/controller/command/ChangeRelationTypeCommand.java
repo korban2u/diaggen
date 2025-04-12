@@ -3,11 +3,12 @@ package com.diaggen.controller.command;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramRelation;
 import com.diaggen.model.RelationType;
+import com.diaggen.view.diagram.DiagramCanvas;
 
 /**
- * Commande pour changer le type d'une relation
- * Puisque le type de relation est final dans DiagramRelation,
- * cette commande crée une nouvelle relation et remplace l'ancienne
+ * Commande améliorée pour changer le type d'une relation.
+ * Cette commande crée une nouvelle relation et remplace l'ancienne,
+ * puis notifie le canvas pour une mise à jour instantanée de l'affichage.
  */
 public class ChangeRelationTypeCommand implements Command {
 
@@ -15,17 +16,20 @@ public class ChangeRelationTypeCommand implements Command {
     private final DiagramRelation oldRelation;
     private DiagramRelation newRelation;
     private final RelationType newType;
+    private final DiagramCanvas diagramCanvas; // Référence au canvas pour la mise à jour
 
     /**
      * Constructeur
      * @param diagram Le diagramme contenant la relation
      * @param relation La relation à modifier
      * @param newType Le nouveau type de relation
+     * @param diagramCanvas Le canvas sur lequel dessiner la relation
      */
-    public ChangeRelationTypeCommand(ClassDiagram diagram, DiagramRelation relation, RelationType newType) {
+    public ChangeRelationTypeCommand(ClassDiagram diagram, DiagramRelation relation, RelationType newType, DiagramCanvas diagramCanvas) {
         this.diagram = diagram;
         this.oldRelation = relation;
         this.newType = newType;
+        this.diagramCanvas = diagramCanvas;
     }
 
     @Override
@@ -43,6 +47,12 @@ public class ChangeRelationTypeCommand implements Command {
         // Retirer l'ancienne relation et ajouter la nouvelle
         diagram.removeRelation(oldRelation);
         diagram.addRelation(newRelation);
+
+        // Actualiser l'affichage du canvas et sélectionner la nouvelle relation
+        if (diagramCanvas != null) {
+            diagramCanvas.refresh();
+            diagramCanvas.selectRelation(newRelation);
+        }
     }
 
     @Override
@@ -52,6 +62,12 @@ public class ChangeRelationTypeCommand implements Command {
             diagram.removeRelation(newRelation);
         }
         diagram.addRelation(oldRelation);
+
+        // Actualiser l'affichage du canvas et sélectionner l'ancienne relation
+        if (diagramCanvas != null) {
+            diagramCanvas.refresh();
+            diagramCanvas.selectRelation(oldRelation);
+        }
     }
 
     @Override

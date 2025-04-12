@@ -19,6 +19,9 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
+/**
+ * Contrôleur de vue principale amélioré pour une meilleure gestion des relations
+ */
 public class MainViewController {
 
     @FXML
@@ -138,19 +141,19 @@ public class MainViewController {
                 // Afficher le panneau d'édition de relation
                 editorPanel.setVisible(true);
 
-                // Modification ici pour utiliser le modèle et le contrôleur améliorés
-                if (mainController != null && mainController.getCommandManager() != null) {
-                    // Utilisation de la version améliorée du RelationEditorPanel
-                    RelationEditorPanel editorPanel = new RelationEditorPanel(
+                if (mainController != null) {
+                    // Utiliser le panneau d'édition de relation amélioré
+                    RelationEditorPanel relationEditor = new RelationEditorPanel(
                             mainController.getCommandManager(),
-                            mainController.getDiagramStore().getActiveDiagram()
+                            mainController.getDiagramStore().getActiveDiagram(),
+                            diagramCanvas
                     );
-                    editorPanel.setRelation(relation);
+                    relationEditor.setRelation(relation);
 
                     // Passer ce panel à l'EditorPanelController
-                    editorController.showCustomRelationEditor(editorPanel);
+                    editorController.showCustomRelationEditor(relationEditor);
                 } else {
-                    // Fallback vers la méthode standard si le commandManager n'est pas disponible
+                    // Fallback si le mainController n'est pas disponible
                     editorController.showRelationEditor(relation);
                 }
 
@@ -182,7 +185,7 @@ public class MainViewController {
     }
 
     private void setupKeyboardShortcuts() {
-        // Raccourcis clavier globaux
+        // Cette méthode reste inchangée
         Scene scene = diagramCanvasContainer.getScene();
         if (scene != null) {
             // Supprimer (Delete)
@@ -254,13 +257,14 @@ public class MainViewController {
         return selectedRelation;
     }
 
-
     @FXML
     private void handleNewDiagram() {
         if (mainController != null) {
             mainController.handleNewDiagram();
         }
     }
+
+    // Le reste des méthodes reste inchangé
 
     @FXML
     private void handleOpenDiagram() {
@@ -297,14 +301,12 @@ public class MainViewController {
         }
     }
 
-
     @FXML
     private void handleAddClass() {
         if (mainController != null) {
             mainController.handleAddClass();
         }
     }
-
 
     @FXML
     private void handleDeleteClass() {
@@ -348,7 +350,6 @@ public class MainViewController {
         }
     }
 
-
     @FXML
     private void handleExportPlantUML() {
         if (mainController != null) {
@@ -376,7 +377,6 @@ public class MainViewController {
             mainController.handleRedo();
         }
     }
-
 
     public Window getWindow() {
         return diagramCanvasContainer.getScene().getWindow();

@@ -5,6 +5,7 @@ import com.diaggen.controller.command.CommandManager;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramRelation;
 import com.diaggen.model.RelationType;
+import com.diaggen.view.diagram.DiagramCanvas;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -12,11 +13,16 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
+/**
+ * Panneau d'édition amélioré pour les relations, avec mise à jour instantanée
+ * lorsque le type de relation est modifié.
+ */
 public class RelationEditorPanel extends VBox {
 
     private DiagramRelation relation;
-    private CommandManager commandManager; // Retiré le modificateur final
-    private ClassDiagram diagram; // Retiré le modificateur final
+    private CommandManager commandManager;
+    private ClassDiagram diagram;
+    private DiagramCanvas diagramCanvas;
 
     // Champs d'édition
     private Label sourceClassLabel;
@@ -26,12 +32,16 @@ public class RelationEditorPanel extends VBox {
     private TextField targetMultiplicityField;
     private TextField labelField;
 
-    // Stocker le type de relation original pour détecter les changements
-    private RelationType originalRelationType;
-
-    public RelationEditorPanel(CommandManager commandManager, ClassDiagram diagram) {
+    /**
+     * Constructeur complet
+     * @param commandManager Le gestionnaire de commandes
+     * @param diagram Le diagramme
+     * @param diagramCanvas Le canvas (pour les mises à jour d'affichage)
+     */
+    public RelationEditorPanel(CommandManager commandManager, ClassDiagram diagram, DiagramCanvas diagramCanvas) {
         this.commandManager = commandManager;
         this.diagram = diagram;
+        this.diagramCanvas = diagramCanvas;
 
         setSpacing(15);
         setPadding(new Insets(0, 5, 0, 5));
@@ -39,9 +49,11 @@ public class RelationEditorPanel extends VBox {
         createGeneralSection();
     }
 
-    // Constructeur pour compatibilité avec le code existant
+    /**
+     * Constructeur simplifié pour compatibilité
+     */
     public RelationEditorPanel() {
-        this(null, null);
+        this(null, null, null);
     }
 
     private void createGeneralSection() {
@@ -85,19 +97,17 @@ public class RelationEditorPanel extends VBox {
         relationTypeComboBox.setMaxWidth(Double.MAX_VALUE);
         relationTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (relation != null && newVal != null && oldVal != null && !oldVal.equals(newVal)) {
-                // Si le type de relation a changé et que nous avons un CommandManager et un diagramme
-                if (commandManager != null && diagram != null) {
+                // Utiliser la commande améliorée pour changer le type de relation
+                if (commandManager != null && diagram != null && diagramCanvas != null) {
                     // Créer et exécuter la commande pour changer le type de relation
                     ChangeRelationTypeCommand command = new ChangeRelationTypeCommand(
-                            diagram, relation, newVal);
+                            diagram, relation, newVal, diagramCanvas);
                     commandManager.executeCommand(command);
 
                     // Mettre à jour la référence à la relation (puisque c'est un nouvel objet)
                     // La dernière relation ajoutée au diagramme est celle qui remplace l'originale
                     if (!diagram.getRelations().isEmpty()) {
                         relation = diagram.getRelations().get(diagram.getRelations().size() - 1);
-                        // Mise à jour de l'originalRelationType pour les futures comparaisons
-                        originalRelationType = relation.getRelationType();
                     }
                 }
             }
@@ -111,6 +121,10 @@ public class RelationEditorPanel extends VBox {
         sourceMultiplicityField.textProperty().addListener((obs, oldVal, newVal) -> {
             if (relation != null) {
                 relation.setSourceMultiplicity(newVal);
+                // Actualiser l'affichage après modification
+                if (diagramCanvas != null) {
+                    diagramCanvas.refresh();
+                }
             }
         });
         grid.add(sourceMultiplicityLabel, 0, 3);
@@ -122,6 +136,10 @@ public class RelationEditorPanel extends VBox {
         targetMultiplicityField.textProperty().addListener((obs, oldVal, newVal) -> {
             if (relation != null) {
                 relation.setTargetMultiplicity(newVal);
+                // Actualiser l'affichage après modification
+                if (diagramCanvas != null) {
+                    diagramCanvas.refresh();
+                }
             }
         });
         grid.add(targetMultiplicityLabel, 0, 4);
@@ -133,6 +151,10 @@ public class RelationEditorPanel extends VBox {
         labelField.textProperty().addListener((obs, oldVal, newVal) -> {
             if (relation != null) {
                 relation.setLabel(newVal);
+                // Actualiser l'affichage après modification
+                if (diagramCanvas != null) {
+                    diagramCanvas.refresh();
+                }
             }
         });
         grid.add(labelTextLabel, 0, 5);
@@ -189,9 +211,6 @@ public class RelationEditorPanel extends VBox {
         this.relation = relation;
 
         if (relation != null) {
-            // Stocker le type de relation original
-            this.originalRelationType = relation.getRelationType();
-
             // Mise à jour des champs
             sourceClassLabel.setText(relation.getSourceClass().getName());
             targetClassLabel.setText(relation.getTargetClass().getName());
@@ -211,8 +230,7 @@ public class RelationEditorPanel extends VBox {
     }
 
     private void handleInverseRelation() {
-        // Cette méthode devrait être implémentée au niveau du contrôleur
-        // pour permettre l'inversion de la relation
+        // Cette fonctionnalité pourrait être implémentée dans une version future
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Fonctionnalité à implémenter");
         alert.setHeaderText("Inversion de relation");
@@ -220,14 +238,15 @@ public class RelationEditorPanel extends VBox {
         alert.showAndWait();
     }
 
-    // Méthode pour injecter le CommandManager et le diagramme après la construction
-    // Cela permet de l'utiliser même si créé sans ces paramètres
-    public void setCommandManagerAndDiagram(CommandManager commandManager, ClassDiagram diagram) {
-        if (this.commandManager == null && this.diagram == null) {
-            // Ne mettre à jour que si ces valeurs n'ont pas déjà été définies
-            // pour éviter les écrasements accidentels
-            this.commandManager = commandManager;
-            this.diagram = diagram;
-        }
+    /**
+     * Méthode pour configurer tous les paramètres nécessaires après la construction
+     * @param commandManager Le gestionnaire de commandes
+     * @param diagram Le diagramme
+     * @param diagramCanvas Le canvas pour les mises à jour d'affichage
+     */
+    public void configure(CommandManager commandManager, ClassDiagram diagram, DiagramCanvas diagramCanvas) {
+        this.commandManager = commandManager;
+        this.diagram = diagram;
+        this.diagramCanvas = diagramCanvas;
     }
 }
