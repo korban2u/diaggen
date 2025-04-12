@@ -22,7 +22,7 @@ public class DialogFactory {
         return instance;
     }
 
-        public Dialog<Parameter> createParameterEditorDialog(Parameter parameter) {
+    public Dialog<Parameter> createParameterEditorDialog(Parameter parameter) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dialog/ParameterEditorDialog.fxml"));
             DialogPane dialogPane = loader.load();
@@ -39,7 +39,7 @@ public class DialogFactory {
         }
     }
 
-        public Dialog<Member> createAttributeEditorDialog(Member attribute) {
+    public Dialog<Member> createAttributeEditorDialog(Member attribute) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dialog/AttributeEditorDialog.fxml"));
             DialogPane dialogPane = loader.load();
@@ -56,7 +56,7 @@ public class DialogFactory {
         }
     }
 
-        public Dialog<Method> createMethodEditorDialog(Method method) {
+    public Dialog<Method> createMethodEditorDialog(Method method) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dialog/MethodEditorDialog.fxml"));
             DialogPane dialogPane = loader.load();
@@ -73,7 +73,7 @@ public class DialogFactory {
         }
     }
 
-        public Dialog<DiagramClass> createClassEditorDialog(DiagramClass diagramClass) {
+    public Dialog<DiagramClass> createClassEditorDialog(DiagramClass diagramClass) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dialog/ClassEditorDialog.fxml"));
             DialogPane dialogPane = loader.load();
@@ -90,25 +90,42 @@ public class DialogFactory {
         }
     }
 
-        public Dialog<DiagramRelation> createRelationEditorDialog(DiagramRelation relation,
+    public Dialog<DiagramRelation> createRelationEditorDialog(DiagramRelation relation,
                                                               ObservableList<DiagramClass> classes) {
         try {
+            // Utiliser le nouveau FXML avec EnhancedRelationEditorController
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dialog/RelationEditorDialog.fxml"));
             DialogPane dialogPane = loader.load();
 
             Dialog<DiagramRelation> dialog = new Dialog<>();
             dialog.setDialogPane(dialogPane);
 
-            RelationEditorController controller = loader.getController();
+            // Utiliser le nouveau contrôleur amélioré
+            EnhancedRelationEditorController controller = loader.getController();
             controller.setDialog(dialog, relation, classes);
 
             return dialog;
         } catch (IOException e) {
-            throw new RuntimeException("Erreur lors du chargement du dialogue d'édition de relations", e);
+            // Si le nouveau FXML n'est pas trouvé, revenir à l'ancien
+            try {
+                // Fallback à l'ancien FXML si nécessaire
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dialog/RelationEditorDialog.fxml"));
+                DialogPane dialogPane = loader.load();
+
+                Dialog<DiagramRelation> dialog = new Dialog<>();
+                dialog.setDialogPane(dialogPane);
+
+                RelationEditorController controller = loader.getController();
+                controller.setDialog(dialog, relation, classes);
+
+                return dialog;
+            } catch (IOException ex) {
+                throw new RuntimeException("Erreur lors du chargement du dialogue d'édition de relations", ex);
+            }
         }
     }
 
-        public Dialog<String> createDiagramPropertiesDialog(ClassDiagram diagram) {
+    public Dialog<String> createDiagramPropertiesDialog(ClassDiagram diagram) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dialog/DiagramPropertiesDialog.fxml"));
             DialogPane dialogPane = loader.load();

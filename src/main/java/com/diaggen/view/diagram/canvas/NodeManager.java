@@ -1,5 +1,9 @@
 package com.diaggen.view.diagram.canvas;
 
+import com.diaggen.controller.command.CommandManager;
+import com.diaggen.controller.command.MoveClassCommand;
+import com.diaggen.event.ClassMovedEvent;
+import com.diaggen.event.EventBus;
 import com.diaggen.model.DiagramClass;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
@@ -22,15 +26,21 @@ public class NodeManager {
     private Point2D dragStartPoint;
 
     private NodeSelectionListener selectionListener;
-
     private RelationManager relationManager;
+    private CommandManager commandManager;
+    private final EventBus eventBus;
 
     public NodeManager(Pane container) {
         this.container = container;
+        this.eventBus = EventBus.getInstance();
     }
 
     public void setRelationManager(RelationManager relationManager) {
         this.relationManager = relationManager;
+    }
+
+    public void setCommandManager(CommandManager commandManager) {
+        this.commandManager = commandManager;
     }
 
     public ClassNode createClassNode(DiagramClass diagramClass) {
@@ -66,8 +76,26 @@ public class NodeManager {
 
         classNode.setOnMouseReleased(e -> {
             if (e.getButton() == MouseButton.PRIMARY) {
-                diagramClass.setX(classNode.getLayoutX());
-                diagramClass.setY(classNode.getLayoutY());
+                double oldX = dragStartPoint.getX();
+                double oldY = dragStartPoint.getY();
+                double newX = classNode.getLayoutX();
+                double newY = classNode.getLayoutY();
+
+                // Utiliser MoveClassCommand pour enregistrer le déplacement
+                if (commandManager != null && (oldX != newX || oldY != newY)) {
+                    MoveClassCommand command = new MoveClassCommand(diagramClass, oldX, oldY, newX, newY);
+                    commandManager.executeCommand(command);
+
+                    // Publier un événement pour notifier du déplacement
+                    String diagramId = diagramClass.getDiagramId();
+                    if (diagramId != null) {
+                        eventBus.publish(new ClassMovedEvent(diagramId, diagramClass.getId(), oldX, oldY, newX, newY));
+                    }
+                } else {
+                    // Si pas de commandManager, mettre à jour directement
+                    diagramClass.setX(newX);
+                    diagramClass.setY(newY);
+                }
 
                 // Mettre à jour toutes les relations à la fin du déplacement
                 if (relationManager != null) {

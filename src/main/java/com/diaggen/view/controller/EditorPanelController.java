@@ -1,11 +1,9 @@
 package com.diaggen.view.controller;
 
-import com.diaggen.controller.command.CommandManager;
+import com.diaggen.controller.MainController;
 import com.diaggen.model.*;
 import com.diaggen.view.dialog.DialogFactory;
-import com.diaggen.view.editor.RelationEditorPanel;
 import javafx.collections.FXCollections;
-import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -13,21 +11,24 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class EditorPanelController {
+    private static final Logger LOGGER = Logger.getLogger(EditorPanelController.class.getName());
 
     private VBox editorContent;
+    private MainController mainController;
     private DialogFactory dialogFactory;
-    private CommandManager commandManager;
 
-
+    // Champs pour l'édition de classe
     private TextField classNameField;
     private TextField packageNameField;
     private ComboBox<ClassType> classTypeComboBox;
     private ListView<Member> attributesListView;
     private ListView<Method> methodsListView;
 
-
+    // Champs pour l'édition de relation
     private ComboBox<RelationType> relationTypeComboBox;
     private TextField sourceMultiplicityField;
     private TextField targetMultiplicityField;
@@ -35,79 +36,80 @@ public class EditorPanelController {
     private Label sourceClassLabel;
     private Label targetClassLabel;
 
-
+    // Éléments actuellement édités
     private DiagramClass currentClass;
     private DiagramRelation currentRelation;
 
-    public EditorPanelController(VBox editorContent, DialogFactory dialogFactory) {
+    public EditorPanelController(VBox editorContent) {
         this.editorContent = editorContent;
-        this.dialogFactory = dialogFactory;
+        this.dialogFactory = DialogFactory.getInstance();
+        LOGGER.log(Level.INFO, "EditorPanelController initialized");
     }
 
-    public void setCommandManager(CommandManager commandManager) {
-        this.commandManager = commandManager;
+    public void setMainController(MainController mainController) {
+        this.mainController = mainController;
+        LOGGER.log(Level.INFO, "MainController set in EditorPanelController");
     }
 
     public void showClassEditor(DiagramClass diagramClass) {
+        if (diagramClass == null) {
+            LOGGER.log(Level.WARNING, "Attempt to show class editor with null class");
+            return;
+        }
+
+        LOGGER.log(Level.INFO, "Showing class editor for class: {0}", diagramClass.getName());
+
         this.currentClass = diagramClass;
         this.currentRelation = null;
 
         editorContent.getChildren().clear();
 
-
+        // Titre
         Label titleLabel = new Label("Édition de classe");
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
         editorContent.getChildren().add(titleLabel);
 
-
+        // Section Général
         TitledPane generalPane = createClassGeneralSection();
 
-
+        // Section Attributs
         TitledPane attributesPane = createAttributesSection();
 
-
+        // Section Méthodes
         TitledPane methodsPane = createMethodsSection();
 
         editorContent.getChildren().addAll(generalPane, attributesPane, methodsPane);
 
-
+        // Mettre à jour les champs avec les données de la classe
         updateClassFields();
     }
 
     public void showRelationEditor(DiagramRelation relation) {
+        if (relation == null) {
+            LOGGER.log(Level.WARNING, "Attempt to show relation editor with null relation");
+            return;
+        }
+
+        LOGGER.log(Level.INFO, "Showing relation editor for relation between {0} and {1}",
+                new Object[]{relation.getSourceClass().getName(), relation.getTargetClass().getName()});
+
         this.currentRelation = relation;
         this.currentClass = null;
 
         editorContent.getChildren().clear();
 
-
+        // Titre
         Label titleLabel = new Label("Édition de relation");
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
         editorContent.getChildren().add(titleLabel);
 
-
+        // Section Propriétés
         TitledPane propertiesPane = createRelationPropertiesSection();
 
         editorContent.getChildren().add(propertiesPane);
 
-
+        // Mettre à jour les champs avec les données de la relation
         updateRelationFields();
-    }
-
-
-    public void showCustomRelationEditor(RelationEditorPanel relationEditorPanel) {
-        this.currentRelation = relationEditorPanel.getRelation();
-        this.currentClass = null;
-
-        editorContent.getChildren().clear();
-
-
-        Label titleLabel = new Label("Édition de relation");
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
-        editorContent.getChildren().add(titleLabel);
-
-
-        editorContent.getChildren().add(relationEditorPanel);
     }
 
     private TitledPane createClassGeneralSection() {
@@ -121,12 +123,13 @@ public class EditorPanelController {
         grid.setVgap(10);
         grid.setPadding(new Insets(10));
 
-
+        // Nom
         Label nameLabel = new Label("Nom:");
         classNameField = new TextField();
         classNameField.textProperty().addListener((obs, oldValue, newValue) -> {
-            if (currentClass != null) {
+            if (currentClass != null && !newValue.equals(oldValue)) {
                 currentClass.setName(newValue);
+                LOGGER.log(Level.FINE, "Class name updated to: {0}", newValue);
             }
         });
         grid.add(nameLabel, 0, 0);
@@ -136,8 +139,9 @@ public class EditorPanelController {
         Label packageLabel = new Label("Package:");
         packageNameField = new TextField();
         packageNameField.textProperty().addListener((obs, oldValue, newValue) -> {
-            if (currentClass != null) {
+            if (currentClass != null && !newValue.equals(oldValue)) {
                 currentClass.setPackageName(newValue);
+                LOGGER.log(Level.FINE, "Package name updated to: {0}", newValue);
             }
         });
         grid.add(packageLabel, 0, 1);
@@ -158,8 +162,9 @@ public class EditorPanelController {
             }
         });
         classTypeComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
-            if (currentClass != null && newValue != null) {
+            if (currentClass != null && newValue != null && !newValue.equals(oldValue)) {
                 currentClass.setClassType(newValue);
+                LOGGER.log(Level.FINE, "Class type updated to: {0}", newValue);
             }
         });
         grid.add(typeLabel, 0, 2);
@@ -316,16 +321,14 @@ public class EditorPanelController {
         });
         relationTypeComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
             if (currentRelation != null && newValue != null && oldValue != null && !oldValue.equals(newValue)) {
-                // Si le CommandManager est disponible, on peut changer le type de relation
-                if (commandManager != null) {
-                    // La gestion sera externalisée et implémentée dans une version ultérieure
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Changement de type de relation");
-                    alert.setHeaderText("Cette fonctionnalité nécessite une implémentation spéciale");
-                    alert.setContentText("Pour changer le type de relation, veuillez utiliser l'éditeur personnalisé qui sera ajouté dans une version ultérieure.");
-                    alert.showAndWait();
-
-                    // Restaurer l'ancienne valeur car nous ne pouvons pas gérer le changement ici
+                // Changer le type de relation via le contrôleur
+                if (mainController != null) {
+                    mainController.changeRelationType(currentRelation, newValue);
+                    LOGGER.log(Level.INFO, "Relation type changed from {0} to {1}",
+                            new Object[]{oldValue, newValue});
+                } else {
+                    LOGGER.log(Level.WARNING, "Cannot change relation type: mainController is null");
+                    // Restaurer l'ancienne valeur
                     relationTypeComboBox.setValue(oldValue);
                 }
             }
@@ -337,8 +340,9 @@ public class EditorPanelController {
         Label sourceMultLabel = new Label("Multiplicité source:");
         sourceMultiplicityField = new TextField();
         sourceMultiplicityField.textProperty().addListener((obs, oldValue, newValue) -> {
-            if (currentRelation != null) {
+            if (currentRelation != null && !newValue.equals(oldValue)) {
                 currentRelation.setSourceMultiplicity(newValue);
+                LOGGER.log(Level.FINE, "Source multiplicity updated to: {0}", newValue);
             }
         });
         grid.add(sourceMultLabel, 0, 3);
@@ -348,8 +352,9 @@ public class EditorPanelController {
         Label targetMultLabel = new Label("Multiplicité cible:");
         targetMultiplicityField = new TextField();
         targetMultiplicityField.textProperty().addListener((obs, oldValue, newValue) -> {
-            if (currentRelation != null) {
+            if (currentRelation != null && !newValue.equals(oldValue)) {
                 currentRelation.setTargetMultiplicity(newValue);
+                LOGGER.log(Level.FINE, "Target multiplicity updated to: {0}", newValue);
             }
         });
         grid.add(targetMultLabel, 0, 4);
@@ -359,15 +364,51 @@ public class EditorPanelController {
         Label labelTextLabel = new Label("Libellé:");
         relationLabelField = new TextField();
         relationLabelField.textProperty().addListener((obs, oldValue, newValue) -> {
-            if (currentRelation != null) {
+            if (currentRelation != null && !newValue.equals(oldValue)) {
                 currentRelation.setLabel(newValue);
+                LOGGER.log(Level.FINE, "Relation label updated to: {0}", newValue);
             }
         });
         grid.add(labelTextLabel, 0, 5);
         grid.add(relationLabelField, 1, 5);
 
+        // Bouton d'inversion
+        Button invertButton = new Button("Inverser la relation");
+        invertButton.setOnAction(e -> handleInvertRelation());
+        invertButton.setMaxWidth(Double.MAX_VALUE);
+        grid.add(invertButton, 0, 6, 2, 1);
+
         pane.setContent(grid);
         return pane;
+    }
+
+    private void handleInvertRelation() {
+        if (currentRelation == null || mainController == null) return;
+
+        LOGGER.log(Level.INFO, "Inverting relation");
+
+        // Obtenir les données actuelles
+        DiagramClass source = currentRelation.getSourceClass();
+        DiagramClass target = currentRelation.getTargetClass();
+        String sourceMulti = currentRelation.getSourceMultiplicity();
+        String targetMulti = currentRelation.getTargetMultiplicity();
+        RelationType type = currentRelation.getRelationType();
+        String label = currentRelation.getLabel();
+
+        // Créer une nouvelle relation inversée
+        DiagramRelation newRelation = new DiagramRelation(
+                target, source, type, targetMulti, sourceMulti, label);
+
+        // Ajouter la nouvelle relation via le mainController
+        // Cette logique dépend de la méthode spécifique dans le contrôleur
+        // À implémenter plus tard
+
+        // Pour le moment, juste informer l'utilisateur
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Fonctionnalité à implémenter");
+        alert.setHeaderText("Inversion de relation");
+        alert.setContentText("Cette fonctionnalité serait implémentée dans une version ultérieure.");
+        alert.showAndWait();
     }
 
     private void updateClassFields() {
@@ -392,19 +433,22 @@ public class EditorPanelController {
     }
 
     private void handleAddAttribute() {
-        if (currentClass != null) {
+        if (currentClass != null && dialogFactory != null) {
+            LOGGER.log(Level.INFO, "Adding attribute to class: {0}", currentClass.getName());
             Dialog<Member> dialog = dialogFactory.createAttributeEditorDialog(null);
             dialog.showAndWait().ifPresent(attribute -> {
                 currentClass.addAttribute(attribute);
                 attributesListView.refresh();
+                LOGGER.log(Level.INFO, "Attribute added: {0}", attribute.getName());
             });
         }
     }
 
     private void handleEditAttribute() {
-        if (currentClass != null) {
+        if (currentClass != null && dialogFactory != null) {
             Member selectedAttribute = attributesListView.getSelectionModel().getSelectedItem();
             if (selectedAttribute != null) {
+                LOGGER.log(Level.INFO, "Editing attribute: {0}", selectedAttribute.getName());
                 Dialog<Member> dialog = dialogFactory.createAttributeEditorDialog(selectedAttribute);
                 dialog.showAndWait();
                 attributesListView.refresh();
@@ -416,6 +460,7 @@ public class EditorPanelController {
         if (currentClass != null) {
             Member selectedAttribute = attributesListView.getSelectionModel().getSelectedItem();
             if (selectedAttribute != null) {
+                LOGGER.log(Level.INFO, "Removing attribute: {0}", selectedAttribute.getName());
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 alert.setTitle("Supprimer l'attribut");
                 alert.setHeaderText("Êtes-vous sûr de vouloir supprimer cet attribut ?");
@@ -431,19 +476,22 @@ public class EditorPanelController {
     }
 
     private void handleAddMethod() {
-        if (currentClass != null) {
+        if (currentClass != null && dialogFactory != null) {
+            LOGGER.log(Level.INFO, "Adding method to class: {0}", currentClass.getName());
             Dialog<Method> dialog = dialogFactory.createMethodEditorDialog(null);
             dialog.showAndWait().ifPresent(method -> {
                 currentClass.addMethod(method);
                 methodsListView.refresh();
+                LOGGER.log(Level.INFO, "Method added: {0}", method.getName());
             });
         }
     }
 
     private void handleEditMethod() {
-        if (currentClass != null) {
+        if (currentClass != null && dialogFactory != null) {
             Method selectedMethod = methodsListView.getSelectionModel().getSelectedItem();
             if (selectedMethod != null) {
+                LOGGER.log(Level.INFO, "Editing method: {0}", selectedMethod.getName());
                 Dialog<Method> dialog = dialogFactory.createMethodEditorDialog(selectedMethod);
                 dialog.showAndWait();
                 methodsListView.refresh();
@@ -455,6 +503,7 @@ public class EditorPanelController {
         if (currentClass != null) {
             Method selectedMethod = methodsListView.getSelectionModel().getSelectedItem();
             if (selectedMethod != null) {
+                LOGGER.log(Level.INFO, "Removing method: {0}", selectedMethod.getName());
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 alert.setTitle("Supprimer la méthode");
                 alert.setHeaderText("Êtes-vous sûr de vouloir supprimer cette méthode ?");
@@ -473,6 +522,7 @@ public class EditorPanelController {
         editorContent.getChildren().clear();
         currentClass = null;
         currentRelation = null;
+        LOGGER.log(Level.INFO, "Editor cleared");
     }
 
     public Node getContent() {
@@ -481,5 +531,13 @@ public class EditorPanelController {
 
     public boolean isEditing() {
         return currentClass != null || currentRelation != null;
+    }
+
+    public DiagramClass getCurrentClass() {
+        return currentClass;
+    }
+
+    public DiagramRelation getCurrentRelation() {
+        return currentRelation;
     }
 }

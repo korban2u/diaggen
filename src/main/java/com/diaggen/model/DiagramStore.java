@@ -6,6 +6,9 @@ import javafx.collections.ObservableList;
 import java.io.File;
 import java.util.Optional;
 
+/**
+ * Stocke et gère la collection de diagrammes de classe dans l'application.
+ */
 public class DiagramStore {
     private final ObservableList<ClassDiagram> diagrams;
     private ClassDiagram activeDiagram;
@@ -51,16 +54,23 @@ public class DiagramStore {
     }
 
     public Optional<DiagramClass> findClassById(String id) {
+        if (activeDiagram == null) return Optional.empty();
+
         return activeDiagram.getClasses().stream()
                 .filter(c -> c.getId().equals(id))
                 .findFirst();
     }
 
     public Optional<DiagramRelation> findRelationById(String id) {
+        if (activeDiagram == null) return Optional.empty();
+
         return activeDiagram.getRelations().stream()
                 .filter(r -> r.getId().equals(id))
                 .findFirst();
     }
+
+    public boolean isDiagramEmpty(ClassDiagram diagram) {
+        return diagram == null ||
+                (diagram.getClasses().isEmpty() && diagram.getRelations().isEmpty());
+    }
 }
-
-

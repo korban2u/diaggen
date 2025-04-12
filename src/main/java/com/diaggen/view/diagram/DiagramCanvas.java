@@ -1,5 +1,9 @@
 package com.diaggen.view.diagram;
 
+import com.diaggen.event.DiagramChangedEvent;
+import com.diaggen.event.ElementSelectedEvent;
+import com.diaggen.event.EventBus;
+import com.diaggen.event.EventListener;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramClass;
 import com.diaggen.model.DiagramRelation;
@@ -8,13 +12,13 @@ import com.diaggen.view.diagram.canvas.GridRenderer;
 import com.diaggen.view.diagram.canvas.NodeManager;
 import com.diaggen.view.diagram.canvas.RelationLine;
 import com.diaggen.view.diagram.canvas.RelationManager;
+import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 
 import java.util.ArrayList;
@@ -30,6 +34,7 @@ public class DiagramCanvas extends Pane {
     private final GridRenderer gridRenderer;
     private final NodeManager nodeManager;
     private final RelationManager relationManager;
+    private final EventBus eventBus;
 
     private Runnable onAddClassRequest;
     private Runnable onDeleteRequest;
@@ -48,28 +53,25 @@ public class DiagramCanvas extends Pane {
         gridRenderer = new GridRenderer(gridCanvas, 20);
         nodeManager = new NodeManager(this);
         relationManager = new RelationManager(this, nodeManager);
+        eventBus = EventBus.getInstance();
 
         nodeManager.setRelationManager(relationManager);
 
-
         setupContextMenu();
-
-
-        setOnMousePressed(e -> {
-            if (e.getButton() == MouseButton.PRIMARY && e.getTarget() == this) {
-                deselectAll();
-            }
-        });
-
-
         setupKeyHandlers();
+        setupSelectionListeners();
+        setupEventBusListeners();
 
         widthProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
         heightProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
         gridRenderer.drawGrid();
 
-
-        setupSelectionListeners();
+        // Configurer les interactions par défaut
+        setOnMousePressed(e -> {
+            if (e.getButton() == MouseButton.PRIMARY && e.getTarget() == this) {
+                deselectAll();
+            }
+        });
     }
 
     private void setupContextMenu() {
@@ -85,7 +87,6 @@ public class DiagramCanvas extends Pane {
         contextMenu.getItems().add(addClassItem);
 
         setOnContextMenuRequested(e -> {
-
             if (e.getTarget() == this) {
                 contextMenu.show(this, e.getScreenX(), e.getScreenY());
             }
@@ -93,34 +94,35 @@ public class DiagramCanvas extends Pane {
     }
 
     private void setupKeyHandlers() {
-
         setOnKeyPressed(this::handleKeyPress);
-
-
         setFocusTraversable(true);
     }
 
     private void handleKeyPress(KeyEvent event) {
         if (event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.BACK_SPACE) {
-
             if ((getSelectedClass() != null || getSelectedRelation() != null) && onDeleteRequest != null) {
                 onDeleteRequest.run();
                 event.consume();
             }
         } else if (event.getCode() == KeyCode.ESCAPE) {
-
             deselectAll();
             event.consume();
         }
     }
 
     private void setupSelectionListeners() {
-
         nodeManager.setNodeSelectionListener(node -> {
             if (node != null) {
                 relationManager.selectRelation(null);
+                DiagramClass selectedClass = node.getDiagramClass();
+
+                // Publier un événement de sélection
+                if (diagram != null) {
+                    eventBus.publish(new ElementSelectedEvent(diagram.getId(), selectedClass.getId(), true));
+                }
+
                 if (classSelectionListener != null) {
-                    classSelectionListener.accept(node.getDiagramClass());
+                    classSelectionListener.accept(selectedClass);
                 }
             } else {
                 if (classSelectionListener != null) {
@@ -132,13 +134,29 @@ public class DiagramCanvas extends Pane {
         relationManager.setRelationSelectionListener(line -> {
             if (line != null) {
                 nodeManager.selectNode(null);
+                DiagramRelation selectedRelation = line.getRelation();
+
+                // Publier un événement de sélection
+                if (diagram != null) {
+                    eventBus.publish(new ElementSelectedEvent(diagram.getId(), selectedRelation.getId(), false));
+                }
+
                 if (relationSelectionListener != null) {
-                    relationSelectionListener.accept(line.getRelation());
+                    relationSelectionListener.accept(selectedRelation);
                 }
             } else {
                 if (relationSelectionListener != null) {
                     relationSelectionListener.accept(null);
                 }
+            }
+        });
+    }
+
+    private void setupEventBusListeners() {
+        // Écouter les événements de changement de diagramme
+        eventBus.subscribe(DiagramChangedEvent.class, (EventListener<DiagramChangedEvent>) event -> {
+            if (diagram != null && diagram.getId().equals(event.getDiagramId())) {
+                Platform.runLater(this::refresh);
             }
         });
     }
@@ -159,12 +177,10 @@ public class DiagramCanvas extends Pane {
         relationManager.updateAllRelationsLater();
     }
 
-        public void refresh() {
+    public void refresh() {
         if (diagram != null) {
-
             DiagramClass selectedClass = getSelectedClass();
             DiagramRelation selectedRelation = getSelectedRelation();
-
 
             Map<String, DiagramRelation> existingRelations = new HashMap<>();
             Map<String, DiagramClass> existingClasses = new HashMap<>();
@@ -181,7 +197,7 @@ public class DiagramCanvas extends Pane {
             for (DiagramClass diagramClass : diagram.getClasses()) {
                 if (!existingClasses.containsKey(diagramClass.getId())) {
                     // Créer un nouveau nœud pour les classes qui n'existent pas encore
-                    ClassNode node = nodeManager.createClassNode(diagramClass);
+                    nodeManager.createClassNode(diagramClass);
                 } else {
                     // Mettre à jour la classe existante
                     ClassNode node = nodeManager.getNodeById(diagramClass.getId());
@@ -298,16 +314,27 @@ public class DiagramCanvas extends Pane {
         }
     }
 
-        public boolean hasSelection() {
+    public boolean hasSelection() {
         return getSelectedClass() != null || getSelectedRelation() != null;
     }
 
-    // Accesseurs pour les écouteurs de sélection
     public void setClassSelectionListener(Consumer<DiagramClass> listener) {
         this.classSelectionListener = listener;
     }
 
     public void setRelationSelectionListener(Consumer<DiagramRelation> listener) {
         this.relationSelectionListener = listener;
+    }
+
+    public NodeManager getNodeManager() {
+        return nodeManager;
+    }
+
+    public RelationManager getRelationManager() {
+        return relationManager;
+    }
+
+    public ClassDiagram getDiagram() {
+        return diagram;
     }
 }

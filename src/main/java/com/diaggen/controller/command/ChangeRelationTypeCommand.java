@@ -5,6 +5,7 @@ import com.diaggen.model.DiagramRelation;
 import com.diaggen.model.RelationType;
 import com.diaggen.view.diagram.DiagramCanvas;
 
+
 public class ChangeRelationTypeCommand implements Command {
 
     private final ClassDiagram diagram;

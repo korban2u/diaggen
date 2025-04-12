@@ -3,34 +3,50 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
 
 <DialogPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.diaggen.view.dialog.controller.RelationEditorController">
+            fx:controller="com.diaggen.view.dialog.controller.EnhancedRelationEditorController">
     <content>
-        <GridPane hgap="10" vgap="10">
+        <VBox spacing="15">
             <padding>
-                <Insets top="20" right="20" bottom="10" left="10"/>
+                <Insets top="10" right="15" bottom="10" left="15"/>
             </padding>
 
-            <Label text="Classe source:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-            <ComboBox fx:id="sourceClassComboBox" GridPane.columnIndex="1" GridPane.rowIndex="0" maxWidth="Infinity"/>
+            <GridPane hgap="10" vgap="10">
+                <columnConstraints>
+                    <ColumnConstraints percentWidth="30" />
+                    <ColumnConstraints percentWidth="70" />
+                </columnConstraints>
 
-            <Label text="Classe cible:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-            <ComboBox fx:id="targetClassComboBox" GridPane.columnIndex="1" GridPane.rowIndex="1" maxWidth="Infinity"/>
+                <Label text="Classe source:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <ComboBox fx:id="sourceClassComboBox" GridPane.columnIndex="1" GridPane.rowIndex="0" maxWidth="Infinity"/>
 
-            <Label text="Type de relation:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-            <ComboBox fx:id="relationTypeComboBox" GridPane.columnIndex="1" GridPane.rowIndex="2" maxWidth="Infinity"/>
+                <Label text="Classe cible:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <ComboBox fx:id="targetClassComboBox" GridPane.columnIndex="1" GridPane.rowIndex="1" maxWidth="Infinity"/>
 
-            <Label text="Multiplicité source:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-            <TextField fx:id="sourceMultiplicityField" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                <Label text="Type de relation:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <ComboBox fx:id="relationTypeComboBox" GridPane.columnIndex="1" GridPane.rowIndex="2" maxWidth="Infinity"/>
 
-            <Label text="Multiplicité cible:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-            <TextField fx:id="targetMultiplicityField" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+                <Label text="Multiplicité source:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                <TextField fx:id="sourceMultiplicityField" GridPane.columnIndex="1" GridPane.rowIndex="3" promptText="e.g., 1, 0..1, *"/>
 
-            <Label text="Libellé:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
-            <TextField fx:id="labelField" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
-        </GridPane>
+                <Label text="Multiplicité cible:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                <TextField fx:id="targetMultiplicityField" GridPane.columnIndex="1" GridPane.rowIndex="4" promptText="e.g., 1, 0..*, 1..*"/>
+
+                <Label text="Libellé:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+                <TextField fx:id="labelField" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+            </GridPane>
+
+            <TitledPane text="Exemple du type de relation" collapsible="true" expanded="true">
+                <VBox spacing="5">
+                    <TextArea fx:id="exampleArea" editable="false" prefRowCount="3" wrapText="true" style="-fx-font-family: monospace;"/>
+                </VBox>
+            </TitledPane>
+
+            <Button fx:id="invertRelationButton" text="Inverser la relation" onAction="#handleInvertRelation" maxWidth="Infinity"/>
+        </VBox>
     </content>
     <ButtonType fx:constant="OK"/>
     <ButtonType fx:constant="CANCEL"/>

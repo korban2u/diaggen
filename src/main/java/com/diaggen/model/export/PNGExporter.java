@@ -1,6 +1,7 @@
 package com.diaggen.model.export;
 
 import com.diaggen.model.ClassDiagram;
+
 import com.diaggen.view.diagram.DiagramCanvas;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.SnapshotParameters;

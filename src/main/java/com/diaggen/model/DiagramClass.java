@@ -11,6 +11,9 @@ import javafx.collections.ObservableList;
 
 import java.util.UUID;
 
+/**
+ * Modèle de classe de diagramme UML avec référence au diagramme parent.
+ */
 public class DiagramClass {
     private final String id;
     private final StringProperty name;
@@ -20,6 +23,7 @@ public class DiagramClass {
     private final DoubleProperty x;
     private final DoubleProperty y;
     private final ObjectProperty<ClassType> classType;
+    private String diagramId; // Référence à l'ID du diagramme parent
 
     public DiagramClass(String name, String packageName, ClassType classType) {
         this.id = UUID.randomUUID().toString();
@@ -30,6 +34,7 @@ public class DiagramClass {
         this.x = new SimpleDoubleProperty(0);
         this.y = new SimpleDoubleProperty(0);
         this.classType = new SimpleObjectProperty<>(classType);
+        this.diagramId = null;
     }
 
     public String getId() {
@@ -102,6 +107,14 @@ public class DiagramClass {
 
     public void setClassType(ClassType classType) {
         this.classType.set(classType);
+    }
+
+    public String getDiagramId() {
+        return diagramId;
+    }
+
+    public void setDiagramId(String diagramId) {
+        this.diagramId = diagramId;
     }
 
     public void addAttribute(Member attribute) {

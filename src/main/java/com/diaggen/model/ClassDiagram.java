@@ -1,3 +1,4 @@
+
 package com.diaggen.model;
 
 import javafx.beans.property.SimpleStringProperty;
@@ -7,6 +8,9 @@ import javafx.collections.ObservableList;
 
 import java.util.UUID;
 
+/**
+ * Représente un diagramme de classes UML avec des références bidirectionnelles.
+ */
 public class ClassDiagram {
     private final String id;
     private final StringProperty name;
@@ -46,22 +50,25 @@ public class ClassDiagram {
 
     public void addClass(DiagramClass diagramClass) {
         classes.add(diagramClass);
+        diagramClass.setDiagramId(this.id); // Maintenir la référence bidirectionnelle
     }
 
     public void removeClass(DiagramClass diagramClass) {
         classes.remove(diagramClass);
+        // Supprimer les relations associées
         relations.removeIf(relation ->
-            relation.getSourceClass().equals(diagramClass) ||
-            relation.getTargetClass().equals(diagramClass));
+                relation.getSourceClass().equals(diagramClass) ||
+                        relation.getTargetClass().equals(diagramClass));
+        diagramClass.setDiagramId(null); // Annuler la référence
     }
 
     public void addRelation(DiagramRelation relation) {
         relations.add(relation);
+        relation.setDiagramId(this.id); // Maintenir la référence bidirectionnelle
     }
 
     public void removeRelation(DiagramRelation relation) {
         relations.remove(relation);
+        relation.setDiagramId(null); // Annuler la référence
     }
 }
-
-

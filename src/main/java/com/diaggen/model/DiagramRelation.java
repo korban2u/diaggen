@@ -5,6 +5,9 @@ import javafx.beans.property.StringProperty;
 
 import java.util.UUID;
 
+/**
+ * Représente une relation entre deux classes dans un diagramme UML.
+ */
 public class DiagramRelation {
     private final String id;
     private final DiagramClass sourceClass;
@@ -13,9 +16,10 @@ public class DiagramRelation {
     private final StringProperty sourceMultiplicity;
     private final StringProperty targetMultiplicity;
     private final StringProperty label;
+    private String diagramId; // Référence à l'ID du diagramme parent
 
     public DiagramRelation(DiagramClass sourceClass, DiagramClass targetClass, RelationType relationType,
-                          String sourceMultiplicity, String targetMultiplicity, String label) {
+                           String sourceMultiplicity, String targetMultiplicity, String label) {
         this.id = UUID.randomUUID().toString();
         this.sourceClass = sourceClass;
         this.targetClass = targetClass;
@@ -23,6 +27,7 @@ public class DiagramRelation {
         this.sourceMultiplicity = new SimpleStringProperty(sourceMultiplicity);
         this.targetMultiplicity = new SimpleStringProperty(targetMultiplicity);
         this.label = new SimpleStringProperty(label);
+        this.diagramId = null;
     }
 
     public String getId() {
@@ -77,6 +82,14 @@ public class DiagramRelation {
         this.label.set(label);
     }
 
+    public String getDiagramId() {
+        return diagramId;
+    }
+
+    public void setDiagramId(String diagramId) {
+        this.diagramId = diagramId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -90,5 +103,3 @@ public class DiagramRelation {
         return id.hashCode();
     }
 }
-
-
