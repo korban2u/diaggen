@@ -1,7 +1,9 @@
 package com.diaggen.model;
 
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -17,7 +19,7 @@ public class DiagramClass {
     private final ObservableList<Method> methods;
     private final DoubleProperty x;
     private final DoubleProperty y;
-    private ClassType classType;
+    private final ObjectProperty<ClassType> classType;
 
     public DiagramClass(String name, String packageName, ClassType classType) {
         this.id = UUID.randomUUID().toString();
@@ -27,7 +29,7 @@ public class DiagramClass {
         this.methods = FXCollections.observableArrayList();
         this.x = new SimpleDoubleProperty(0);
         this.y = new SimpleDoubleProperty(0);
-        this.classType = classType;
+        this.classType = new SimpleObjectProperty<>(classType);
     }
 
     public String getId() {
@@ -91,11 +93,15 @@ public class DiagramClass {
     }
 
     public ClassType getClassType() {
+        return classType.get();
+    }
+
+    public ObjectProperty<ClassType> classTypeProperty() {
         return classType;
     }
 
     public void setClassType(ClassType classType) {
-        this.classType = classType;
+        this.classType.set(classType);
     }
 
     public void addAttribute(Member attribute) {
@@ -127,5 +133,3 @@ public class DiagramClass {
         return id.hashCode();
     }
 }
-
-

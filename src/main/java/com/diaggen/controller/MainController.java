@@ -41,6 +41,10 @@ public class MainController {
         this.diagramCanvas = viewController.getDiagramCanvas();
     }
 
+    public CommandManager getCommandManager() {
+        return commandManager;
+    }
+
     public void initialize() {
         viewController.updateDiagramList(diagramStore.getDiagrams());
 

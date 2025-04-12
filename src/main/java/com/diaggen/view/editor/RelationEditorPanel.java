@@ -1,5 +1,8 @@
 package com.diaggen.view.editor;
 
+import com.diaggen.controller.command.ChangeRelationTypeCommand;
+import com.diaggen.controller.command.CommandManager;
+import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramRelation;
 import com.diaggen.model.RelationType;
 import javafx.collections.FXCollections;
@@ -12,6 +15,8 @@ import javafx.util.StringConverter;
 public class RelationEditorPanel extends VBox {
 
     private DiagramRelation relation;
+    private CommandManager commandManager; // Retiré le modificateur final
+    private ClassDiagram diagram; // Retiré le modificateur final
 
     // Champs d'édition
     private Label sourceClassLabel;
@@ -21,11 +26,22 @@ public class RelationEditorPanel extends VBox {
     private TextField targetMultiplicityField;
     private TextField labelField;
 
-    public RelationEditorPanel() {
+    // Stocker le type de relation original pour détecter les changements
+    private RelationType originalRelationType;
+
+    public RelationEditorPanel(CommandManager commandManager, ClassDiagram diagram) {
+        this.commandManager = commandManager;
+        this.diagram = diagram;
+
         setSpacing(15);
         setPadding(new Insets(0, 5, 0, 5));
 
         createGeneralSection();
+    }
+
+    // Constructeur pour compatibilité avec le code existant
+    public RelationEditorPanel() {
+        this(null, null);
     }
 
     private void createGeneralSection() {
@@ -68,9 +84,22 @@ public class RelationEditorPanel extends VBox {
         });
         relationTypeComboBox.setMaxWidth(Double.MAX_VALUE);
         relationTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (relation != null && newVal != null) {
-                // La mise à jour du type de relation nécessite une refactorisation profonde
-                // qui serait implémentée dans un contrôleur externe
+            if (relation != null && newVal != null && oldVal != null && !oldVal.equals(newVal)) {
+                // Si le type de relation a changé et que nous avons un CommandManager et un diagramme
+                if (commandManager != null && diagram != null) {
+                    // Créer et exécuter la commande pour changer le type de relation
+                    ChangeRelationTypeCommand command = new ChangeRelationTypeCommand(
+                            diagram, relation, newVal);
+                    commandManager.executeCommand(command);
+
+                    // Mettre à jour la référence à la relation (puisque c'est un nouvel objet)
+                    // La dernière relation ajoutée au diagramme est celle qui remplace l'originale
+                    if (!diagram.getRelations().isEmpty()) {
+                        relation = diagram.getRelations().get(diagram.getRelations().size() - 1);
+                        // Mise à jour de l'originalRelationType pour les futures comparaisons
+                        originalRelationType = relation.getRelationType();
+                    }
+                }
             }
         });
         grid.add(typeLabel, 0, 2);
@@ -160,6 +189,9 @@ public class RelationEditorPanel extends VBox {
         this.relation = relation;
 
         if (relation != null) {
+            // Stocker le type de relation original
+            this.originalRelationType = relation.getRelationType();
+
             // Mise à jour des champs
             sourceClassLabel.setText(relation.getSourceClass().getName());
             targetClassLabel.setText(relation.getTargetClass().getName());
@@ -170,6 +202,14 @@ public class RelationEditorPanel extends VBox {
         }
     }
 
+    /**
+     * Obtient la relation en cours d'édition
+     * @return La relation en cours d'édition
+     */
+    public DiagramRelation getRelation() {
+        return this.relation;
+    }
+
     private void handleInverseRelation() {
         // Cette méthode devrait être implémentée au niveau du contrôleur
         // pour permettre l'inversion de la relation
@@ -178,5 +218,16 @@ public class RelationEditorPanel extends VBox {
         alert.setHeaderText("Inversion de relation");
         alert.setContentText("Cette fonctionnalité serait implémentée dans le contrôleur pour gérer l'inversion complète de la relation.");
         alert.showAndWait();
+    }
+
+    // Méthode pour injecter le CommandManager et le diagramme après la construction
+    // Cela permet de l'utiliser même si créé sans ces paramètres
+    public void setCommandManagerAndDiagram(CommandManager commandManager, ClassDiagram diagram) {
+        if (this.commandManager == null && this.diagram == null) {
+            // Ne mettre à jour que si ces valeurs n'ont pas déjà été définies
+            // pour éviter les écrasements accidentels
+            this.commandManager = commandManager;
+            this.diagram = diagram;
+        }
     }
 }

@@ -1,7 +1,9 @@
 package com.diaggen.view.controller;
 
+import com.diaggen.controller.command.CommandManager;
 import com.diaggen.model.*;
 import com.diaggen.view.dialog.DialogFactory;
+import com.diaggen.view.editor.RelationEditorPanel;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -16,6 +18,7 @@ public class EditorPanelController {
 
     private VBox editorContent;
     private DialogFactory dialogFactory;
+    private CommandManager commandManager;
 
     // Éléments pour l'édition de classe
     private TextField classNameField;
@@ -39,6 +42,10 @@ public class EditorPanelController {
     public EditorPanelController(VBox editorContent, DialogFactory dialogFactory) {
         this.editorContent = editorContent;
         this.dialogFactory = dialogFactory;
+    }
+
+    public void setCommandManager(CommandManager commandManager) {
+        this.commandManager = commandManager;
     }
 
     public void showClassEditor(DiagramClass diagramClass) {
@@ -85,6 +92,22 @@ public class EditorPanelController {
 
         // Remplir les champs avec les valeurs de la relation
         updateRelationFields();
+    }
+
+    // Nouvelle méthode pour utiliser un RelationEditorPanel personnalisé
+    public void showCustomRelationEditor(RelationEditorPanel relationEditorPanel) {
+        this.currentRelation = relationEditorPanel.getRelation();
+        this.currentClass = null;
+
+        editorContent.getChildren().clear();
+
+        // Titre avec le type d'éditeur
+        Label titleLabel = new Label("Édition de relation");
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
+        editorContent.getChildren().add(titleLabel);
+
+        // Ajouter le panneau d'édition de relation personnalisé
+        editorContent.getChildren().add(relationEditorPanel);
     }
 
     private TitledPane createClassGeneralSection() {
@@ -292,8 +315,19 @@ public class EditorPanelController {
             }
         });
         relationTypeComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
-            if (currentRelation != null && newValue != null) {
-                // Note: Modifier le type de relation nécessiterait de créer une nouvelle relation
+            if (currentRelation != null && newValue != null && oldValue != null && !oldValue.equals(newValue)) {
+                // Si le CommandManager est disponible, on peut changer le type de relation
+                if (commandManager != null) {
+                    // La gestion sera externalisée et implémentée dans une version ultérieure
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Changement de type de relation");
+                    alert.setHeaderText("Cette fonctionnalité nécessite une implémentation spéciale");
+                    alert.setContentText("Pour changer le type de relation, veuillez utiliser l'éditeur personnalisé qui sera ajouté dans une version ultérieure.");
+                    alert.showAndWait();
+
+                    // Restaurer l'ancienne valeur car nous ne pouvons pas gérer le changement ici
+                    relationTypeComboBox.setValue(oldValue);
+                }
             }
         });
         grid.add(typeLabel, 0, 2);

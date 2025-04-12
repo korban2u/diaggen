@@ -2,11 +2,11 @@ package com.diaggen.view.controller;
 
 import com.diaggen.controller.MainController;
 import com.diaggen.model.ClassDiagram;
-import com.diaggen.model.ClassType;
 import com.diaggen.model.DiagramClass;
 import com.diaggen.model.DiagramRelation;
 import com.diaggen.view.dialog.DialogFactory;
 import com.diaggen.view.diagram.DiagramCanvas;
+import com.diaggen.view.editor.RelationEditorPanel;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
@@ -137,7 +137,22 @@ public class MainViewController {
 
                 // Afficher le panneau d'édition de relation
                 editorPanel.setVisible(true);
-                editorController.showRelationEditor(relation);
+
+                // Modification ici pour utiliser le modèle et le contrôleur améliorés
+                if (mainController != null && mainController.getCommandManager() != null) {
+                    // Utilisation de la version améliorée du RelationEditorPanel
+                    RelationEditorPanel editorPanel = new RelationEditorPanel(
+                            mainController.getCommandManager(),
+                            mainController.getDiagramStore().getActiveDiagram()
+                    );
+                    editorPanel.setRelation(relation);
+
+                    // Passer ce panel à l'EditorPanelController
+                    editorController.showCustomRelationEditor(editorPanel);
+                } else {
+                    // Fallback vers la méthode standard si le commandManager n'est pas disponible
+                    editorController.showRelationEditor(relation);
+                }
 
                 // Mettre à jour le statut
                 setStatus("Relation sélectionnée: " + relation.getRelationType().getDisplayName() +
@@ -194,6 +209,11 @@ public class MainViewController {
 
     public void setMainController(MainController mainController) {
         this.mainController = mainController;
+
+        // Si l'EditorPanelController a déjà été créé, on lui passe le CommandManager
+        if (editorController != null && mainController != null) {
+            editorController.setCommandManager(mainController.getCommandManager());
+        }
     }
 
     public void updateDiagramList(ObservableList<ClassDiagram> diagrams) {
@@ -281,30 +301,7 @@ public class MainViewController {
     @FXML
     private void handleAddClass() {
         if (mainController != null) {
-            // on crée une nouvelle implémentation dans le contrôleur principal
-
-            // Créer une nouvelle classe avec un nom par défaut
-            int classCount = 1;
-            // Si possible, obtenez le nombre actuel de classes pour le nom par défaut
-            ClassDiagram currentDiagram = mainController.getDiagramStore().getActiveDiagram();
-            if (currentDiagram != null) {
-                classCount = currentDiagram.getClasses().size() + 1;
-            }
-
-            String defaultName = "Classe" + classCount;
-
-            // Créer la classe avec un type par défaut et l'ajouter directement
-            DiagramClass newClass = new DiagramClass(defaultName, "", ClassType.CLASS);
-
-            // Positionner la classe à un emplacement visible
-            newClass.setX(100 + (classCount % 5) * 220);
-            newClass.setY(100 + (classCount / 5) * 150);
-
-            // Utiliser le mainController pour ajouter la classe
-            mainController.addNewClass(newClass);
-
-            // Sélectionner la nouvelle classe
-            diagramCanvas.selectClass(newClass);
+            mainController.handleAddClass();
         }
     }
 

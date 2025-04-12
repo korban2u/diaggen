@@ -5,6 +5,7 @@ import com.diaggen.model.DiagramClass;
 import com.diaggen.model.Member;
 import com.diaggen.model.Method;
 import com.diaggen.model.Parameter;
+import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -62,8 +63,8 @@ public class ClassNode extends Region {
         // Observer les changements de package
         diagramClass.packageNameProperty().addListener((obs, oldVal, newVal) -> refresh());
 
-        // Note: classType n'est pas une propriété JavaFX observable dans DiagramClass
-        // Les changements de type seront captés lors du rafraîchissement manuel après édition
+        // Observer les changements de type de classe (maintenant une propriété observable)
+        diagramClass.classTypeProperty().addListener((obs, oldVal, newVal) -> refresh());
 
         // Observer les changements dans la liste des attributs
         diagramClass.getAttributes().addListener((ListChangeListener<Member>) change -> {
@@ -192,6 +193,23 @@ public class ClassNode extends Region {
 
         // Rafraîchir le contenu
         content.update();
+
+        // Forcer une nouvelle disposition
+        content.applyCss();
+        content.layout();
+
+        // Calculer et mettre à jour la taille
+        double width = Math.max(MIN_WIDTH, content.getLayoutBounds().getWidth() + PADDING * 2);
+        double height = content.getLayoutBounds().getHeight() + PADDING * 2;
+        setPrefSize(width, height);
+
+        // Utiliser requestLayout pour s'assurer que le composant se redessine correctement
+        requestLayout();
+
+        // Notifier d'éventuels changements de position
+        if (positionChangeListener != null) {
+            Platform.runLater(positionChangeListener::run);
+        }
     }
 
     /**
@@ -319,6 +337,10 @@ public class ClassNode extends Region {
                 methText.setStyle("-fx-font-size: 12;");
                 getChildren().add(methText);
             }
+
+            // Forcer une mise à jour de la disposition
+            applyCss();
+            layout();
         }
 
         private double calculatePreferredWidth() {
