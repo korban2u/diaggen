@@ -18,7 +18,6 @@ public class RemoveClassCommand implements Command {
         this.diagram = diagram;
         this.diagramClass = diagramClass;
 
-        // Collecter les relations qui seront affectées par la suppression
         this.affectedRelations.addAll(diagram.getRelations().stream()
                 .filter(r -> r.getSourceClass().equals(diagramClass) || r.getTargetClass().equals(diagramClass))
                 .collect(Collectors.toList()));
@@ -26,21 +25,19 @@ public class RemoveClassCommand implements Command {
 
     @Override
     public void execute() {
-        // Supprimer d'abord les relations associées
+
         for (DiagramRelation relation : affectedRelations) {
             diagram.removeRelation(relation);
         }
 
-        // Puis supprimer la classe
         diagram.removeClass(diagramClass);
     }
 
     @Override
     public void undo() {
-        // Ajouter d'abord la classe
+
         diagram.addClass(diagramClass);
 
-        // Puis restaurer les relations
         for (DiagramRelation relation : affectedRelations) {
             diagram.addRelation(relation);
         }

@@ -31,15 +31,13 @@ public class RelationManager {
         if (sourceNode != null && targetNode != null) {
             RelationLine relationLine = new RelationLine(relation, sourceNode, targetNode);
 
-            // Améliorer la détection des clics sur les relations
             container.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
-                // Vérifier si le clic est sur cette relation
+
                 if (e.getButton() == MouseButton.PRIMARY) {
-                    // Calculer la position du clic relatif au conteneur
+
                     double x = e.getX();
                     double y = e.getY();
 
-                    // Vérifier si le clic est proche de la ligne
                     if (relationLine.isNearLine(x, y)) {
                         selectRelation(relationLine);
                         e.consume(); // Empêcher la propagation de l'événement
@@ -47,7 +45,6 @@ public class RelationManager {
                 }
             });
 
-            // Ajouter la ligne au conteneur (en-dessous des nœuds)
             container.getChildren().add(0, relationLine);
             relationLines.put(relation.getId(), relationLine);
 
@@ -86,7 +83,7 @@ public class RelationManager {
     }
 
     public void selectRelation(RelationLine line) {
-        // Désélectionner la relation précédente
+
         if (selectedRelation != null) {
             selectedRelation.setSelected(false);
         }
@@ -97,7 +94,6 @@ public class RelationManager {
             line.setSelected(true);
             line.toFront();
 
-            // Notifier l'écouteur
             if (selectionListener != null) {
                 selectionListener.onRelationSelected(line);
             }

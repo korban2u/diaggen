@@ -146,7 +146,6 @@ public class RelationEditorPanel extends VBox {
         grid.add(labelTextLabel, 0, 5);
         grid.add(labelField, 1, 5);
 
-        // Exemple visuel du type de relation
         Label exampleLabel = new Label("Exemple:");
         TextArea exampleArea = new TextArea();
         exampleArea.setEditable(false);
@@ -164,7 +163,6 @@ public class RelationEditorPanel extends VBox {
         grid.add(exampleLabel, 0, 6);
         grid.add(exampleArea, 1, 6);
 
-        // Boutons d'action
         Button inverseButton = new Button("Inverser la relation");
         inverseButton.setMaxWidth(Double.MAX_VALUE);
         inverseButton.setOnAction(e -> handleInverseRelation());
@@ -197,7 +195,7 @@ public class RelationEditorPanel extends VBox {
         this.relation = relation;
 
         if (relation != null) {
-            // Mise à jour des champs
+
             sourceClassLabel.setText(relation.getSourceClass().getName());
             targetClassLabel.setText(relation.getTargetClass().getName());
             relationTypeComboBox.setValue(relation.getRelationType());
@@ -212,7 +210,7 @@ public class RelationEditorPanel extends VBox {
     }
 
     private void handleInverseRelation() {
-        // Cette fonctionnalité pourrait être implémentée dans une version future
+
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Fonctionnalité à implémenter");
         alert.setHeaderText("Inversion de relation");

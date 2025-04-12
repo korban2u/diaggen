@@ -67,7 +67,6 @@ public class DiagramCanvas extends Pane {
         heightProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
         gridRenderer.drawGrid();
 
-        // Configurer les interactions par défaut
         setOnMousePressed(e -> {
             if (e.getButton() == MouseButton.PRIMARY && e.getTarget() == this) {
                 deselectAll();
@@ -117,7 +116,6 @@ public class DiagramCanvas extends Pane {
                 relationManager.selectRelation(null);
                 DiagramClass selectedClass = node.getDiagramClass();
 
-                // Publier un événement de sélection
                 if (diagram != null) {
                     eventBus.publish(new ElementSelectedEvent(diagram.getId(), selectedClass.getId(), true));
                 }
@@ -137,7 +135,6 @@ public class DiagramCanvas extends Pane {
                 nodeManager.selectNode(null);
                 DiagramRelation selectedRelation = line.getRelation();
 
-                // Publier un événement de sélection
                 if (diagram != null) {
                     eventBus.publish(new ElementSelectedEvent(diagram.getId(), selectedRelation.getId(), false));
                 }
@@ -154,7 +151,7 @@ public class DiagramCanvas extends Pane {
     }
 
     private void setupEventBusListeners() {
-        // Écouter les événements de changement de diagramme
+
         eventBus.subscribe(DiagramChangedEvent.class, (EventListener<DiagramChangedEvent>) event -> {
             if (diagram != null && diagram.getId().equals(event.getDiagramId())) {
                 Platform.runLater(this::refresh);
@@ -167,35 +164,28 @@ public class DiagramCanvas extends Pane {
 
         clear();
 
-        // Première étape : créer tous les nœuds de classe
         for (DiagramClass diagramClass : diagram.getClasses()) {
             nodeManager.createClassNode(diagramClass);
         }
 
-        // Deuxième étape : créer toutes les relations
         for (DiagramRelation relation : diagram.getRelations()) {
             relationManager.createRelationLine(relation);
         }
 
-        // Force un layout complet après le chargement
         Platform.runLater(() -> {
-            // Force un rafraîchissement complet de tous les nœuds
+
             for (ClassNode node : nodeManager.getNodes().values()) {
                 node.refresh();
             }
 
-            // Mettre à jour toutes les relations
             relationManager.updateAllRelations();
 
-            // Demander une mise en page complète
             requestLayout();
 
-            // Force une seconde passe de mise à jour pour s'assurer que tout est bien positionné
             Platform.runLater(this::refresh);
         });
     }
 
-    // Méthode refresh améliorée à insérer dans DiagramCanvas.java
 
     public void refresh() {
         if (diagram != null) {
@@ -213,16 +203,15 @@ public class DiagramCanvas extends Pane {
                 existingClasses.put(node.getDiagramClass().getId(), node.getDiagramClass());
             }
 
-            // Ajouter les nouveaux éléments et mettre à jour les existants
             for (DiagramClass diagramClass : diagram.getClasses()) {
                 if (!existingClasses.containsKey(diagramClass.getId())) {
-                    // Créer un nouveau nœud pour les classes qui n'existent pas encore
+
                     nodeManager.createClassNode(diagramClass);
                 } else {
-                    // Mettre à jour la classe existante
+
                     ClassNode node = nodeManager.getNodeById(diagramClass.getId());
                     if (node != null) {
-                        // Vérifier que les positions sont dans les limites du canevas
+
                         ensureNodeWithinBounds(node);
                         node.refresh();
                     }
@@ -231,12 +220,11 @@ public class DiagramCanvas extends Pane {
 
             for (DiagramRelation relation : diagram.getRelations()) {
                 if (!existingRelations.containsKey(relation.getId())) {
-                    // Créer une nouvelle ligne pour les relations qui n'existent pas encore
+
                     relationManager.createRelationLine(relation);
                 }
             }
 
-            // Supprimer les éléments qui ne sont plus dans le diagramme
             List<String> classesToRemove = new ArrayList<>();
             for (String classId : existingClasses.keySet()) {
                 boolean found = false;
@@ -273,10 +261,8 @@ public class DiagramCanvas extends Pane {
                 relationManager.removeRelationLine(existingRelations.get(relationId));
             }
 
-            // Mettre à jour toutes les relations
             relationManager.updateAllRelationsLater();
 
-            // Restaurer la sélection si possible
             if (selectedClass != null) {
                 selectClass(selectedClass);
             } else if (selectedRelation != null) {
@@ -289,7 +275,6 @@ public class DiagramCanvas extends Pane {
         double nodeWidth = node.getWidth();
         double nodeHeight = node.getHeight();
 
-        // Si le nœud n'a pas encore de dimensions, on attend le prochain cycle de mise en page
         if (nodeWidth <= 0 || nodeHeight <= 0) {
             return;
         }
@@ -297,23 +282,18 @@ public class DiagramCanvas extends Pane {
         double canvasWidth = getWidth();
         double canvasHeight = getHeight();
 
-        // Marge de sécurité
         double margin = 20;
 
-        // Position actuelle
         double currentX = node.getLayoutX();
         double currentY = node.getLayoutY();
 
-        // Calculer les nouvelles positions contraintes
         double newX = Math.max(margin, Math.min(canvasWidth - nodeWidth - margin, currentX));
         double newY = Math.max(margin, Math.min(canvasHeight - nodeHeight - margin, currentY));
 
-        // Appliquer les nouvelles positions si elles diffèrent
         if (currentX != newX || currentY != newY) {
             node.setLayoutX(newX);
             node.setLayoutY(newY);
 
-            // Mettre à jour le modèle sous-jacent
             DiagramClass diagramClass = node.getDiagramClass();
             diagramClass.setX(newX);
             diagramClass.setY(newY);
@@ -330,7 +310,6 @@ public class DiagramCanvas extends Pane {
         double minX = Double.MAX_VALUE;
         double minY = Double.MAX_VALUE;
 
-        // Parcourir toutes les classes pour déterminer les extrémités
         for (DiagramClass diagramClass : diagram.getClasses()) {
             ClassNode node = nodeManager.getNodeById(diagramClass.getId());
             if (node != null) {
@@ -344,7 +323,6 @@ public class DiagramCanvas extends Pane {
             }
         }
 
-        // Ajouter une marge
         double margin = 100;
         double width = Math.max(600, maxX - minX + 2 * margin);
         double height = Math.max(400, maxY - minY + 2 * margin);

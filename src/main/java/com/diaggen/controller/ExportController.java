@@ -36,7 +36,6 @@ public class ExportController extends BaseController {
         this.diagramController = null; // Sera initialisé plus tard
     }
 
-    // Constructeur avec diagramController (pour injection)
     public ExportController(DiagramStore diagramStore, CommandManager commandManager,
                             ExportService exportService, ClassController classController,
                             DiagramController diagramController) {
@@ -46,7 +45,6 @@ public class ExportController extends BaseController {
         this.diagramController = diagramController;
     }
 
-    // Setter pour le DiagramController (si on ne peut pas utiliser le constructeur)
     public void setDiagramController(DiagramController diagramController) {
         LOGGER.log(Level.INFO, "Setting DiagramController in ExportController");
         if (this.diagramController == null) {
@@ -169,7 +167,7 @@ public class ExportController extends BaseController {
                     try {
                         java.awt.Desktop.getDesktop().open(dir);
                     } catch (IOException e) {
-                        // Ignorer cette erreur
+
                     }
                 }
             } catch (IOException e) {
@@ -209,7 +207,7 @@ public class ExportController extends BaseController {
             if (file != null) {
                 try {
                     parsedDiagram = parser.parseFile(file);
-                    // Utiliser le nom du fichier pour le diagramme
+
                     parsedDiagram.setName("Diagramme - " + file.getName());
                 } catch (Exception e) {
                     AlertHelper.showError("Erreur d'importation",
@@ -227,7 +225,7 @@ public class ExportController extends BaseController {
             if (dir != null) {
                 try {
                     parsedDiagram = parser.parseProject(dir.toPath());
-                    // Utiliser le nom du dossier pour le diagramme
+
                     parsedDiagram.setName("Projet - " + dir.getName());
                 } catch (Exception e) {
                     AlertHelper.showError("Erreur d'importation",
@@ -242,16 +240,15 @@ public class ExportController extends BaseController {
         }
 
         if (parsedDiagram != null) {
-            // Ajouter le diagramme au store
+
             diagramStore.getDiagrams().add(parsedDiagram);
             diagramStore.setCurrentFile(null);
 
-            // Activer le diagramme importé en forçant l'activation si le DiagramController est disponible
             if (diagramController != null) {
                 LOGGER.log(Level.INFO, "Activating imported diagram using DiagramController");
                 diagramController.activateDiagram(parsedDiagram, true);
             } else {
-                // Fallback: définir actif et générer les événements manuellement
+
                 LOGGER.log(Level.INFO, "Activating imported diagram manually (DiagramController not available)");
                 diagramStore.setActiveDiagram(parsedDiagram);
                 eventBus.publish(new DiagramChangedEvent(parsedDiagram.getId(),
@@ -259,7 +256,6 @@ public class ExportController extends BaseController {
                 eventBus.publish(new DiagramActivatedEvent(parsedDiagram.getId()));
             }
 
-            // Organiser automatiquement les classes du diagramme
             classController.arrangeClassesAutomatically();
         }
     }

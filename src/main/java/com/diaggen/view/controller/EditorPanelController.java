@@ -21,14 +21,12 @@ public class EditorPanelController {
     private MainController mainController;
     private DialogFactory dialogFactory;
 
-    // Champs pour l'édition de classe
     private TextField classNameField;
     private TextField packageNameField;
     private ComboBox<ClassType> classTypeComboBox;
     private ListView<Member> attributesListView;
     private ListView<Method> methodsListView;
 
-    // Champs pour l'édition de relation
     private ComboBox<RelationType> relationTypeComboBox;
     private TextField sourceMultiplicityField;
     private TextField targetMultiplicityField;
@@ -36,7 +34,6 @@ public class EditorPanelController {
     private Label sourceClassLabel;
     private Label targetClassLabel;
 
-    // Éléments actuellement édités
     private DiagramClass currentClass;
     private DiagramRelation currentRelation;
 
@@ -64,23 +61,18 @@ public class EditorPanelController {
 
         editorContent.getChildren().clear();
 
-        // Titre
         Label titleLabel = new Label("Édition de classe");
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
         editorContent.getChildren().add(titleLabel);
 
-        // Section Général
         TitledPane generalPane = createClassGeneralSection();
 
-        // Section Attributs
         TitledPane attributesPane = createAttributesSection();
 
-        // Section Méthodes
         TitledPane methodsPane = createMethodsSection();
 
         editorContent.getChildren().addAll(generalPane, attributesPane, methodsPane);
 
-        // Mettre à jour les champs avec les données de la classe
         updateClassFields();
     }
 
@@ -98,17 +90,14 @@ public class EditorPanelController {
 
         editorContent.getChildren().clear();
 
-        // Titre
         Label titleLabel = new Label("Édition de relation");
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
         editorContent.getChildren().add(titleLabel);
 
-        // Section Propriétés
         TitledPane propertiesPane = createRelationPropertiesSection();
 
         editorContent.getChildren().add(propertiesPane);
 
-        // Mettre à jour les champs avec les données de la relation
         updateRelationFields();
     }
 
@@ -123,7 +112,6 @@ public class EditorPanelController {
         grid.setVgap(10);
         grid.setPadding(new Insets(10));
 
-        // Nom
         Label nameLabel = new Label("Nom:");
         classNameField = new TextField();
         classNameField.textProperty().addListener((obs, oldValue, newValue) -> {
@@ -135,7 +123,6 @@ public class EditorPanelController {
         grid.add(nameLabel, 0, 0);
         grid.add(classNameField, 1, 0);
 
-        // Package
         Label packageLabel = new Label("Package:");
         packageNameField = new TextField();
         packageNameField.textProperty().addListener((obs, oldValue, newValue) -> {
@@ -147,7 +134,6 @@ public class EditorPanelController {
         grid.add(packageLabel, 0, 1);
         grid.add(packageNameField, 1, 1);
 
-        // Type de classe
         Label typeLabel = new Label("Type:");
         classTypeComboBox = new ComboBox<>(FXCollections.observableArrayList(ClassType.values()));
         classTypeComboBox.setConverter(new StringConverter<ClassType>() {
@@ -183,7 +169,6 @@ public class EditorPanelController {
         VBox content = new VBox(10);
         content.setPadding(new Insets(10));
 
-        // Liste des attributs
         attributesListView = new ListView<>();
         attributesListView.setPrefHeight(150);
         attributesListView.setCellFactory(param -> new ListCell<Member>() {
@@ -199,7 +184,6 @@ public class EditorPanelController {
             }
         });
 
-        // Boutons pour gérer les attributs
         HBox buttons = new HBox(10);
         Button addButton = new Button("Ajouter");
         Button editButton = new Button("Modifier");
@@ -209,7 +193,6 @@ public class EditorPanelController {
         editButton.setOnAction(e -> handleEditAttribute());
         removeButton.setOnAction(e -> handleRemoveAttribute());
 
-        // Désactiver les boutons d'édition/suppression si aucun attribut n'est sélectionné
         editButton.disableProperty().bind(attributesListView.getSelectionModel().selectedItemProperty().isNull());
         removeButton.disableProperty().bind(attributesListView.getSelectionModel().selectedItemProperty().isNull());
 
@@ -230,7 +213,6 @@ public class EditorPanelController {
         VBox content = new VBox(10);
         content.setPadding(new Insets(10));
 
-        // Liste des méthodes
         methodsListView = new ListView<>();
         methodsListView.setPrefHeight(150);
         methodsListView.setCellFactory(param -> new ListCell<Method>() {
@@ -259,7 +241,6 @@ public class EditorPanelController {
             }
         });
 
-        // Boutons pour gérer les méthodes
         HBox buttons = new HBox(10);
         Button addButton = new Button("Ajouter");
         Button editButton = new Button("Modifier");
@@ -269,7 +250,6 @@ public class EditorPanelController {
         editButton.setOnAction(e -> handleEditMethod());
         removeButton.setOnAction(e -> handleRemoveMethod());
 
-        // Désactiver les boutons d'édition/suppression si aucune méthode n'est sélectionnée
         editButton.disableProperty().bind(methodsListView.getSelectionModel().selectedItemProperty().isNull());
         removeButton.disableProperty().bind(methodsListView.getSelectionModel().selectedItemProperty().isNull());
 
@@ -292,7 +272,6 @@ public class EditorPanelController {
         grid.setVgap(10);
         grid.setPadding(new Insets(10));
 
-        // Classes source et cible
         Label sourceLabel = new Label("Classe source:");
         sourceClassLabel = new Label();
         sourceClassLabel.setStyle("-fx-font-weight: bold;");
@@ -305,7 +284,6 @@ public class EditorPanelController {
         grid.add(targetLabel, 0, 1);
         grid.add(targetClassLabel, 1, 1);
 
-        // Type de relation
         Label typeLabel = new Label("Type:");
         relationTypeComboBox = new ComboBox<>(FXCollections.observableArrayList(RelationType.values()));
         relationTypeComboBox.setConverter(new StringConverter<RelationType>() {
@@ -321,14 +299,14 @@ public class EditorPanelController {
         });
         relationTypeComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
             if (currentRelation != null && newValue != null && oldValue != null && !oldValue.equals(newValue)) {
-                // Changer le type de relation via le contrôleur
+
                 if (mainController != null) {
                     mainController.changeRelationType(currentRelation, newValue);
                     LOGGER.log(Level.INFO, "Relation type changed from {0} to {1}",
                             new Object[]{oldValue, newValue});
                 } else {
                     LOGGER.log(Level.WARNING, "Cannot change relation type: mainController is null");
-                    // Restaurer l'ancienne valeur
+
                     relationTypeComboBox.setValue(oldValue);
                 }
             }
@@ -336,7 +314,6 @@ public class EditorPanelController {
         grid.add(typeLabel, 0, 2);
         grid.add(relationTypeComboBox, 1, 2);
 
-        // Multiplicité source
         Label sourceMultLabel = new Label("Multiplicité source:");
         sourceMultiplicityField = new TextField();
         sourceMultiplicityField.textProperty().addListener((obs, oldValue, newValue) -> {
@@ -348,7 +325,6 @@ public class EditorPanelController {
         grid.add(sourceMultLabel, 0, 3);
         grid.add(sourceMultiplicityField, 1, 3);
 
-        // Multiplicité cible
         Label targetMultLabel = new Label("Multiplicité cible:");
         targetMultiplicityField = new TextField();
         targetMultiplicityField.textProperty().addListener((obs, oldValue, newValue) -> {
@@ -360,7 +336,6 @@ public class EditorPanelController {
         grid.add(targetMultLabel, 0, 4);
         grid.add(targetMultiplicityField, 1, 4);
 
-        // Libellé
         Label labelTextLabel = new Label("Libellé:");
         relationLabelField = new TextField();
         relationLabelField.textProperty().addListener((obs, oldValue, newValue) -> {
@@ -372,7 +347,6 @@ public class EditorPanelController {
         grid.add(labelTextLabel, 0, 5);
         grid.add(relationLabelField, 1, 5);
 
-        // Bouton d'inversion
         Button invertButton = new Button("Inverser la relation");
         invertButton.setOnAction(e -> handleInvertRelation());
         invertButton.setMaxWidth(Double.MAX_VALUE);
@@ -387,7 +361,6 @@ public class EditorPanelController {
 
         LOGGER.log(Level.INFO, "Inverting relation");
 
-        // Obtenir les données actuelles
         DiagramClass source = currentRelation.getSourceClass();
         DiagramClass target = currentRelation.getTargetClass();
         String sourceMulti = currentRelation.getSourceMultiplicity();
@@ -395,15 +368,12 @@ public class EditorPanelController {
         RelationType type = currentRelation.getRelationType();
         String label = currentRelation.getLabel();
 
-        // Créer une nouvelle relation inversée
         DiagramRelation newRelation = new DiagramRelation(
                 target, source, type, targetMulti, sourceMulti, label);
 
-        // Ajouter la nouvelle relation via le mainController
-        // Cette logique dépend de la méthode spécifique dans le contrôleur
-        // À implémenter plus tard
 
-        // Pour le moment, juste informer l'utilisateur
+
+
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Fonctionnalité à implémenter");
         alert.setHeaderText("Inversion de relation");

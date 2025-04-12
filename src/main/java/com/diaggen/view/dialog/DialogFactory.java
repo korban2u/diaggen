@@ -93,22 +93,21 @@ public class DialogFactory {
     public Dialog<DiagramRelation> createRelationEditorDialog(DiagramRelation relation,
                                                               ObservableList<DiagramClass> classes) {
         try {
-            // Utiliser le nouveau FXML avec EnhancedRelationEditorController
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dialog/RelationEditorDialog.fxml"));
             DialogPane dialogPane = loader.load();
 
             Dialog<DiagramRelation> dialog = new Dialog<>();
             dialog.setDialogPane(dialogPane);
 
-            // Utiliser le nouveau contrôleur amélioré
             EnhancedRelationEditorController controller = loader.getController();
             controller.setDialog(dialog, relation, classes);
 
             return dialog;
         } catch (IOException e) {
-            // Si le nouveau FXML n'est pas trouvé, revenir à l'ancien
+
             try {
-                // Fallback à l'ancien FXML si nécessaire
+
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dialog/RelationEditorDialog.fxml"));
                 DialogPane dialogPane = loader.load();
 

@@ -17,11 +17,10 @@ public class ArrowRenderer {
     private static final Color SELECTED_COLOR = Color.web("#4a89dc"); // Bleu de sélection
 
     public ArrowRenderer() {
-        // Appliquer les styles CSS
+
         line.getStyleClass().add("line");
         arrowHead.getStyleClass().add("arrow-head");
 
-        // Configuration par défaut
         line.setStrokeWidth(1.8);  // Ligne légèrement plus épaisse
         arrowHead.setStroke(DEFAULT_COLOR);
 
@@ -41,32 +40,28 @@ public class ArrowRenderer {
     }
 
     public void updateArrow(Point2D start, Point2D end, RelationType relationType) {
-        // Définir le style de ligne selon le type de relation
+
         line.getStrokeDashArray().clear();
         if (relationType == RelationType.IMPLEMENTATION ||
                 relationType == RelationType.DEPENDENCY) {
             line.getStrokeDashArray().addAll(10.0, 5.0);
         }
 
-        // Calculer le vecteur directeur
         double dx = end.getX() - start.getX();
         double dy = end.getY() - start.getY();
         double length = Math.sqrt(dx * dx + dy * dy);
 
         if (length == 0) {
-            // Éviter la division par zéro
+
             return;
         }
 
-        // Vecteur unitaire
         double ux = dx / length;
         double uy = dy / length;
 
-        // Dessiner la ligne
         line.setStartX(start.getX());
         line.setStartY(start.getY());
 
-        // Configurer la tête de flèche selon le type de relation
         arrowHead.getPoints().clear();
         switch (relationType) {
             case INHERITANCE:
@@ -85,7 +80,6 @@ public class ArrowRenderer {
                 break;
         }
 
-        // Déterminer où la ligne doit s'arrêter
         double arrowLength = getArrowLength(relationType);
         Point2D lineEnd = new Point2D(
                 end.getX() - ux * arrowLength,
@@ -97,15 +91,13 @@ public class ArrowRenderer {
     }
 
     private void createInheritanceArrow(Point2D end, double ux, double uy) {
-        // Vecteur perpendiculaire
+
         double perpX = -uy;
         double perpY = ux;
 
-        // Taille de la flèche augmentée
         double arrowSize = 14.0;  // Était 10.0
 
-        // Calculer les points du triangle ouvert
-        // Le point de pointe est exactement à la position 'end'
+
         double baseX = end.getX() - ux * arrowSize;
         double baseY = end.getY() - uy * arrowSize;
 
@@ -115,7 +107,6 @@ public class ArrowRenderer {
         double rightX = baseX - perpX * arrowSize;
         double rightY = baseY - perpY * arrowSize;
 
-        // Créer le triangle
         arrowHead.getPoints().addAll(
                 end.getX(), end.getY(),  // Pointe
                 leftX, leftY,            // Coin gauche
@@ -130,22 +121,19 @@ public class ArrowRenderer {
     }
 
     private void createAssociationArrow(Point2D end, double ux, double uy) {
-        // Vecteur perpendiculaire
+
         double perpX = -uy;
         double perpY = ux;
 
-        // Taille de la flèche augmentée
         double arrowSize = 12.0;   // Était 8.0
         double arrowWidth = 6.0;   // Plus large pour une meilleure visibilité
 
-        // Calculer les points de la flèche simple
         double leftX = end.getX() - ux * arrowSize + perpX * arrowWidth;
         double leftY = end.getY() - uy * arrowSize + perpY * arrowWidth;
 
         double rightX = end.getX() - ux * arrowSize - perpX * arrowWidth;
         double rightY = end.getY() - uy * arrowSize - perpY * arrowWidth;
 
-        // Créer la flèche
         arrowHead.getPoints().addAll(
                 end.getX(), end.getY(),  // Pointe
                 leftX, leftY,            // Coin gauche
@@ -165,16 +153,14 @@ public class ArrowRenderer {
     }
 
     private void createDiamondArrow(Point2D end, double ux, double uy, Color fillColor) {
-        // Vecteur perpendiculaire
+
         double perpX = -uy;
         double perpY = ux;
 
-        // Taille du diamant augmentée
         double diamondLength = 16.0;  // Était 12.0
         double diamondWidth = 10.0;   // Était 8.0
 
-        // Calculer les points du diamant
-        // Le point de pointe est exactement à la position 'end'
+
         double midX = end.getX() - ux * diamondLength;
         double midY = end.getY() - uy * diamondLength;
 
@@ -187,7 +173,6 @@ public class ArrowRenderer {
         double rightX = midX - perpX * diamondWidth;
         double rightY = midY - perpY * diamondWidth;
 
-        // Créer le diamant
         arrowHead.getPoints().addAll(
                 end.getX(), end.getY(),  // Pointe
                 leftX, leftY,            // Coin gauche
@@ -219,12 +204,10 @@ public class ArrowRenderer {
         line.setStroke(color);
         arrowHead.setStroke(color);
 
-        // Pour les types de relation où le remplissage est de la même couleur que le contour
         if (arrowHead.getFill() != Color.WHITE) {
             arrowHead.setFill(color);
         }
 
-        // Augmenter légèrement l'épaisseur des lignes lorsqu'elles sont sélectionnées
         line.setStrokeWidth(selected ? 2.5 : 1.8);
         arrowHead.setStrokeWidth(selected ? 2.5 : 1.8);
     }

@@ -28,14 +28,12 @@ public class DiagramController extends BaseController {
     private Window ownerWindow;
     private DialogFactory dialogFactory;
 
-    // Garde-fou pour éviter les boucles infinies
     private boolean isActivating = false;
 
     public DiagramController(DiagramStore diagramStore, CommandManager commandManager) {
         super(diagramStore, commandManager);
         this.dialogFactory = DialogFactory.getInstance();
 
-        // Écouter les changements de diagrammes pour les propager via EventBus
         diagramStore.getDiagrams().addListener((ListChangeListener<ClassDiagram>) change -> {
             while (change.next()) {
                 if (change.wasAdded()) {
@@ -59,7 +57,7 @@ public class DiagramController extends BaseController {
     }
 
     public ClassDiagram createNewDiagramWithDialog() {
-        // Créer une boîte de dialogue pour demander le nom du diagramme
+
         TextInputDialog dialog = new TextInputDialog("Nouveau diagramme");
         dialog.setTitle("Nouveau diagramme");
         dialog.setHeaderText("Créer un nouveau diagramme");
@@ -69,19 +67,15 @@ public class DiagramController extends BaseController {
             dialog.initOwner(ownerWindow);
         }
 
-        // Attendre la réponse de l'utilisateur
         Optional<String> result = dialog.showAndWait();
 
-        // Si l'utilisateur a entré un nom et cliqué sur OK
         if (result.isPresent()) {
             String diagramName = result.get().trim();
 
-            // Utiliser un nom par défaut si l'entrée est vide
             if (diagramName.isEmpty()) {
                 diagramName = "Nouveau diagramme";
             }
 
-            // Créer le diagramme avec le nom fourni
             return createNewDiagram(diagramName);
         }
 
@@ -91,38 +85,28 @@ public class DiagramController extends BaseController {
     public ClassDiagram createNewDiagram(String name) {
         LOGGER.log(Level.INFO, "Creating new diagram: {0}", name);
 
-        // Créer le diagramme dans le store (ne le définit pas comme actif)
         ClassDiagram diagram = diagramStore.createNewDiagram(name);
 
-        // Notifier les observateurs de la création du diagramme
         eventBus.publish(new DiagramChangedEvent(diagram.getId(),
                 DiagramChangedEvent.ChangeType.DIAGRAM_RENAMED, null));
 
-        // Activer explicitement le nouveau diagramme
         activateDiagram(diagram, true);
 
         return diagram;
     }
 
-    /**
-     * Active un diagramme et rafraîchit l'interface.
-     *
-     * @param diagram Le diagramme à activer
-     * @param forceActivation Si true, force l'activation même si le diagramme est déjà actif
-     */
+
     public void activateDiagram(ClassDiagram diagram, boolean forceActivation) {
         if (diagram == null) {
             LOGGER.log(Level.WARNING, "Attempted to activate null diagram");
             return;
         }
 
-        // Vérifier si ce diagramme est déjà actif
         if (!forceActivation && diagramStore.getActiveDiagram() == diagram) {
             LOGGER.log(Level.INFO, "Diagram is already active, skipping activation: {0}", diagram.getName());
             return;
         }
 
-        // Vérifier si nous sommes déjà en train d'activer un diagramme pour éviter les boucles récursives
         if (isActivating) {
             LOGGER.log(Level.INFO, "Already activating a diagram, skipping: {0}", diagram.getName());
             return;
@@ -132,24 +116,19 @@ public class DiagramController extends BaseController {
         try {
             LOGGER.log(Level.INFO, "Activating diagram: {0} (ID: {1})", new Object[]{diagram.getName(), diagram.getId()});
 
-            // Changer le diagramme actif dans le modèle
             diagramStore.setActiveDiagram(diagram);
 
-            // Publier un événement d'activation de diagramme
             eventBus.publish(new DiagramActivatedEvent(diagram.getId()));
 
-            // Publier aussi un événement de changement pour garantir que l'interface se met à jour
             eventBus.publish(new DiagramChangedEvent(diagram.getId(),
                     DiagramChangedEvent.ChangeType.DIAGRAM_RENAMED, null));
         } finally {
-            // Toujours réinitialiser le flag, même en cas d'exception
+
             isActivating = false;
         }
     }
 
-    /**
-     * Surcharge pour compatibilité avec l'ancien code.
-     */
+
     public void activateDiagram(ClassDiagram diagram) {
         activateDiagram(diagram, false);
     }
@@ -157,7 +136,6 @@ public class DiagramController extends BaseController {
     public void renameDiagram(ClassDiagram diagram, String newName) {
         if (diagram == null) return;
 
-        // Si pas de nouveau nom fourni, afficher une boîte de dialogue
         if (newName == null) {
             TextInputDialog dialog = new TextInputDialog(diagram.getName());
             dialog.setTitle("Renommer le diagramme");
@@ -250,7 +228,6 @@ public class DiagramController extends BaseController {
                 diagramStore.getDiagrams().add(loadedDiagram);
                 diagramStore.setCurrentFile(file);
 
-                // Activer explicitement le diagramme chargé avec forçage
                 activateDiagram(loadedDiagram, true);
 
                 LOGGER.log(Level.INFO, "Successfully loaded diagram from {0}", file.getName());

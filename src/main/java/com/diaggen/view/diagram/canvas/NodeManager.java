@@ -46,7 +46,6 @@ public class NodeManager {
     public ClassNode createClassNode(DiagramClass diagramClass) {
         ClassNode classNode = new ClassNode(diagramClass);
 
-        // Gestion des événements de souris
         classNode.setOnMousePressed(e -> {
             if (e.getButton() == MouseButton.PRIMARY) {
                 selectNode(classNode);
@@ -62,30 +61,24 @@ public class NodeManager {
                 double offsetX = e.getSceneX() - dragStartX;
                 double offsetY = e.getSceneY() - dragStartY;
 
-                // Calculer les nouvelles positions
                 double newX = dragStartPoint.getX() + offsetX;
                 double newY = dragStartPoint.getY() + offsetY;
 
-                // Récupérer les dimensions du canevas
                 double canvasWidth = container.getWidth();
                 double canvasHeight = container.getHeight();
 
-                // Récupérer les dimensions du nœud
                 double nodeWidth = classNode.getWidth();
                 double nodeHeight = classNode.getHeight();
 
-                // Marge de sécurité pour éviter de toucher les bords
                 double margin = 20;
 
-                // Contraindre la position pour garder le nœud dans les limites du canevas
-                // avec une petite marge pour éviter les cas limites
+
                 newX = Math.max(margin, Math.min(canvasWidth - nodeWidth - margin, newX));
                 newY = Math.max(margin, Math.min(canvasHeight - nodeHeight - margin, newY));
 
                 classNode.setLayoutX(newX);
                 classNode.setLayoutY(newY);
 
-                // Mettre à jour les relations en temps réel pendant le déplacement
                 if (relationManager != null) {
                     relationManager.updateAllRelations();
                 }
@@ -101,34 +94,29 @@ public class NodeManager {
                 double newX = classNode.getLayoutX();
                 double newY = classNode.getLayoutY();
 
-                // Utiliser MoveClassCommand pour enregistrer le déplacement
                 if (commandManager != null && (oldX != newX || oldY != newY)) {
                     MoveClassCommand command = new MoveClassCommand(diagramClass, oldX, oldY, newX, newY);
                     commandManager.executeCommand(command);
 
-                    // Publier un événement pour notifier du déplacement
                     String diagramId = diagramClass.getDiagramId();
                     if (diagramId != null) {
                         eventBus.publish(new ClassMovedEvent(diagramId, diagramClass.getId(), oldX, oldY, newX, newY));
                     }
                 } else {
-                    // Si pas de commandManager, mettre à jour directement
+
                     diagramClass.setX(newX);
                     diagramClass.setY(newY);
                 }
 
-                // Mettre à jour toutes les relations à la fin du déplacement
                 if (relationManager != null) {
                     relationManager.updateAllRelations();
                 }
             }
         });
 
-        // Ajouter au conteneur et à la map
         container.getChildren().add(classNode);
         classNodes.put(diagramClass.getId(), classNode);
 
-        // Configurer l'écouteur de changement de position pour mettre à jour les relations
         if (relationManager != null) {
             classNode.setPositionChangeListener(() -> relationManager.updateAllRelations());
         }
@@ -165,7 +153,6 @@ public class NodeManager {
             node.setSelected(true);
             node.toFront();
 
-            // Notifier l'écouteur
             if (selectionListener != null) {
                 selectionListener.onNodeSelected(node);
             }

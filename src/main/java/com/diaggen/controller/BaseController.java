@@ -7,10 +7,7 @@ import com.diaggen.model.*;
 import com.diaggen.view.diagram.DiagramCanvas;
 import java.util.Optional;
 
-/**
- * Contrôleur de base pour tous les autres contrôleurs.
- * Fournit un accès aux ressources partagées et gère les événements communs.
- */
+
 public abstract class BaseController {
     protected final DiagramStore diagramStore;
     protected final CommandManager commandManager;

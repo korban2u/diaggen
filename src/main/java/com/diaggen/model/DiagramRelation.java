@@ -5,9 +5,7 @@ import javafx.beans.property.StringProperty;
 
 import java.util.UUID;
 
-/**
- * Représente une relation entre deux classes dans un diagramme UML.
- */
+
 public class DiagramRelation {
     private final String id;
     private final DiagramClass sourceClass;

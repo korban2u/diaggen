@@ -11,9 +11,7 @@ import javafx.collections.ObservableList;
 
 import java.util.UUID;
 
-/**
- * Modèle de classe de diagramme UML avec référence au diagramme parent.
- */
+
 public class DiagramClass {
     private final String id;
     private final StringProperty name;

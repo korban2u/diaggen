@@ -35,14 +35,13 @@ public class RelationEditorController {
     private Dialog<DiagramRelation> dialog;
     private ObservableList<DiagramClass> classes;
 
-    // Indicateur pour savoir si le type de relation a été modifié
     private boolean relationTypeChanged = false;
-    // Stocker le type de relation original
+
     private RelationType originalRelationType;
 
     @FXML
     public void initialize() {
-        // Configuration du ComboBox des types de relation
+
         relationTypeComboBox.setItems(FXCollections.observableArrayList(RelationType.values()));
         relationTypeComboBox.setConverter(new StringConverter<>() {
             @Override
@@ -56,14 +55,12 @@ public class RelationEditorController {
             }
         });
 
-        // Ajouter un écouteur de changement de type de relation
         relationTypeComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (oldVal != null && newVal != null && !oldVal.equals(newVal)) {
                 relationTypeChanged = true;
             }
         });
 
-        // Configuration des ComboBox de classes
         StringConverter<DiagramClass> classConverter = new StringConverter<>() {
             @Override
             public String toString(DiagramClass diagramClass) {
@@ -86,15 +83,12 @@ public class RelationEditorController {
         this.classes = classes;
         this.relationTypeChanged = false;
 
-        // Définir le titre du dialogue
         dialog.setTitle(relation == null ? "Ajouter une relation" : "Modifier une relation");
         dialog.setHeaderText(relation == null ? "Créer une nouvelle relation" : "Modifier la relation");
 
-        // Configurer les ComboBox avec la liste des classes
         sourceClassComboBox.setItems(classes);
         targetClassComboBox.setItems(classes);
 
-        // Initialiser les champs avec les valeurs de la relation existante
         if (relation != null) {
             sourceClassComboBox.getSelectionModel().select(relation.getSourceClass());
             targetClassComboBox.getSelectionModel().select(relation.getTargetClass());
@@ -103,14 +97,12 @@ public class RelationEditorController {
             targetMultiplicityField.setText(relation.getTargetMultiplicity());
             labelField.setText(relation.getLabel());
 
-            // Stocker le type original pour détecter les changements
             originalRelationType = relation.getRelationType();
         } else {
-            // Valeurs par défaut pour une nouvelle relation
+
             relationTypeComboBox.getSelectionModel().select(RelationType.ASSOCIATION);
         }
 
-        // Configurer le convertisseur de résultat
         dialog.setResultConverter(createResultConverter());
     }
 
@@ -123,7 +115,7 @@ public class RelationEditorController {
 
                 if (sourceClass != null && targetClass != null && relationType != null) {
                     if (relation == null) {
-                        // Créer une nouvelle relation
+
                         return new DiagramRelation(
                                 sourceClass,
                                 targetClass,
@@ -132,17 +124,16 @@ public class RelationEditorController {
                                 targetMultiplicityField.getText(),
                                 labelField.getText());
                     } else {
-                        // Mettre à jour la relation existante
+
                         relation.setSourceMultiplicity(sourceMultiplicityField.getText());
                         relation.setTargetMultiplicity(targetMultiplicityField.getText());
                         relation.setLabel(labelField.getText());
 
-                        // Si le type de relation a changé, utiliser le contrôleur principal
-                        // pour appliquer ce changement via une commande
+
                         if (relationTypeChanged) {
-                            // Créer une nouvelle relation avec le nouveau type
-                            // Cette relation sera retournée et le contrôleur principal
-                            // exécutera la commande
+
+
+
                             return new DiagramRelation(
                                     sourceClass,
                                     targetClass,

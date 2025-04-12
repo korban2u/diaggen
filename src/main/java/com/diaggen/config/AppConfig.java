@@ -127,10 +127,8 @@ public class AppConfig {
             recentFiles = recentFiles.replace(filePath, "");
         }
 
-        // Ajouter le fichier au début de la liste
         recentFiles = filePath + (recentFiles.isEmpty() ? "" : ";" + recentFiles);
 
-        // Limiter le nombre de fichiers récents
         String[] files = recentFiles.split(";");
         if (files.length > maxFiles) {
             StringBuilder sb = new StringBuilder();

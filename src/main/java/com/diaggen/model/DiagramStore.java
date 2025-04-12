@@ -6,9 +6,7 @@ import javafx.collections.ObservableList;
 import java.io.File;
 import java.util.Optional;
 
-/**
- * Stocke et gère la collection de diagrammes de classe dans l'application.
- */
+
 public class DiagramStore {
     private final ObservableList<ClassDiagram> diagrams;
     private ClassDiagram activeDiagram;
@@ -39,23 +37,18 @@ public class DiagramStore {
         this.currentFile = currentFile;
     }
 
-    /**
-     * Crée le diagramme initial par défaut.
-     */
+
     private void createDefaultDiagram() {
         ClassDiagram diagram = new ClassDiagram("Nouveau diagramme");
         diagrams.add(diagram);
         activeDiagram = diagram;
     }
 
-    /**
-     * Crée un nouveau diagramme mais ne l'active PAS automatiquement.
-     * L'activation doit être gérée séparément par le contrôleur.
-     */
+
     public ClassDiagram createNewDiagram(String name) {
         ClassDiagram diagram = new ClassDiagram(name);
         diagrams.add(diagram);
-        // Ne pas définir comme actif automatiquement
+
         return diagram;
     }
 

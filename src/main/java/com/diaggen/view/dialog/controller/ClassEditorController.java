@@ -52,7 +52,7 @@ public class ClassEditorController {
 
     @FXML
     public void initialize() {
-        // Configuration du ComboBox des types de classe
+
         typeComboBox.setItems(FXCollections.observableArrayList(ClassType.values()));
         typeComboBox.setConverter(new StringConverter<>() {
             @Override
@@ -66,10 +66,8 @@ public class ClassEditorController {
             }
         });
 
-        // Configuration de la ListView des attributs
         attributesListView.setCellFactory(param -> new AttributeListCell());
 
-        // Configuration de la ListView des méthodes
         methodsListView.setCellFactory(param -> new MethodListCell());
     }
 
@@ -77,11 +75,9 @@ public class ClassEditorController {
         this.dialog = dialog;
         this.diagramClass = diagramClass;
 
-        // Définir le titre du dialogue
         dialog.setTitle(diagramClass == null ? "Ajouter une classe" : "Modifier une classe");
         dialog.setHeaderText(diagramClass == null ? "Créer une nouvelle classe" : "Modifier la classe " + diagramClass.getName());
 
-        // Initialiser les champs avec les valeurs de la classe existante
         if (diagramClass != null) {
             nameField.setText(diagramClass.getName());
             packageField.setText(diagramClass.getPackageName());
@@ -89,13 +85,12 @@ public class ClassEditorController {
             attributesListView.setItems(diagramClass.getAttributes());
             methodsListView.setItems(diagramClass.getMethods());
         } else {
-            // Valeurs par défaut pour une nouvelle classe
+
             typeComboBox.getSelectionModel().select(ClassType.CLASS);
             attributesListView.setItems(FXCollections.observableArrayList());
             methodsListView.setItems(FXCollections.observableArrayList());
         }
 
-        // Configurer le convertisseur de résultat
         dialog.setResultConverter(createResultConverter());
     }
 
@@ -165,13 +160,12 @@ public class ClassEditorController {
                 ClassType selectedType = typeComboBox.getSelectionModel().getSelectedItem();
 
                 if (diagramClass == null) {
-                    // Créer une nouvelle classe
+
                     DiagramClass resultClass = new DiagramClass(
                             nameField.getText(),
                             packageField.getText(),
                             selectedType);
 
-                    // Ajouter les attributs et méthodes à la nouvelle classe
                     for (Member attribute : attributesListView.getItems()) {
                         resultClass.addAttribute(attribute);
                     }
@@ -182,7 +176,7 @@ public class ClassEditorController {
 
                     return resultClass;
                 } else {
-                    // Mettre à jour la classe existante
+
                     diagramClass.setName(nameField.getText());
                     diagramClass.setPackageName(packageField.getText());
                     diagramClass.setClassType(selectedType);

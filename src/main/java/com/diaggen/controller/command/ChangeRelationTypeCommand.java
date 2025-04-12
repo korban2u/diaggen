@@ -23,7 +23,7 @@ public class ChangeRelationTypeCommand implements Command {
 
     @Override
     public void execute() {
-        // Créer une nouvelle relation avec le nouveau type mais conserver les autres propriétés
+
         newRelation = new DiagramRelation(
                 oldRelation.getSourceClass(),
                 oldRelation.getTargetClass(),
@@ -33,11 +33,9 @@ public class ChangeRelationTypeCommand implements Command {
                 oldRelation.getLabel()
         );
 
-        // Retirer l'ancienne relation et ajouter la nouvelle
         diagram.removeRelation(oldRelation);
         diagram.addRelation(newRelation);
 
-        // Actualiser l'affichage du canvas et sélectionner la nouvelle relation
         if (diagramCanvas != null) {
             diagramCanvas.refresh();
             diagramCanvas.selectRelation(newRelation);
@@ -46,13 +44,12 @@ public class ChangeRelationTypeCommand implements Command {
 
     @Override
     public void undo() {
-        // Retirer la nouvelle relation et restaurer l'ancienne
+
         if (newRelation != null) {
             diagram.removeRelation(newRelation);
         }
         diagram.addRelation(oldRelation);
 
-        // Actualiser l'affichage du canvas et sélectionner l'ancienne relation
         if (diagramCanvas != null) {
             diagramCanvas.refresh();
             diagramCanvas.selectRelation(oldRelation);

@@ -34,9 +34,8 @@ public class MainController {
         this.diagramCanvas = diagramCanvas;
     }
 
-    // Méthodes déléguées au DiagramController
     public void handleNewDiagram() {
-        // Utiliser la nouvelle méthode qui affiche une boîte de dialogue pour le nom
+
         diagramController.createNewDiagramWithDialog();
     }
 
@@ -46,7 +45,7 @@ public class MainController {
 
     public void handleEditDiagram() {
         if (diagramStore.getActiveDiagram() != null) {
-            // Utiliser la nouvelle méthode qui affiche une boîte de dialogue pour le renommage
+
             diagramController.renameDiagram(diagramStore.getActiveDiagram(), null);
         }
     }
@@ -69,13 +68,12 @@ public class MainController {
         diagramController.openDiagram();
     }
 
-    // Méthodes déléguées au ClassController
     public void handleAddClass() {
         classController.createClass();
     }
 
     public void handleDeleteClass() {
-        // Nous devons récupérer la classe sélectionnée du DiagramCanvas, pas du diagramme
+
         DiagramClass selectedClass = diagramCanvas.getSelectedClass();
         if (selectedClass != null) {
             classController.removeClass(selectedClass);
@@ -90,13 +88,12 @@ public class MainController {
         classController.moveClass(diagramClass, oldX, oldY, newX, newY);
     }
 
-    // Méthodes déléguées au RelationController
     public void handleAddRelation() {
         relationController.createRelation();
     }
 
     public void handleDeleteRelation() {
-        // Récupérer la relation sélectionnée du DiagramCanvas
+
         DiagramRelation selectedRelation = diagramCanvas.getSelectedRelation();
         if (selectedRelation != null) {
             relationController.removeRelation(selectedRelation);
@@ -111,7 +108,6 @@ public class MainController {
         relationController.changeRelationType(relation, newType);
     }
 
-    // Méthodes déléguées à l'ExportController
     public void handleExportImage() {
         exportController.exportToPNG();
     }
@@ -132,7 +128,6 @@ public class MainController {
         exportController.importJavaCode();
     }
 
-    // Méthodes déléguées au CommandManager
     public void handleUndo() {
         if (commandManager.canUndo()) {
             commandManager.undo();
@@ -145,7 +140,6 @@ public class MainController {
         }
     }
 
-    // Accesseurs
     public DiagramStore getDiagramStore() {
         return diagramStore;
     }

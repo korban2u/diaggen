@@ -59,11 +59,10 @@ public class JavaCodeParser {
     private void parseCompilationUnit(CompilationUnit cu, ClassDiagram diagram) {
         String packageName = cu.getPackageDeclaration().map(pd -> pd.getNameAsString()).orElse("");
 
-        // Traiter les énumérations de premier niveau
         cu.findAll(EnumDeclaration.class).forEach(enumDecl -> {
             if (enumDecl.getParentNode().isPresent() &&
                     enumDecl.getParentNode().get() instanceof TypeDeclaration) {
-                // Sauter les énumérations imbriquées pour l'instant, on les traitera avec leur classe parente
+
             } else {
                 DiagramClass diagramClass = new DiagramClass(enumDecl.getNameAsString(), packageName, ClassType.ENUM);
                 parseFields(enumDecl, diagramClass);
@@ -74,12 +73,11 @@ public class JavaCodeParser {
             }
         });
 
-        // Traiter les classes et interfaces
         cu.findAll(ClassOrInterfaceDeclaration.class).forEach(classDecl -> {
-            // Vérifier si c'est une classe imbriquée
+
             if (classDecl.getParentNode().isPresent() &&
                     classDecl.getParentNode().get() instanceof TypeDeclaration) {
-                // Sauter les classes imbriquées pour l'instant, on les traitera avec leur classe parente
+
             } else {
                 processClassOrInterface(classDecl, packageName, diagram);
             }
@@ -102,7 +100,6 @@ public class JavaCodeParser {
         parseMethods(classDecl, diagramClass);
         collectRelationships(classDecl, diagramClass, packageName);
 
-        // Traiter les types imbriqués (classes et énumérations)
         processNestedTypes(classDecl, diagramClass, packageName, diagram);
 
         diagram.addClass(diagramClass);
@@ -110,12 +107,12 @@ public class JavaCodeParser {
     }
 
     private void processNestedTypes(TypeDeclaration<?> parentDecl, DiagramClass parentClass, String packageName, ClassDiagram diagram) {
-        // Chercher les classes imbriquées
+
         parentDecl.findAll(ClassOrInterfaceDeclaration.class, classDecl ->
                         classDecl.getParentNode().isPresent() &&
                                 classDecl.getParentNode().get() == parentDecl)
                 .forEach(nestedClass -> {
-                    // Déterminer le type
+
                     ClassType nestedClassType;
                     if (nestedClass.isInterface()) {
                         nestedClassType = ClassType.INTERFACE;
@@ -125,22 +122,18 @@ public class JavaCodeParser {
                         nestedClassType = ClassType.CLASS;
                     }
 
-                    // Créer la classe imbriquée
                     String nestedClassName = nestedClass.getNameAsString();
                     String fullNestedClassName = parentClass.getName() + "." + nestedClassName;
 
                     DiagramClass nestedDiagramClass = new DiagramClass(fullNestedClassName, packageName, nestedClassType);
 
-                    // Analyser ses champs, méthodes, etc.
                     parseFields(nestedClass, nestedDiagramClass);
                     parseMethods(nestedClass, nestedDiagramClass);
                     collectRelationships(nestedClass, nestedDiagramClass, packageName);
 
-                    // Ajouter au diagramme
                     diagram.addClass(nestedDiagramClass);
                     classMap.put(getFullClassName(packageName, fullNestedClassName), nestedDiagramClass);
 
-                    // Créer une relation de composition entre la classe parent et la classe imbriquée
                     relationInfos.add(new RelationInfo(
                             parentClass,
                             getFullClassName(packageName, fullNestedClassName),
@@ -148,30 +141,25 @@ public class JavaCodeParser {
                             "1", "1", "inner class"
                     ));
 
-                    // Traiter récursivement les types imbriqués dans la classe imbriquée
                     processNestedTypes(nestedClass, nestedDiagramClass, packageName, diagram);
                 });
 
-        // Chercher les énumérations imbriquées
         parentDecl.findAll(EnumDeclaration.class, enumDecl ->
                         enumDecl.getParentNode().isPresent() &&
                                 enumDecl.getParentNode().get() == parentDecl)
                 .forEach(nestedEnum -> {
-                    // Créer l'énumération imbriquée
+
                     String nestedEnumName = nestedEnum.getNameAsString();
                     String fullNestedEnumName = parentClass.getName() + "." + nestedEnumName;
 
                     DiagramClass nestedEnumClass = new DiagramClass(fullNestedEnumName, packageName, ClassType.ENUM);
 
-                    // Analyser ses champs, méthodes, etc.
                     parseFields(nestedEnum, nestedEnumClass);
                     parseMethods(nestedEnum, nestedEnumClass);
 
-                    // Ajouter au diagramme
                     diagram.addClass(nestedEnumClass);
                     classMap.put(getFullClassName(packageName, fullNestedEnumName), nestedEnumClass);
 
-                    // Créer une relation d'association entre la classe parent et l'énumération
                     relationInfos.add(new RelationInfo(
                             parentClass,
                             getFullClassName(packageName, fullNestedEnumName),
@@ -248,7 +236,7 @@ public class JavaCodeParser {
     }
 
     private void collectRelationships(ClassOrInterfaceDeclaration classDecl, DiagramClass diagramClass, String packageName) {
-        // Héritage
+
         classDecl.getExtendedTypes().forEach(extendedType -> {
             relationInfos.add(new RelationInfo(
                     diagramClass,
@@ -258,7 +246,6 @@ public class JavaCodeParser {
             ));
         });
 
-        // Implémentation
         classDecl.getImplementedTypes().forEach(implementedType -> {
             relationInfos.add(new RelationInfo(
                     diagramClass,
@@ -268,7 +255,6 @@ public class JavaCodeParser {
             ));
         });
 
-        // Relations basées sur les champs
         classDecl.getFields().forEach(field -> {
             String fieldType = field.getElementType().asString();
             if (!isPrimitive(fieldType)) {
@@ -288,12 +274,11 @@ public class JavaCodeParser {
             }
         });
 
-        // Relations basées sur la création d'objets (dépendances)
         classDecl.findAll(ObjectCreationExpr.class).forEach(objCreation -> {
             try {
                 String typeName = objCreation.getType().getNameAsString();
                 if (!isPrimitive(typeName)) {
-                    // Créer relation de dépendance
+
                     relationInfos.add(new RelationInfo(
                             diagramClass,
                             getFullClassName(packageName, typeName),
@@ -302,7 +287,7 @@ public class JavaCodeParser {
                     ));
                 }
             } catch (Exception e) {
-                // Ignorer si on ne peut pas résoudre le type
+
                 LOGGER.log(Level.FINE, "Couldn't resolve type for object creation", e);
             }
         });
@@ -310,11 +295,11 @@ public class JavaCodeParser {
 
     private boolean isFieldFinal(FieldDeclaration field) {
         try {
-            // Utiliser la réflexion pour vérifier si le champ est final
+
             java.lang.reflect.Method isFinalMethod = field.getClass().getMethod("isFinal");
             return (Boolean) isFinalMethod.invoke(field);
         } catch (Exception e) {
-            // En cas d'erreur, essayer une approche alternative ou retourner une valeur par défaut
+
             return false;
         }
     }

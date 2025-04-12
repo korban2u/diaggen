@@ -8,9 +8,7 @@ import javafx.collections.ObservableList;
 
 import java.util.UUID;
 
-/**
- * Représente un diagramme de classes UML avec des références bidirectionnelles.
- */
+
 public class ClassDiagram {
     private final String id;
     private final StringProperty name;
@@ -55,7 +53,7 @@ public class ClassDiagram {
 
     public void removeClass(DiagramClass diagramClass) {
         classes.remove(diagramClass);
-        // Supprimer les relations associées
+
         relations.removeIf(relation ->
                 relation.getSourceClass().equals(diagramClass) ||
                         relation.getTargetClass().equals(diagramClass));

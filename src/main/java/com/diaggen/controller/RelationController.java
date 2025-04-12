@@ -87,7 +87,7 @@ public class RelationController extends BaseController {
 
         var dialog = dialogFactory.createRelationEditorDialog(relation, currentDiagram.getClasses());
         dialog.showAndWait().ifPresent(updatedRelation -> {
-            // Si le type a changé, utiliser ChangeRelationTypeCommand
+
             if (relation.getRelationType() != updatedRelation.getRelationType()) {
                 changeRelationType(relation, updatedRelation.getRelationType());
             }

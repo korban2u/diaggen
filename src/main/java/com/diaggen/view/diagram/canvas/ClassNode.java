@@ -24,25 +24,21 @@ public class ClassNode extends Region {
     private static final double MIN_WIDTH = 150;
     private static final double PADDING = 10;
 
-    // Interface fonctionnelle pour notifier des changements de position
     private Runnable positionChangeListener;
 
     public ClassNode(DiagramClass diagramClass) {
         this.diagramClass = diagramClass;
         this.content = new ClassNodeContent(diagramClass);
 
-        // Appliquer les styles CSS
         getStyleClass().add("class-node");
         setStyle("-fx-background-color: white; -fx-border-color: #1a1a1a; -fx-border-width: 1; -fx-border-radius: 5;");
 
         setPadding(new Insets(1));
         getChildren().add(content);
 
-        // Lier la position aux propriétés du modèle
         layoutXProperty().bindBidirectional(diagramClass.xProperty());
         layoutYProperty().bindBidirectional(diagramClass.yProperty());
 
-        // Observer les changements de taille du contenu
         content.layoutBoundsProperty().addListener((obs, oldBounds, newBounds) -> {
             setPrefSize(
                     newBounds.getWidth() + PADDING,
@@ -50,21 +46,17 @@ public class ClassNode extends Region {
             );
         });
 
-        // Ajouter des écouteurs pour les changements du modèle
         bindModelToView();
     }
 
         private void bindModelToView() {
-        // Observer les changements de nom
+
         diagramClass.nameProperty().addListener((obs, oldVal, newVal) -> refresh());
 
-        // Observer les changements de package
         diagramClass.packageNameProperty().addListener((obs, oldVal, newVal) -> refresh());
 
-        // Observer les changements de type de classe (maintenant une propriété observable)
         diagramClass.classTypeProperty().addListener((obs, oldVal, newVal) -> refresh());
 
-        // Observer les changements dans la liste des attributs
         diagramClass.getAttributes().addListener((ListChangeListener<Member>) change -> {
             while (change.next()) {
                 if (change.wasAdded() || change.wasRemoved() || change.wasUpdated()) {
@@ -74,7 +66,6 @@ public class ClassNode extends Region {
             }
         });
 
-        // Observer les changements dans la liste des méthodes
         diagramClass.getMethods().addListener((ListChangeListener<Method>) change -> {
             while (change.next()) {
                 if (change.wasAdded() || change.wasRemoved() || change.wasUpdated()) {
@@ -84,13 +75,11 @@ public class ClassNode extends Region {
             }
         });
 
-        // Observer les changements des attributs individuels
         for (Member member : diagramClass.getAttributes()) {
             member.nameProperty().addListener((obs, oldVal, newVal) -> refresh());
             member.typeProperty().addListener((obs, oldVal, newVal) -> refresh());
         }
 
-        // Observer les changements des méthodes individuelles
         for (Method method : diagramClass.getMethods()) {
             method.nameProperty().addListener((obs, oldVal, newVal) -> refresh());
             method.returnTypeProperty().addListener((obs, oldVal, newVal) -> refresh());
@@ -103,15 +92,15 @@ public class ClassNode extends Region {
     }
 
         public void setSelected(boolean selected) {
-        // Utiliser des classes CSS pour la sélection au lieu de styles en ligne
+
         if (selected) {
-            // S'assurer que la classe selected est ajoutée uniquement si elle n'existe pas déjà
+
             if (!getStyleClass().contains("selected")) {
                 getStyleClass().add("selected");
             }
             toFront(); // Amener l'élément sélectionné au premier plan
         } else {
-            // Supprimer la classe selected
+
             getStyleClass().remove("selected");
         }
     }
@@ -119,7 +108,6 @@ public class ClassNode extends Region {
     public void setPositionChangeListener(Runnable listener) {
         this.positionChangeListener = listener;
 
-        // Ajouter des écouteurs sur les propriétés de position
         layoutXProperty().addListener((obs, oldVal, newVal) -> {
             if (positionChangeListener != null) {
                 positionChangeListener.run();
@@ -134,47 +122,38 @@ public class ClassNode extends Region {
     }
 
     public Point2D getConnectionPoint(Point2D target) {
-        // Coordonnées du centre du nœud
+
         double cx = getLayoutX() + getWidth() / 2;
         double cy = getLayoutY() + getHeight() / 2;
 
-        // Dimensions du nœud
         double width = getWidth();
         double height = getHeight();
 
-        // Vérifier que les dimensions sont valides
         if (width <= 0) width = MIN_WIDTH;
         if (height <= 0) height = MIN_WIDTH;
 
-        // Vecteur du centre vers la cible
         double dx = target.getX() - cx;
         double dy = target.getY() - cy;
 
-        // Si le vecteur est nul, retourner le centre
         if (dx == 0 && dy == 0) {
             return new Point2D(cx, cy);
         }
 
-        // Angle du vecteur
         double angle = Math.atan2(dy, dx);
 
-        // Calculer l'intersection avec le bord
         double boundaryX, boundaryY;
 
-        // Ajouter une petite marge pour éviter que la ligne touche exactement le bord
         double margin = 2.0;
 
-        // Calculer les distances aux bords selon l'angle
         double distToVertical = Math.abs(width / 2 / Math.cos(angle)) - margin;
         double distToHorizontal = Math.abs(height / 2 / Math.sin(angle)) - margin;
 
-        // Déterminer quelle bordure est touchée en premier
         if (Double.isNaN(distToHorizontal) || (Math.abs(dx) > 0 && Math.abs(distToVertical) < Math.abs(distToHorizontal))) {
-            // Intersection avec un bord vertical
+
             boundaryX = cx + Math.signum(dx) * (width / 2 - margin);
             boundaryY = cy + dy * Math.abs((boundaryX - cx) / dx);
         } else {
-            // Intersection avec un bord horizontal
+
             boundaryY = cy + Math.signum(dy) * (height / 2 - margin);
             boundaryX = cx + dx * Math.abs((boundaryY - cy) / dy);
         }
@@ -183,64 +162,52 @@ public class ClassNode extends Region {
     }
 
     public void refresh() {
-        // Mettre à jour les écouteurs pour les nouveaux éléments
+
         updateModelListeners();
 
-        // Rafraîchir le contenu
         content.update();
 
-        // Forcer une nouvelle disposition
         content.applyCss();
         content.layout();
 
-        // Calculer et mettre à jour la taille
         double width = Math.max(MIN_WIDTH, content.getLayoutBounds().getWidth() + PADDING * 2);
         double height = content.getLayoutBounds().getHeight() + PADDING * 2;
 
-        // Stocker les anciennes dimensions pour détecter les changements
         double oldWidth = getWidth();
         double oldHeight = getHeight();
 
-        // Mettre à jour la taille du nœud
         setPrefSize(width, height);
         resize(width, height);
 
-        // Force une mise à jour visuelle seulement si nécessaire
         if (oldWidth != width || oldHeight != height) {
             setVisible(false);
             setVisible(true);
         }
 
-        // Force le recalcul du layout
         requestLayout();
         applyCss();
         layout();
 
-        // Vérifier si le nœud est maintenant hors des limites de son parent
         if (getParent() != null && getParent() instanceof Pane) {
             Pane parent = (Pane) getParent();
             double parentWidth = parent.getWidth();
             double parentHeight = parent.getHeight();
 
-            // S'assurer que le nœud reste dans les limites du parent
             if (parentWidth > 0 && parentHeight > 0) {
                 double margin = 20;
                 double newX = Math.max(margin, Math.min(parentWidth - width - margin, getLayoutX()));
                 double newY = Math.max(margin, Math.min(parentHeight - height - margin, getLayoutY()));
 
-                // N'appliquer les changements que si nécessaire
                 if (newX != getLayoutX() || newY != getLayoutY()) {
                     setLayoutX(newX);
                     setLayoutY(newY);
 
-                    // Mettre à jour le modèle
                     diagramClass.setX(newX);
                     diagramClass.setY(newY);
                 }
             }
         }
 
-        // Notifier d'éventuels changements de position
         if (positionChangeListener != null) {
             Platform.runLater(positionChangeListener);
         }
@@ -248,9 +215,9 @@ public class ClassNode extends Region {
 
 
         private void updateModelListeners() {
-        // Observer les changements des attributs individuels
+
         for (Member member : diagramClass.getAttributes()) {
-            // Vérifier si les écouteurs sont déjà ajoutés pour éviter les doublons
+
             member.nameProperty().removeListener(observable -> refresh());
             member.typeProperty().removeListener(observable -> refresh());
 
@@ -258,9 +225,8 @@ public class ClassNode extends Region {
             member.typeProperty().addListener((obs, oldVal, newVal) -> refresh());
         }
 
-        // Observer les changements des méthodes individuelles
         for (Method method : diagramClass.getMethods()) {
-            // Vérifier si les écouteurs sont déjà ajoutés pour éviter les doublons
+
             method.nameProperty().removeListener(observable -> refresh());
             method.returnTypeProperty().removeListener(observable -> refresh());
 
@@ -289,7 +255,6 @@ public class ClassNode extends Region {
         public void update() {
             getChildren().clear();
 
-            // En-tête (type et nom de la classe)
             if (diagramClass.getClassType() != null) {
                 switch (diagramClass.getClassType()) {
                     case INTERFACE:
@@ -316,15 +281,12 @@ public class ClassNode extends Region {
             nameText.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
             getChildren().add(nameText);
 
-            // Calculer la largeur préférée basée sur le contenu
             double prefWidth = calculatePreferredWidth();
 
-            // Séparateur entre le nom et les attributs
             Line separator1 = new Line(0, 0, prefWidth, 0);
             separator1.getStyleClass().add("separator");
             getChildren().add(separator1);
 
-            // Attributs
             for (Member attribute : diagramClass.getAttributes()) {
                 Text attrText = new Text(
                         attribute.getVisibility().getSymbol() + " " +
@@ -333,12 +295,10 @@ public class ClassNode extends Region {
                 getChildren().add(attrText);
             }
 
-            // Séparateur entre les attributs et les méthodes
             Line separator2 = new Line(0, 0, prefWidth, 0);
             separator2.getStyleClass().add("separator");
             getChildren().add(separator2);
 
-            // Méthodes
             for (Method method : diagramClass.getMethods()) {
                 StringBuilder methodText = new StringBuilder();
                 methodText.append(method.getVisibility().getSymbol()).append(" ");
@@ -369,25 +329,21 @@ public class ClassNode extends Region {
                 getChildren().add(methText);
             }
 
-            // Forcer une mise à jour de la disposition
             applyCss();
             layout();
         }
 
         private double calculatePreferredWidth() {
-            // Helper pour calculer la largeur nécessaire d'un texte
+
             Text helper = new Text();
             helper.setBoundsType(TextBoundsType.VISUAL);
 
-            // Commencer avec une largeur minimale
             double prefWidth = MIN_WIDTH;
 
-            // Vérifier la largeur du nom de classe
             helper.setFont(TITLE_FONT);
             helper.setText(diagramClass.getName());
             prefWidth = Math.max(prefWidth, helper.getLayoutBounds().getWidth() + 20);
 
-            // Vérifier la largeur du type de classe
             helper.setFont(DEFAULT_FONT);
             if (diagramClass.getClassType() != null) {
                 switch (diagramClass.getClassType()) {
@@ -408,7 +364,6 @@ public class ClassNode extends Region {
                 }
             }
 
-            // Vérifier les attributs
             for (Member attribute : diagramClass.getAttributes()) {
                 String fullText = attribute.getVisibility().getSymbol() + " " +
                         attribute.getName() + " : " + attribute.getType();
@@ -416,7 +371,6 @@ public class ClassNode extends Region {
                 prefWidth = Math.max(prefWidth, helper.getLayoutBounds().getWidth() + 20);
             }
 
-            // Vérifier les méthodes
             for (Method method : diagramClass.getMethods()) {
                 StringBuilder methodText = new StringBuilder();
                 methodText.append(method.getVisibility().getSymbol()).append(" ");

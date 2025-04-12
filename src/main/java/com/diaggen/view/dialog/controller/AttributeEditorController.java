@@ -27,7 +27,7 @@ public class AttributeEditorController {
 
     @FXML
     public void initialize() {
-        // Configuration du ComboBox de visibilité
+
         visibilityComboBox.setItems(FXCollections.observableArrayList(Visibility.values()));
         visibilityComboBox.setConverter(new StringConverter<>() {
             @Override
@@ -46,21 +46,18 @@ public class AttributeEditorController {
         this.dialog = dialog;
         this.attribute = attribute;
 
-        // Définir le titre du dialogue
         dialog.setTitle(attribute == null ? "Ajouter un attribut" : "Modifier un attribut");
         dialog.setHeaderText(attribute == null ? "Créer un nouvel attribut" : "Modifier l'attribut");
 
-        // Initialiser les champs avec les valeurs de l'attribut existant
         if (attribute != null) {
             nameField.setText(attribute.getName());
             typeField.setText(attribute.getType());
             visibilityComboBox.getSelectionModel().select(attribute.getVisibility());
         } else {
-            // Valeur par défaut pour un nouvel attribut
+
             visibilityComboBox.getSelectionModel().select(Visibility.PRIVATE);
         }
 
-        // Configurer le convertisseur de résultat
         dialog.setResultConverter(createResultConverter());
     }
 
@@ -70,13 +67,13 @@ public class AttributeEditorController {
                 Visibility selectedVisibility = visibilityComboBox.getSelectionModel().getSelectedItem();
 
                 if (attribute == null) {
-                    // Créer un nouvel attribut
+
                     return new Member(
                             nameField.getText(),
                             typeField.getText(),
                             selectedVisibility);
                 } else {
-                    // Mettre à jour l'attribut existant
+
                     attribute.setName(nameField.getText());
                     attribute.setType(typeField.getText());
                     return attribute;

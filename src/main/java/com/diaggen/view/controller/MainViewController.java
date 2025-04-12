@@ -56,7 +56,6 @@ public class MainViewController {
     private DiagramClass selectedClass;
     private DiagramRelation selectedRelation;
 
-    // Garde-fou pour éviter les boucles infinies
     private boolean isProcessingSelection = false;
     private boolean isProcessingEvent = false;
 
@@ -64,7 +63,6 @@ public class MainViewController {
     public void initialize() {
         LOGGER.log(Level.INFO, "Initializing MainViewController");
 
-        // Configuration du ListView pour les diagrammes
         diagramListView.setCellFactory(param -> new ListCell<>() {
             @Override
             protected void updateItem(ClassDiagram item, boolean empty) {
@@ -79,7 +77,6 @@ public class MainViewController {
 
         diagramListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 
-        // L'écouteur de sélection qui appelle handleSelectDiagram
         diagramListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && !isProcessingSelection) {
                 isProcessingSelection = true;
@@ -91,18 +88,14 @@ public class MainViewController {
             }
         });
 
-        // Création du canvas de diagramme
         diagramCanvas = new DiagramCanvas();
         diagramCanvasContainer.getChildren().add(diagramCanvas);
 
-        // Configurer l'éditeur de panel
         editorController = new EditorPanelController(editorContent);
 
-        // Désactiver les boutons de suppression initialement
         deleteClassButton.setDisable(true);
         deleteRelationButton.setDisable(true);
 
-        // Configurer les écouteurs de sélection et d'événements
         setupSelectionHandling();
         setupEventBusListeners();
         setupKeyboardShortcuts();
@@ -110,20 +103,18 @@ public class MainViewController {
         LOGGER.log(Level.INFO, "MainViewController initialization complete");
     }
 
-    // Section corrigée pour setupEventBusListeners dans MainViewController.java
 
     private void setupEventBusListeners() {
-        // Écouter les changements de diagramme actif
+
         eventBus.subscribe(DiagramActivatedEvent.class, (EventListener<DiagramActivatedEvent>) event -> {
             if (isProcessingEvent) return;
 
             LOGGER.log(Level.INFO, "DiagramActivatedEvent received for diagram ID: {0}", event.getDiagramId());
 
-            // Utiliser un flag pour éviter les boucles récursives
             isProcessingEvent = true;
             try {
                 Platform.runLater(() -> {
-                    // Chercher le diagramme correspondant à l'ID
+
                     ObservableList<ClassDiagram> diagrams = diagramListView.getItems();
                     ClassDiagram targetDiagram = null;
 
@@ -135,22 +126,20 @@ public class MainViewController {
                     }
 
                     if (targetDiagram != null) {
-                        // Vider l'éditeur actuel pour éviter d'afficher des données de l'ancien diagramme
+
                         if (editorController != null) {
                             editorController.clearEditor();
                             editorPanel.setVisible(false);
                         }
 
-                        // Effacer les sélections actuelles
                         selectedClass = null;
                         selectedRelation = null;
                         deleteClassButton.setDisable(true);
                         deleteRelationButton.setDisable(true);
 
-                        // Vérifier si ce diagramme est déjà sélectionné
                         ClassDiagram selectedDiagram = diagramListView.getSelectionModel().getSelectedItem();
                         if (selectedDiagram != targetDiagram) {
-                            // Sélectionner ce diagramme sans déclencher handleSelectDiagram
+
                             isProcessingSelection = true;
                             try {
                                 diagramListView.getSelectionModel().select(targetDiagram);
@@ -159,7 +148,6 @@ public class MainViewController {
                             }
                         }
 
-                        // Charger directement le diagramme dans le canvas
                         diagramCanvas.loadDiagram(targetDiagram);
                         setStatus("Diagramme actif: " + targetDiagram.getName());
                         LOGGER.log(Level.INFO, "Diagram activated in UI: {0}", targetDiagram.getName());
@@ -172,16 +160,13 @@ public class MainViewController {
             }
         });
 
-        // Écouter les changements de diagramme
         eventBus.subscribe(DiagramChangedEvent.class, (EventListener<DiagramChangedEvent>) event -> {
             LOGGER.log(Level.FINE, "DiagramChangedEvent received for diagram ID: {0}", event.getDiagramId());
 
-            // Rafraîchir le diagramme si c'est le diagramme actif
             Platform.runLater(() -> {
-                // Rafraîchir la liste des diagrammes
+
                 diagramListView.refresh();
 
-                // Rafraîchir le canvas si c'est le diagramme actif
                 if (diagramCanvas.getDiagram() != null &&
                         diagramCanvas.getDiagram().getId().equals(event.getDiagramId())) {
                     diagramCanvas.refresh();
@@ -191,7 +176,7 @@ public class MainViewController {
     }
 
     private void setupSelectionHandling() {
-        // Écouteur pour la sélection de classe
+
         diagramCanvas.setClassSelectionListener(diagramClass -> {
             if (diagramClass != null) {
                 selectedClass = diagramClass;
@@ -216,7 +201,6 @@ public class MainViewController {
             }
         });
 
-        // Écouteur pour la sélection de relation
         diagramCanvas.setRelationSelectionListener(relation -> {
             if (relation != null) {
                 selectedRelation = relation;
@@ -243,7 +227,6 @@ public class MainViewController {
             }
         });
 
-        // Configurer le gestionnaire de suppression
         diagramCanvas.setOnDeleteRequest(() -> {
             if (selectedClass != null) {
                 handleDeleteClass();
@@ -256,7 +239,7 @@ public class MainViewController {
     private void setupKeyboardShortcuts() {
         Scene scene = diagramCanvasContainer.getScene();
         if (scene != null) {
-            // Supprimer (Delete)
+
             KeyCombination deleteKey = new KeyCodeCombination(KeyCode.DELETE);
             scene.getAccelerators().put(deleteKey, () -> {
                 if (diagramCanvas.hasSelection()) {
@@ -268,11 +251,9 @@ public class MainViewController {
                 }
             });
 
-            // Annuler (Ctrl+Z)
             KeyCombination undoKey = new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN);
             scene.getAccelerators().put(undoKey, this::handleUndo);
 
-            // Rétablir (Ctrl+Y)
             KeyCombination redoKey = new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN);
             scene.getAccelerators().put(redoKey, this::handleRedo);
         }
@@ -282,7 +263,6 @@ public class MainViewController {
         LOGGER.log(Level.INFO, "Setting MainController");
         this.mainController = mainController;
 
-        // Si l'EditorPanelController a déjà été créé, initialisons-le avec le MainController
         if (editorController != null) {
             editorController.setMainController(mainController);
         }
@@ -297,7 +277,6 @@ public class MainViewController {
         if (diagram != null) {
             LOGGER.log(Level.INFO, "Updating selected diagram to: {0}", diagram.getName());
 
-            // Utiliser notre flag pour éviter la boucle
             isProcessingSelection = true;
             try {
                 diagramListView.getSelectionModel().select(diagram);

@@ -17,21 +17,18 @@ public class DiagramPropertiesController {
 
     @FXML
     public void initialize() {
-        // Initialisation des composants après chargement du FXML
+
     }
 
         public void setDialog(Dialog<String> dialog, ClassDiagram diagram) {
         this.dialog = dialog;
         this.diagram = diagram;
 
-        // Définir le titre du dialogue
         dialog.setTitle("Propriétés du diagramme");
         dialog.setHeaderText("Modifier les propriétés du diagramme");
 
-        // Initialiser les champs avec les valeurs du diagramme
         nameField.setText(diagram.getName());
 
-        // Configurer le convertisseur de résultat
         dialog.setResultConverter(createResultConverter());
     }
 

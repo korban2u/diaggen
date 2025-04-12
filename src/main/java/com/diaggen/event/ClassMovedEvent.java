@@ -1,8 +1,6 @@
 package com.diaggen.event;
 
-/**
- * Événement signalant un déplacement de classe.
- */
+
 public class ClassMovedEvent extends DiagramEvent {
     private final String classId;
     private final double oldX;

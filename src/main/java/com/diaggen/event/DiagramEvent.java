@@ -1,8 +1,6 @@
 package com.diaggen.event;
 
-/**
- * Classe de base pour tous les événements du diagramme.
- */
+
 public abstract class DiagramEvent {
     private final String diagramId;
 

@@ -20,24 +20,21 @@ public class ParameterEditorController {
 
     @FXML
     public void initialize() {
-        // Initialisation des composants après chargement du FXML
+
     }
 
         public void setDialog(Dialog<Parameter> dialog, Parameter parameter) {
         this.dialog = dialog;
         this.parameter = parameter;
 
-        // Définir le titre du dialogue
         dialog.setTitle(parameter == null ? "Ajouter un paramètre" : "Modifier un paramètre");
         dialog.setHeaderText(parameter == null ? "Créer un nouveau paramètre" : "Modifier le paramètre");
 
-        // Initialiser les champs avec les valeurs du paramètre existant
         if (parameter != null) {
             nameField.setText(parameter.getName());
             typeField.setText(parameter.getType());
         }
 
-        // Configurer le convertisseur de résultat
         dialog.setResultConverter(createResultConverter());
     }
 
@@ -45,12 +42,12 @@ public class ParameterEditorController {
         return buttonType -> {
             if (buttonType == ButtonType.OK) {
                 if (parameter == null) {
-                    // Créer un nouveau paramètre
+
                     return new Parameter(
                             nameField.getText(),
                             typeField.getText());
                 } else {
-                    // Mettre à jour le paramètre existant
+
                     parameter.setName(nameField.getText());
                     parameter.setType(typeField.getText());
                     return parameter;

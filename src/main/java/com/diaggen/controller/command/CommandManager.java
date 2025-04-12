@@ -22,13 +22,12 @@ public class CommandManager {
     private CommandGroup currentGroup = null;
 
     public void executeCommand(Command command) {
-        // Si nous sommes en train de construire un groupe, ajouter à ce groupe
+
         if (currentGroup != null) {
             currentGroup.addCommand(command);
             return;
         }
 
-        // Sinon, exécuter et empiler normalement
         command.execute();
         undoStack.push(command);
         redoStack.clear();
@@ -38,12 +37,12 @@ public class CommandManager {
     }
 
     public void startCommandGroup(String description) {
-        // Commencer un nouveau groupe de commandes
+
         currentGroup = new CommandGroup(description);
     }
 
     public void endCommandGroup() {
-        // Terminer le groupe courant et l'exécuter si non vide
+
         if (currentGroup != null && !currentGroup.isEmpty()) {
             Command group = currentGroup;
             currentGroup = null;
@@ -54,7 +53,7 @@ public class CommandManager {
     }
 
     public void cancelCommandGroup() {
-        // Annuler le groupe en cours sans l'exécuter
+
         currentGroup = null;
     }
 
@@ -108,13 +107,11 @@ public class CommandManager {
     private void updateCommandHistory() {
         commandHistory.clear();
 
-        // Ajouter les commandes annulables
         for (int i = undoStack.size() - 1; i >= 0; i--) {
             Command command = undoStack.get(i);
             commandHistory.add(command.getDescription() + " ✓");
         }
 
-        // Ajouter les commandes rétablissables
         for (Command command : redoStack) {
             commandHistory.add(command.getDescription() + " ↶");
         }

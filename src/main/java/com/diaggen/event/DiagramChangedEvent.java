@@ -1,8 +1,6 @@
 package com.diaggen.event;
 
-/**
- * Événement signalant un changement dans le diagramme.
- */
+
 public class DiagramChangedEvent extends DiagramEvent {
     public enum ChangeType {
         CLASS_ADDED, CLASS_MODIFIED, CLASS_REMOVED, CLASS_SELECTED,

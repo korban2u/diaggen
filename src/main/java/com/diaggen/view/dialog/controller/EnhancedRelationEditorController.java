@@ -42,16 +42,15 @@ public class EnhancedRelationEditorController {
     private ObservableList<DiagramClass> classes;
     private CommandManager commandManager;
 
-    // Indicateur pour savoir si le type de relation a été modifié
     private boolean relationTypeChanged = false;
-    // Stocker le type de relation original
+
     private RelationType originalRelationType;
-    // Indique si l'inversion a été demandée
+
     private boolean inversionRequested = false;
 
     @FXML
     public void initialize() {
-        // Configuration du ComboBox des types de relation
+
         relationTypeComboBox.setItems(FXCollections.observableArrayList(RelationType.values()));
         relationTypeComboBox.setConverter(new StringConverter<>() {
             @Override
@@ -65,7 +64,6 @@ public class EnhancedRelationEditorController {
             }
         });
 
-        // Ajouter un écouteur de changement de type de relation pour l'exemple
         relationTypeComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (oldVal != null && newVal != null && !oldVal.equals(newVal)) {
                 relationTypeChanged = true;
@@ -73,7 +71,6 @@ public class EnhancedRelationEditorController {
             updateExampleArea();
         });
 
-        // Configuration des ComboBox de classes
         StringConverter<DiagramClass> classConverter = new StringConverter<>() {
             @Override
             public String toString(DiagramClass diagramClass) {
@@ -124,15 +121,12 @@ public class EnhancedRelationEditorController {
         this.relationTypeChanged = false;
         this.inversionRequested = false;
 
-        // Définir le titre du dialogue
         dialog.setTitle(relation == null ? "Ajouter une relation" : "Modifier une relation");
         dialog.setHeaderText(relation == null ? "Créer une nouvelle relation" : "Modifier la relation");
 
-        // Configurer les ComboBox avec la liste des classes
         sourceClassComboBox.setItems(classes);
         targetClassComboBox.setItems(classes);
 
-        // Initialiser les champs avec les valeurs de la relation existante
         if (relation != null) {
             sourceClassComboBox.getSelectionModel().select(relation.getSourceClass());
             targetClassComboBox.getSelectionModel().select(relation.getTargetClass());
@@ -141,18 +135,15 @@ public class EnhancedRelationEditorController {
             targetMultiplicityField.setText(relation.getTargetMultiplicity());
             labelField.setText(relation.getLabel());
 
-            // Stocker le type original pour détecter les changements
             originalRelationType = relation.getRelationType();
 
-            // Mettre à jour l'exemple
             updateExampleArea();
         } else {
-            // Valeurs par défaut pour une nouvelle relation
+
             relationTypeComboBox.getSelectionModel().select(RelationType.ASSOCIATION);
             updateExampleArea();
         }
 
-        // Configurer le convertisseur de résultat
         dialog.setResultConverter(createResultConverter());
     }
 
@@ -162,10 +153,9 @@ public class EnhancedRelationEditorController {
 
     @FXML
     public void handleInvertRelation() {
-        // Si nous avons une relation existante
+
         inversionRequested = true;
 
-        // Inverser les sélections des classes
         DiagramClass source = sourceClassComboBox.getValue();
         DiagramClass target = targetClassComboBox.getValue();
 
@@ -173,7 +163,6 @@ public class EnhancedRelationEditorController {
             sourceClassComboBox.setValue(target);
             targetClassComboBox.setValue(source);
 
-            // Inverser les multiplicités
             String sourceMulti = sourceMultiplicityField.getText();
             String targetMulti = targetMultiplicityField.getText();
 
@@ -191,10 +180,10 @@ public class EnhancedRelationEditorController {
 
                 if (sourceClass != null && targetClass != null && relationType != null) {
                     if (relation == null || inversionRequested || relationTypeChanged) {
-                        // Créer une nouvelle relation si:
-                        // - C'est une nouvelle relation
-                        // - L'inversion a été demandée
-                        // - Le type a été modifié
+
+
+
+
                         return new DiagramRelation(
                                 sourceClass,
                                 targetClass,
@@ -203,7 +192,7 @@ public class EnhancedRelationEditorController {
                                 targetMultiplicityField.getText(),
                                 labelField.getText());
                     } else {
-                        // Mettre à jour la relation existante
+
                         relation.setSourceMultiplicity(sourceMultiplicityField.getText());
                         relation.setTargetMultiplicity(targetMultiplicityField.getText());
                         relation.setLabel(labelField.getText());

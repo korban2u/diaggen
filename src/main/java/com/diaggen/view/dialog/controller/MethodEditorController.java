@@ -47,7 +47,7 @@ public class MethodEditorController {
 
     @FXML
     public void initialize() {
-        // Configuration du ComboBox de visibilité
+
         visibilityComboBox.setItems(FXCollections.observableArrayList(Visibility.values()));
         visibilityComboBox.setConverter(new StringConverter<>() {
             @Override
@@ -61,7 +61,6 @@ public class MethodEditorController {
             }
         });
 
-        // Configuration de la ListView des paramètres
         parametersListView.setCellFactory(param -> new ParameterListCell());
     }
 
@@ -69,11 +68,9 @@ public class MethodEditorController {
         this.dialog = dialog;
         this.method = method;
 
-        // Définir le titre du dialogue
         dialog.setTitle(method == null ? "Ajouter une méthode" : "Modifier une méthode");
         dialog.setHeaderText(method == null ? "Créer une nouvelle méthode" : "Modifier la méthode");
 
-        // Initialiser les champs avec les valeurs de la méthode existante
         if (method != null) {
             nameField.setText(method.getName());
             returnTypeField.setText(method.getReturnType());
@@ -82,13 +79,12 @@ public class MethodEditorController {
             staticCheckBox.setSelected(method.isStatic());
             parametersListView.setItems(method.getParameters());
         } else {
-            // Valeurs par défaut pour une nouvelle méthode
+
             returnTypeField.setText("void");
             visibilityComboBox.getSelectionModel().select(Visibility.PUBLIC);
             parametersListView.setItems(FXCollections.observableArrayList());
         }
 
-        // Configurer le convertisseur de résultat
         dialog.setResultConverter(createResultConverter());
     }
 
@@ -128,7 +124,7 @@ public class MethodEditorController {
                 Visibility selectedVisibility = visibilityComboBox.getSelectionModel().getSelectedItem();
 
                 if (method == null) {
-                    // Créer une nouvelle méthode
+
                     return new Method(
                             nameField.getText(),
                             returnTypeField.getText(),
@@ -137,7 +133,7 @@ public class MethodEditorController {
                             abstractCheckBox.isSelected(),
                             staticCheckBox.isSelected());
                 } else {
-                    // Mettre à jour la méthode existante
+
                     method.setName(nameField.getText());
                     method.setReturnType(returnTypeField.getText());
                     return method;
