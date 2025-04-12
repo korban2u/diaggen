@@ -22,7 +22,8 @@ import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
-DiagramCanvaspublic class NavigationControls extends HBox {
+
+public class NavigationControls extends HBox {
     private final ViewportTransform transform;
     private final NavigationManager navigationManager;
     private final GridRenderer gridRenderer;
@@ -39,11 +40,11 @@ DiagramCanvaspublic class NavigationControls extends HBox {
         setSpacing(5);
         setPadding(new Insets(5));
         setAlignment(Pos.CENTER_LEFT);
-DiagramCanvas        setBackground(new Background(new BackgroundFill(
+        setBackground(new Background(new BackgroundFill(
                 Color.rgb(245, 245, 245, 0.85), new CornerRadii(4), Insets.EMPTY)));
         setBorder(new Border(new BorderStroke(
                 Color.rgb(200, 200, 200), BorderStrokeStyle.SOLID, new CornerRadii(4), new BorderWidths(1))));
-DiagramCanvas        Button zoomInButton = createButton("+", "Zoom In");
+        Button zoomInButton = createButton("+", "Zoom In");
         zoomInButton.setOnAction(e -> navigationManager.zoomIn());
 
         Button zoomOutButton = createButton("-", "Zoom Out");
@@ -54,20 +55,20 @@ DiagramCanvas        Button zoomInButton = createButton("+", "Zoom In");
 
         Button zoomResetButton = createButton("1:1", "Reset Zoom");
         zoomResetButton.setOnAction(e -> navigationManager.resetView());
-DiagramCanvas        Label zoomLabel = new Label();
+        Label zoomLabel = new Label();
         zoomLabel.textProperty().bind(Bindings.createStringBinding(
                 () -> String.format("%.0f%%", transform.getScale() * 100),
                 transform.scaleProperty()));
-DiagramCanvas        ToggleButton gridToggle = new ToggleButton("Grid");
+        ToggleButton gridToggle = new ToggleButton("Grid");
         gridToggle.setSelected(true);
         gridToggle.setTooltip(new Tooltip("Show/Hide Grid"));
         gridToggle.setOnAction(e -> gridRenderer.setShowGrid(gridToggle.isSelected()));
-DiagramCanvas        Slider zoomSlider = new Slider(0.1, 5.0, 1.0);
+        Slider zoomSlider = new Slider(0.1, 5.0, 1.0);
         zoomSlider.setPrefWidth(100);
         zoomSlider.valueProperty().bindBidirectional(transform.scaleProperty());
-DiagramCanvas        Region spacer = new Region();
+        Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-DiagramCanvas        getChildren().addAll(
+        getChildren().addAll(
                 zoomOutButton,
                 zoomLabel,
                 zoomInButton,
@@ -77,7 +78,7 @@ DiagramCanvas        getChildren().addAll(
                 new Separator(),
                 gridToggle
         );
-DiagramCanvas        getStyleClass().add("navigation-controls");
+        getStyleClass().add("navigation-controls");
     }
 
     private Button createButton(String text, String tooltipText) {

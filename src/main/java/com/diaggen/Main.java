@@ -31,27 +31,27 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-DiagramCanvas        ensureStylesDirectory();
-DiagramCanvas        DiagramStore diagramStore = new DiagramStore();
+        ensureStylesDirectory();
+        DiagramStore diagramStore = new DiagramStore();
         CommandManager commandManager = new CommandManager();
         DialogFactory dialogFactory = DialogFactory.getInstance();
         EventBus eventBus = EventBus.getInstance();
-DiagramCanvas        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MainView.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MainView.fxml"));
         Parent root = loader.load();
         MainViewController viewController = loader.getController();
-DiagramCanvas        DiagramCanvas diagramCanvas = viewController.getDiagramCanvas();
-DiagramCanvas        ExportService exportService = new ExportService(diagramCanvas);
-DiagramCanvas        ClassController classController = new ClassController(diagramStore, commandManager, dialogFactory);
+        DiagramCanvas diagramCanvas = viewController.getDiagramCanvas();
+        ExportService exportService = new ExportService(diagramCanvas);
+        ClassController classController = new ClassController(diagramStore, commandManager, dialogFactory);
         DiagramController diagramController = new DiagramController(diagramStore, commandManager);
         RelationController relationController = new RelationController(diagramStore, commandManager, dialogFactory, diagramCanvas);
         ExportController exportController = new ExportController(diagramStore, commandManager, exportService, classController, diagramController);
-DiagramCanvas        diagramController.setOwnerWindow(primaryStage);
+        diagramController.setOwnerWindow(primaryStage);
         exportController.setOwnerWindow(primaryStage);
 
         LOGGER.log(Level.INFO, "Controllers initialized");
-DiagramCanvas        NodeManager nodeManager = diagramCanvas.getNodeManager();
+        NodeManager nodeManager = diagramCanvas.getNodeManager();
         nodeManager.setCommandManager(commandManager);
-DiagramCanvas        MainController mainController = new MainController(
+        MainController mainController = new MainController(
                 diagramStore,
                 commandManager,
                 classController,
@@ -60,29 +60,29 @@ DiagramCanvas        MainController mainController = new MainController(
                 exportController,
                 diagramCanvas
         );
-DiagramCanvas        viewController.setMainController(mainController);
-DiagramCanvas        setupEventListeners(eventBus, diagramCanvas, viewController);
-DiagramCanvas        if (diagramStore.getActiveDiagram() != null) {
+        viewController.setMainController(mainController);
+        setupEventListeners(eventBus, diagramCanvas, viewController);
+        if (diagramStore.getActiveDiagram() != null) {
             diagramCanvas.loadDiagram(diagramStore.getActiveDiagram());
             viewController.updateDiagramList(diagramStore.getDiagrams());
             viewController.updateSelectedDiagram(diagramStore.getActiveDiagram());
         }
-DiagramCanvas        Scene scene = new Scene(root, 1280, 800);
-DiagramCanvas        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/main.css")).toExternalForm());
+        Scene scene = new Scene(root, 1280, 800);
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/main.css")).toExternalForm());
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/navigation-styles.css")).toExternalForm());
-DiagramCanvas        primaryStage.setTitle("DiagGen - Générateur de diagrammes de classe");
+        primaryStage.setTitle("DiagGen - Générateur de diagrammes de classe");
         primaryStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/icon.png"))));
         primaryStage.setScene(scene);
         primaryStage.setMinWidth(800);
         primaryStage.setMinHeight(600);
-DiagramCanvas        primaryStage.show();
-DiagramCanvas        if (diagramStore.getActiveDiagram() != null) {
+        primaryStage.show();
+        if (diagramStore.getActiveDiagram() != null) {
             diagramCanvas.zoomToFit();
         }
     }
 
     private void setupEventListeners(EventBus eventBus, DiagramCanvas diagramCanvas, MainViewController viewController) {
-DiagramCanvas        eventBus.subscribe(DiagramChangedEvent.class, event -> {
+        eventBus.subscribe(DiagramChangedEvent.class, event -> {
             diagramCanvas.refresh();
             viewController.setStatus("Diagramme mis à jour");
         });
@@ -90,18 +90,18 @@ DiagramCanvas        eventBus.subscribe(DiagramChangedEvent.class, event -> {
 
     private void ensureStylesDirectory() {
         try {
-DiagramCanvas            Path stylesDir = Paths.get(getClass().getResource("/styles").toURI());
+            Path stylesDir = Paths.get(getClass().getResource("/styles").toURI());
             Path navigationStylesPath = stylesDir.resolve("navigation-styles.css");
 
             if (!Files.exists(navigationStylesPath)) {
-DiagramCanvas                if (!Files.exists(stylesDir)) {
+                if (!Files.exists(stylesDir)) {
                     Files.createDirectories(stylesDir);
                 }
-DiagramCanvas                Files.copy(getClass().getResourceAsStream("/styles/navigation-styles.css"), navigationStylesPath);
+                Files.copy(getClass().getResourceAsStream("/styles/navigation-styles.css"), navigationStylesPath);
             }
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to ensure styles directory structure: " + e.getMessage());
-DiagramCanvas        }
+        }
     }
 
     public static void main(String[] args) {

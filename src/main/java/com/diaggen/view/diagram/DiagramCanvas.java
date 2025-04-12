@@ -39,7 +39,7 @@ public class DiagramCanvas extends AnchorPane {
     private final EventBus eventBus = EventBus.getInstance();
     private final ViewportTransform viewportTransform;
     private final NavigationManager navigationManager;
-DiagramCanvas    private final StackPane canvasContainer = new StackPane();
+    private final StackPane canvasContainer = new StackPane();
     private final Pane contentPane = new Pane();
     private final NavigationControls navigationControls;
     private final MiniMapView miniMapView;
@@ -53,51 +53,51 @@ DiagramCanvas    private final StackPane canvasContainer = new StackPane();
         getStyleClass().add("diagram-canvas");
         setStyle("-fx-background-color: white;");
         setPrefSize(800, 600);
-DiagramCanvas        canvasContainer.getStyleClass().add("canvas-container");
+        canvasContainer.getStyleClass().add("canvas-container");
         canvasContainer.setStyle("-fx-background-color: white;");
-DiagramCanvas        gridCanvas = new Canvas();
+        gridCanvas = new Canvas();
         gridCanvas.widthProperty().bind(canvasContainer.widthProperty());
         gridCanvas.heightProperty().bind(canvasContainer.heightProperty());
-DiagramCanvas        canvasContainer.getChildren().addAll(gridCanvas, contentPane);
-DiagramCanvas        AnchorPane.setTopAnchor(canvasContainer, 0.0);
+        canvasContainer.getChildren().addAll(gridCanvas, contentPane);
+        AnchorPane.setTopAnchor(canvasContainer, 0.0);
         AnchorPane.setRightAnchor(canvasContainer, 0.0);
         AnchorPane.setBottomAnchor(canvasContainer, 0.0);
         AnchorPane.setLeftAnchor(canvasContainer, 0.0);
         getChildren().add(canvasContainer);
-DiagramCanvas        viewportTransform = new ViewportTransform();
-DiagramCanvas        gridRenderer = new GridRenderer(gridCanvas, 10, 50);
-DiagramCanvas        nodeManager = new NodeManager(contentPane);
+        viewportTransform = new ViewportTransform();
+        gridRenderer = new GridRenderer(gridCanvas, 10, 50);
+        nodeManager = new NodeManager(contentPane);
         relationManager = new RelationManager(contentPane, nodeManager);
         nodeManager.setRelationManager(relationManager);
-DiagramCanvas        navigationManager = new NavigationManager(canvasContainer, viewportTransform);
-DiagramCanvas        navigationControls = new NavigationControls(
+        navigationManager = new NavigationManager(canvasContainer, viewportTransform);
+        navigationControls = new NavigationControls(
                 viewportTransform,
                 navigationManager,
                 gridRenderer
         );
         navigationControls.getStyleClass().add("navigation-controls");
         navigationControls.setPrefHeight(40);
-DiagramCanvas        AnchorPane.setBottomAnchor(navigationControls, 10.0);
+        AnchorPane.setBottomAnchor(navigationControls, 10.0);
         AnchorPane.setLeftAnchor(navigationControls, 10.0);
         getChildren().add(navigationControls);
-DiagramCanvas        miniMapView = new MiniMapView(canvasContainer, viewportTransform);
+        miniMapView = new MiniMapView(canvasContainer, viewportTransform);
         miniMapView.getStyleClass().add("mini-map");
         miniMapView.setPrefSize(150, 120);
-DiagramCanvas        AnchorPane.setTopAnchor(miniMapView, 10.0);
+        AnchorPane.setTopAnchor(miniMapView, 10.0);
         AnchorPane.setRightAnchor(miniMapView, 10.0);
         getChildren().add(miniMapView);
-DiagramCanvas        setupContextMenu();
+        setupContextMenu();
         setupKeyHandlers();
         setupSelectionListeners();
         setupEventBusListeners();
-DiagramCanvas        viewportTransform.scaleProperty().addListener((obs, oldVal, newVal) -> updateTransform());
+        viewportTransform.scaleProperty().addListener((obs, oldVal, newVal) -> updateTransform());
         viewportTransform.translateXProperty().addListener((obs, oldVal, newVal) -> updateTransform());
         viewportTransform.translateYProperty().addListener((obs, oldVal, newVal) -> updateTransform());
-DiagramCanvas        canvasContainer.widthProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
+        canvasContainer.widthProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
         canvasContainer.heightProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
 
         Platform.runLater(gridRenderer::drawGrid);
-DiagramCanvas        canvasContainer.setOnMousePressed(e -> {
+        canvasContainer.setOnMousePressed(e -> {
             if (e.getButton() == MouseButton.PRIMARY) {
                 if (e.getTarget() == canvasContainer || e.getTarget() == gridCanvas) {
                     deselectAll();
@@ -112,15 +112,15 @@ DiagramCanvas        canvasContainer.setOnMousePressed(e -> {
                 e.consume();
             }
         });
-DiagramCanvas        setFocusTraversable(true);
+        setFocusTraversable(true);
     }
 
     private void updateTransform() {
-DiagramCanvas        contentPane.setScaleX(viewportTransform.getScale());
+        contentPane.setScaleX(viewportTransform.getScale());
         contentPane.setScaleY(viewportTransform.getScale());
         contentPane.setTranslateX(viewportTransform.getTranslateX());
         contentPane.setTranslateY(viewportTransform.getTranslateY());
-DiagramCanvas        gridRenderer.setTransform(
+        gridRenderer.setTransform(
                 viewportTransform.getScale(),
                 viewportTransform.getTranslateX(),
                 viewportTransform.getTranslateY()
@@ -163,16 +163,16 @@ DiagramCanvas        gridRenderer.setTransform(
             deselectAll();
             event.consume();
         } else if (event.isControlDown() && event.getCode() == KeyCode.EQUALS) {
-DiagramCanvas            navigationManager.zoomIn();
+            navigationManager.zoomIn();
             event.consume();
         } else if (event.isControlDown() && event.getCode() == KeyCode.MINUS) {
-DiagramCanvas            navigationManager.zoomOut();
+            navigationManager.zoomOut();
             event.consume();
         } else if (event.isControlDown() && event.getCode() == KeyCode.DIGIT0) {
-DiagramCanvas            navigationManager.resetView();
+            navigationManager.resetView();
             event.consume();
         } else if (event.isControlDown() && event.getCode() == KeyCode.F) {
-DiagramCanvas            zoomToFit();
+            zoomToFit();
             event.consume();
         }
     }
@@ -245,8 +245,8 @@ DiagramCanvas            zoomToFit();
 
             relationManager.updateAllRelations();
             requestLayout();
-DiagramCanvas            miniMapView.updateContent(diagram.getClasses());
-DiagramCanvas            Platform.runLater(this::zoomToFit);
+            miniMapView.updateContent(diagram.getClasses());
+            Platform.runLater(this::zoomToFit);
         });
     }
 
@@ -265,7 +265,7 @@ DiagramCanvas            Platform.runLater(this::zoomToFit);
             for (ClassNode node : nodeManager.getNodes().values()) {
                 existingClasses.put(node.getDiagramClass().getId(), node.getDiagramClass());
             }
-DiagramCanvas            for (DiagramClass diagramClass : diagram.getClasses()) {
+            for (DiagramClass diagramClass : diagram.getClasses()) {
                 if (!existingClasses.containsKey(diagramClass.getId())) {
                     nodeManager.createClassNode(diagramClass);
                 } else {
@@ -275,12 +275,12 @@ DiagramCanvas            for (DiagramClass diagramClass : diagram.getClasses()) 
                     }
                 }
             }
-DiagramCanvas            for (DiagramRelation relation : diagram.getRelations()) {
+            for (DiagramRelation relation : diagram.getRelations()) {
                 if (!existingRelations.containsKey(relation.getId())) {
                     relationManager.createRelationLine(relation);
                 }
             }
-DiagramCanvas            List<String> classesToRemove = new ArrayList<>();
+            List<String> classesToRemove = new ArrayList<>();
             for (String classId : existingClasses.keySet()) {
                 boolean found = false;
                 for (DiagramClass diagramClass : diagram.getClasses()) {
@@ -297,7 +297,7 @@ DiagramCanvas            List<String> classesToRemove = new ArrayList<>();
             for (String classId : classesToRemove) {
                 nodeManager.removeClassNode(existingClasses.get(classId));
             }
-DiagramCanvas            List<String> relationsToRemove = new ArrayList<>();
+            List<String> relationsToRemove = new ArrayList<>();
             for (String relationId : existingRelations.keySet()) {
                 boolean found = false;
                 for (DiagramRelation relation : diagram.getRelations()) {
@@ -316,8 +316,8 @@ DiagramCanvas            List<String> relationsToRemove = new ArrayList<>();
             }
 
             relationManager.updateAllRelationsLater();
-DiagramCanvas            miniMapView.updateContent(diagram.getClasses());
-DiagramCanvas            if (selectedClass != null && diagram.getClasses().contains(selectedClass)) {
+            miniMapView.updateContent(diagram.getClasses());
+            if (selectedClass != null && diagram.getClasses().contains(selectedClass)) {
                 selectClass(selectedClass);
             } else if (selectedRelation != null && diagram.getRelations().contains(selectedRelation)) {
                 selectRelation(selectedRelation);

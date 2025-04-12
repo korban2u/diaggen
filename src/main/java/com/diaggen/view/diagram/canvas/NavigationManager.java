@@ -13,7 +13,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
 
-DiagramCanvaspublic class NavigationManager {
+
+public class NavigationManager {
     private final Pane targetPane;
     private final ViewportTransform transform;
 
@@ -40,8 +41,8 @@ DiagramCanvaspublic class NavigationManager {
     }
 
     private void setupEventHandlers() {
-DiagramCanvas        targetPane.addEventFilter(ScrollEvent.SCROLL, this::handleScroll);
-DiagramCanvas        targetPane.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+        targetPane.addEventFilter(ScrollEvent.SCROLL, this::handleScroll);
+        targetPane.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             if (event.getButton() == MouseButton.MIDDLE) {
                 startPanning(event.getX(), event.getY());
                 event.consume();
@@ -64,7 +65,7 @@ DiagramCanvas        targetPane.addEventFilter(MouseEvent.MOUSE_PRESSED, event -
                 event.consume();
             }
         });
-DiagramCanvas        targetPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+        targetPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.SPACE && !isPanning()) {
                 previousCursor = targetPane.getCursor();
                 startPanning(targetPane.getWidth() / 2, targetPane.getHeight() / 2);
@@ -83,7 +84,7 @@ DiagramCanvas        targetPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
     }
 
     private void handleScroll(ScrollEvent event) {
-DiagramCanvas        if (event.isControlDown()) {
+        if (event.isControlDown()) {
             return;
         }
 
@@ -94,8 +95,8 @@ DiagramCanvas        if (event.isControlDown()) {
 
         double oldScale = transform.getScale();
         double newScale = oldScale * scaleFactor;
-DiagramCanvas        transform.setScale(newScale);
-DiagramCanvas        if (newScale != oldScale) {
+        transform.setScale(newScale);
+        if (newScale != oldScale) {
             Point2D newMouse = contentToViewport(contentPoint);
             transform.setTranslateX(transform.getTranslateX() + (mousePoint.getX() - newMouse.getX()));
             transform.setTranslateY(transform.getTranslateY() + (mousePoint.getY() - newMouse.getY()));
@@ -139,7 +140,7 @@ DiagramCanvas        if (newScale != oldScale) {
             resetView();
             return;
         }
-DiagramCanvas        double minX = Double.MAX_VALUE;
+        double minX = Double.MAX_VALUE;
         double minY = Double.MAX_VALUE;
         double maxX = Double.MIN_VALUE;
         double maxY = Double.MIN_VALUE;
@@ -149,7 +150,7 @@ DiagramCanvas        double minX = Double.MAX_VALUE;
             hasClasses = true;
             double nodeX = diagramClass.getX();
             double nodeY = diagramClass.getY();
-DiagramCanvas            double nodeWidth = 200;
+            double nodeWidth = 200;
             double nodeHeight = 150;
 
             minX = Math.min(minX, nodeX);
@@ -162,7 +163,7 @@ DiagramCanvas            double nodeWidth = 200;
             resetView();
             return;
         }
-DiagramCanvas        minX -= padding;
+        minX -= padding;
         minY -= padding;
         maxX += padding;
         maxY += padding;
@@ -174,13 +175,13 @@ DiagramCanvas        minX -= padding;
             resetView();
             return;
         }
-DiagramCanvas        double scaleX = targetPane.getWidth() / contentWidth;
+        double scaleX = targetPane.getWidth() / contentWidth;
         double scaleY = targetPane.getHeight() / contentHeight;
         double scale = Math.min(scaleX, scaleY);
-DiagramCanvas        scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
+        scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
 
         transform.setScale(scale);
-DiagramCanvas        double contentCenterX = (minX + maxX) / 2;
+        double contentCenterX = (minX + maxX) / 2;
         double contentCenterY = (minY + maxY) / 2;
         double viewportCenterX = targetPane.getWidth() / 2;
         double viewportCenterY = targetPane.getHeight() / 2;
@@ -192,7 +193,7 @@ DiagramCanvas        double contentCenterX = (minX + maxX) / 2;
     public void zoomIn() {
         double currentScale = transform.getScale();
         double newScale = currentScale * ZOOM_FACTOR;
-DiagramCanvas        double centerX = targetPane.getWidth() / 2;
+        double centerX = targetPane.getWidth() / 2;
         double centerY = targetPane.getHeight() / 2;
         Point2D contentPoint = viewportToContent(new Point2D(centerX, centerY));
 
@@ -206,7 +207,7 @@ DiagramCanvas        double centerX = targetPane.getWidth() / 2;
     public void zoomOut() {
         double currentScale = transform.getScale();
         double newScale = currentScale / ZOOM_FACTOR;
-DiagramCanvas        double centerX = targetPane.getWidth() / 2;
+        double centerX = targetPane.getWidth() / 2;
         double centerY = targetPane.getHeight() / 2;
         Point2D contentPoint = viewportToContent(new Point2D(centerX, centerY));
 

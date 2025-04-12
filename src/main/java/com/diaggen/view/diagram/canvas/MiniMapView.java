@@ -16,7 +16,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
-DiagramCanvaspublic class MiniMapView extends Pane {
+
+public class MiniMapView extends Pane {
     private final Pane diagramCanvas;
     private final ViewportTransform transform;
     private final Pane contentRepresentation = new Pane();
@@ -28,32 +29,32 @@ DiagramCanvaspublic class MiniMapView extends Pane {
     public MiniMapView(Pane diagramCanvas, ViewportTransform transform) {
         this.diagramCanvas = diagramCanvas;
         this.transform = transform;
-DiagramCanvas        setPrefSize(150, 120);
+        setPrefSize(150, 120);
         setMaxSize(150, 120);
         setBackground(new Background(new BackgroundFill(
                 Color.rgb(250, 250, 250, 0.9), new CornerRadii(5), Insets.EMPTY)));
         setBorder(new Border(new BorderStroke(
                 Color.rgb(180, 180, 180), BorderStrokeStyle.SOLID, new CornerRadii(5), BorderWidths.DEFAULT)));
-DiagramCanvas        viewportRect.setFill(Color.rgb(100, 150, 255, 0.2));
+        viewportRect.setFill(Color.rgb(100, 150, 255, 0.2));
         viewportRect.setStroke(Color.rgb(70, 130, 220));
         viewportRect.setStrokeWidth(1);
-DiagramCanvas        contentRepresentation.setPadding(new Insets(5));
+        contentRepresentation.setPadding(new Insets(5));
 
         getChildren().addAll(contentRepresentation, viewportRect);
-DiagramCanvas        Tooltip.install(this, new Tooltip("Mini-map: Click to navigate"));
-DiagramCanvas        getStyleClass().add("mini-map");
+        Tooltip.install(this, new Tooltip("Mini-map: Click to navigate"));
+        getStyleClass().add("mini-map");
         viewportRect.getStyleClass().add("viewport-rect");
-DiagramCanvas        setOnMousePressed(this::handleMousePress);
+        setOnMousePressed(this::handleMousePress);
         setOnMouseDragged(this::handleMouseDrag);
         setOnMouseReleased(this::handleMouseRelease);
-DiagramCanvas        transform.scaleProperty().addListener((obs, oldVal, newVal) -> updateViewportRect());
+        transform.scaleProperty().addListener((obs, oldVal, newVal) -> updateViewportRect());
         transform.translateXProperty().addListener((obs, oldVal, newVal) -> updateViewportRect());
         transform.translateYProperty().addListener((obs, oldVal, newVal) -> updateViewportRect());
     }
 
     public void updateContent(Iterable<DiagramClass> classes) {
         contentRepresentation.getChildren().clear();
-DiagramCanvas        double minX = Double.MAX_VALUE;
+        double minX = Double.MAX_VALUE;
         double minY = Double.MAX_VALUE;
         double maxX = Double.MIN_VALUE;
         double maxY = Double.MIN_VALUE;
@@ -64,7 +65,7 @@ DiagramCanvas        double minX = Double.MAX_VALUE;
             hasClasses = true;
             double x = diagramClass.getX();
             double y = diagramClass.getY();
-DiagramCanvas            double width = 150;
+            double width = 150;
             double height = 100;
 
             minX = Math.min(minX, x);
@@ -74,26 +75,26 @@ DiagramCanvas            double width = 150;
         }
 
         if (!hasClasses) {
-DiagramCanvas            minX = 0;
+            minX = 0;
             minY = 0;
             maxX = 800;
             maxY = 600;
         }
-DiagramCanvas        double padding = 50;
+        double padding = 50;
         minX -= padding;
         minY -= padding;
         maxX += padding;
         maxY += padding;
-DiagramCanvas        double contentWidth = maxX - minX;
+        double contentWidth = maxX - minX;
         double contentHeight = maxY - minY;
 
         double scaleX = (getWidth() - 10) / contentWidth;
         double scaleY = (getHeight() - 10) / contentHeight;
         miniMapScale = Math.min(scaleX, scaleY);
-DiagramCanvas        for (DiagramClass diagramClass : classes) {
+        for (DiagramClass diagramClass : classes) {
             double x = diagramClass.getX();
             double y = diagramClass.getY();
-DiagramCanvas            double width = 150;
+            double width = 150;
             double height = 100;
 
             Rectangle rect = new Rectangle(
@@ -115,9 +116,9 @@ DiagramCanvas            double width = 150;
     private void updateViewportRect() {
         double contentWidth = diagramCanvas.getWidth() / transform.getScale();
         double contentHeight = diagramCanvas.getHeight() / transform.getScale();
-DiagramCanvas        double viewportX = -transform.getTranslateX() / transform.getScale();
+        double viewportX = -transform.getTranslateX() / transform.getScale();
         double viewportY = -transform.getTranslateY() / transform.getScale();
-DiagramCanvas        viewportRect.setX((viewportX - minX()) * miniMapScale + 5);
+        viewportRect.setX((viewportX - minX()) * miniMapScale + 5);
         viewportRect.setY((viewportY - minY()) * miniMapScale + 5);
         viewportRect.setWidth(contentWidth * miniMapScale);
         viewportRect.setHeight(contentHeight * miniMapScale);
@@ -180,9 +181,9 @@ DiagramCanvas        viewportRect.setX((viewportX - minX()) * miniMapScale + 5);
     }
 
     private void navigateToPoint(double x, double y) {
-DiagramCanvas        double contentX = (x - 5) / miniMapScale + minX();
+        double contentX = (x - 5) / miniMapScale + minX();
         double contentY = (y - 5) / miniMapScale + minY();
-DiagramCanvas        double viewportWidth = diagramCanvas.getWidth() / transform.getScale();
+        double viewportWidth = diagramCanvas.getWidth() / transform.getScale();
         double viewportHeight = diagramCanvas.getHeight() / transform.getScale();
 
         double translateX = -(contentX - viewportWidth / 2) * transform.getScale();
