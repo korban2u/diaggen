@@ -1,10 +1,7 @@
 package com.diaggen.controller;
 
 import com.diaggen.controller.command.*;
-import com.diaggen.model.ClassDiagram;
-import com.diaggen.model.DiagramClass;
-import com.diaggen.model.DiagramRelation;
-import com.diaggen.model.DiagramStore;
+import com.diaggen.model.*;
 import com.diaggen.model.java.JavaCodeParser;
 import com.diaggen.model.persist.DiagramSerializer;
 import com.diaggen.service.ExportService;
@@ -225,15 +222,35 @@ public class MainController {
             return;
         }
 
+        // Obtenir le type de relation original avant modification
+        RelationType originalType = selectedRelation.getRelationType();
+
         var dialog = dialogFactory.createRelationEditorDialog(
                 selectedRelation, currentDiagram.getClasses());
-        dialog.showAndWait().ifPresent(updatedRelation -> {
-            // Rafraîchir le canvas sans avoir besoin de commande
-            // puisque l'objet relation est déjà modifié par le dialogue
-            diagramCanvas.refresh();
 
-            // Maintenir la sélection
-            diagramCanvas.selectRelation(selectedRelation);
+        dialog.showAndWait().ifPresent(updatedRelation -> {
+            // Vérifier si le type de relation a changé
+            if (!updatedRelation.getRelationType().equals(originalType)) {
+                // Si oui, créer et exécuter une commande de changement de type
+                ChangeRelationTypeCommand command = new ChangeRelationTypeCommand(
+                        currentDiagram, selectedRelation, updatedRelation.getRelationType());
+                commandManager.executeCommand(command);
+
+                // Rafraîchir le canvas
+                diagramCanvas.refresh();
+
+                // Sélectionner la nouvelle relation (puisque l'ancienne n'existe plus)
+                // La relation est maintenant la dernière relation ajoutée
+                DiagramRelation newRelation = currentDiagram.getRelations().get(
+                        currentDiagram.getRelations().size() - 1);
+                diagramCanvas.selectRelation(newRelation);
+            } else {
+                // Sinon, juste rafraîchir le canvas
+                diagramCanvas.refresh();
+
+                // Maintenir la sélection
+                diagramCanvas.selectRelation(selectedRelation);
+            }
 
             // Mettre à jour le statut
             viewController.setStatus("Relation modifiée");

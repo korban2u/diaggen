@@ -6,10 +6,8 @@ import com.diaggen.model.RelationType;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 
@@ -37,6 +35,11 @@ public class RelationEditorController {
     private Dialog<DiagramRelation> dialog;
     private ObservableList<DiagramClass> classes;
 
+    // Indicateur pour savoir si le type de relation a été modifié
+    private boolean relationTypeChanged = false;
+    // Stocker le type de relation original
+    private RelationType originalRelationType;
+
     @FXML
     public void initialize() {
         // Configuration du ComboBox des types de relation
@@ -44,12 +47,19 @@ public class RelationEditorController {
         relationTypeComboBox.setConverter(new StringConverter<>() {
             @Override
             public String toString(RelationType relationType) {
-                return relationType != null ? relationType.getDisplayName() : "";
+                return relationType != null ? relationType.getDisplayName() + " (" + relationType.getSymbol() + ")" : "";
             }
 
             @Override
             public RelationType fromString(String string) {
                 return null;
+            }
+        });
+
+        // Ajouter un écouteur de changement de type de relation
+        relationTypeComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (oldVal != null && newVal != null && !oldVal.equals(newVal)) {
+                relationTypeChanged = true;
             }
         });
 
@@ -80,6 +90,7 @@ public class RelationEditorController {
         this.dialog = dialog;
         this.relation = relation;
         this.classes = classes;
+        this.relationTypeChanged = false;
 
         // Définir le titre du dialogue
         dialog.setTitle(relation == null ? "Ajouter une relation" : "Modifier une relation");
@@ -97,6 +108,9 @@ public class RelationEditorController {
             sourceMultiplicityField.setText(relation.getSourceMultiplicity());
             targetMultiplicityField.setText(relation.getTargetMultiplicity());
             labelField.setText(relation.getLabel());
+
+            // Stocker le type original pour détecter les changements
+            originalRelationType = relation.getRelationType();
         } else {
             // Valeurs par défaut pour une nouvelle relation
             relationTypeComboBox.getSelectionModel().select(RelationType.ASSOCIATION);
@@ -131,11 +145,43 @@ public class RelationEditorController {
                         relation.setSourceMultiplicity(sourceMultiplicityField.getText());
                         relation.setTargetMultiplicity(targetMultiplicityField.getText());
                         relation.setLabel(labelField.getText());
+
+                        // Si le type de relation a changé, utiliser le contrôleur principal
+                        // pour appliquer ce changement via une commande
+                        if (relationTypeChanged) {
+                            // Créer une nouvelle relation avec le nouveau type
+                            // Cette relation sera retournée et le contrôleur principal
+                            // exécutera la commande
+                            return new DiagramRelation(
+                                    sourceClass,
+                                    targetClass,
+                                    relationType,
+                                    sourceMultiplicityField.getText(),
+                                    targetMultiplicityField.getText(),
+                                    labelField.getText());
+                        }
+
                         return relation;
                     }
                 }
             }
             return null;
         };
+    }
+
+    /**
+     * Vérifie si le type de relation a été modifié
+     * @return true si le type a été modifié
+     */
+    public boolean isRelationTypeChanged() {
+        return relationTypeChanged;
+    }
+
+    /**
+     * Obtient le type de relation original
+     * @return le type de relation original
+     */
+    public RelationType getOriginalRelationType() {
+        return originalRelationType;
     }
 }

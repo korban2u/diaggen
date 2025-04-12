@@ -21,6 +21,9 @@ public class RelationLine extends Pane {
     // Zone sensible pour améliorer la détection des clics
     private static final double CLICK_TOLERANCE = 5.0;
 
+    // Décalage pour les multiplicités pour améliorer la visibilité
+    private static final double MULTIPLICITY_OFFSET = 20.0;
+
     public RelationLine(DiagramRelation relation, ClassNode sourceNode, ClassNode targetNode) {
         this.relation = relation;
         this.sourceNode = sourceNode;
@@ -34,11 +37,11 @@ public class RelationLine extends Pane {
 
         // Créer les étiquettes
         sourceMultiplicityLabel = new Label();
-        sourceMultiplicityLabel.setStyle("-fx-font-size: 11;");
+        sourceMultiplicityLabel.setStyle("-fx-font-size: 11; -fx-background-color: rgba(255,255,255,0.7); -fx-padding: 1 3 1 3;");
         sourceMultiplicityLabel.getStyleClass().add("multiplicity-label");
 
         targetMultiplicityLabel = new Label();
-        targetMultiplicityLabel.setStyle("-fx-font-size: 11;");
+        targetMultiplicityLabel.setStyle("-fx-font-size: 11; -fx-background-color: rgba(255,255,255,0.7); -fx-padding: 1 3 1 3;");
         targetMultiplicityLabel.getStyleClass().add("multiplicity-label");
 
         relationLabel = new Label();
@@ -54,8 +57,34 @@ public class RelationLine extends Pane {
         // Améliorer la zone de détection des clics
         setPickOnBounds(false); // Ne pas détecter les clics sur la zone rectangulaire entière
 
+        // Lier les propriétés du modèle à la vue
+        bindModelToView();
+
         // Planifier une mise à jour après le rendu complet de la scène
         Platform.runLater(this::update);
+    }
+
+    /**
+     * Lie les propriétés du modèle à la vue pour les mises à jour automatiques
+     */
+    private void bindModelToView() {
+        // Observer les changements de multiplicité source
+        relation.sourceMultiplicityProperty().addListener((obs, oldVal, newVal) -> {
+            sourceMultiplicityLabel.setText(newVal);
+            update();
+        });
+
+        // Observer les changements de multiplicité cible
+        relation.targetMultiplicityProperty().addListener((obs, oldVal, newVal) -> {
+            targetMultiplicityLabel.setText(newVal);
+            update();
+        });
+
+        // Observer les changements de label
+        relation.labelProperty().addListener((obs, oldVal, newVal) -> {
+            relationLabel.setText(newVal);
+            update();
+        });
     }
 
     /**
@@ -112,6 +141,16 @@ public class RelationLine extends Pane {
     }
 
     private void updateLabels(Point2D sourcePoint, Point2D targetPoint) {
+        // Mettre à jour le contenu des labels depuis le modèle
+        sourceMultiplicityLabel.setText(relation.getSourceMultiplicity());
+        targetMultiplicityLabel.setText(relation.getTargetMultiplicity());
+        relationLabel.setText(relation.getLabel());
+
+        // Ne pas afficher les labels vides
+        sourceMultiplicityLabel.setVisible(!relation.getSourceMultiplicity().isEmpty());
+        targetMultiplicityLabel.setVisible(!relation.getTargetMultiplicity().isEmpty());
+        relationLabel.setVisible(!relation.getLabel().isEmpty());
+
         // Calculer le vecteur directeur
         double dx = targetPoint.getX() - sourcePoint.getX();
         double dy = targetPoint.getY() - sourcePoint.getY();
@@ -127,38 +166,71 @@ public class RelationLine extends Pane {
         double perpX = -uy;
         double perpY = ux;
 
-        // Décalage pour les étiquettes de multiplicité
-        double offset = 15.0;
-
-        // Position pour la multiplicité source
-        sourceMultiplicityLabel.setText(relation.getSourceMultiplicity());
+        // Position pour la multiplicité source - améliorée pour meilleure visibilité
         if (!relation.getSourceMultiplicity().isEmpty()) {
-            sourceMultiplicityLabel.setTranslateX(sourcePoint.getX() + perpX * offset);
-            sourceMultiplicityLabel.setTranslateY(sourcePoint.getY() + perpY * offset);
+            // Positionner un peu éloigné du point de connexion,
+            // dans la direction perpendiculaire à la ligne
+            double offsetX = perpX * MULTIPLICITY_OFFSET;
+            double offsetY = perpY * MULTIPLICITY_OFFSET;
+
+            // Ajustement supplémentaire pour éviter les chevauchements
+            // Déplacer un peu vers l'intérieur de la ligne
+            double inwardFactor = 0.1; // 10% de la longueur vers l'intérieur
+            double inwardX = ux * (length * inwardFactor);
+            double inwardY = uy * (length * inwardFactor);
+
+            sourceMultiplicityLabel.setTranslateX(sourcePoint.getX() + offsetX + inwardX);
+            sourceMultiplicityLabel.setTranslateY(sourcePoint.getY() + offsetY + inwardY);
+
+            // Centrer le texte par rapport au point
+            sourceMultiplicityLabel.applyCss();
+            sourceMultiplicityLabel.layout();
+            sourceMultiplicityLabel.setTranslateX(
+                    sourceMultiplicityLabel.getTranslateX() - sourceMultiplicityLabel.getWidth() / 2);
+            sourceMultiplicityLabel.setTranslateY(
+                    sourceMultiplicityLabel.getTranslateY() - sourceMultiplicityLabel.getHeight() / 2);
         }
 
-        // Position pour la multiplicité cible
-        targetMultiplicityLabel.setText(relation.getTargetMultiplicity());
+        // Position pour la multiplicité cible - améliorée pour meilleure visibilité
         if (!relation.getTargetMultiplicity().isEmpty()) {
-            targetMultiplicityLabel.setTranslateX(targetPoint.getX() + perpX * offset);
-            targetMultiplicityLabel.setTranslateY(targetPoint.getY() + perpY * offset);
+            // Positionner un peu éloigné du point de connexion,
+            // dans la direction perpendiculaire à la ligne
+            double offsetX = perpX * MULTIPLICITY_OFFSET;
+            double offsetY = perpY * MULTIPLICITY_OFFSET;
+
+            // Ajustement supplémentaire pour éviter les chevauchements
+            // Déplacer un peu vers l'intérieur de la ligne
+            double inwardFactor = 0.1; // 10% de la longueur vers l'intérieur
+            double inwardX = -ux * (length * inwardFactor);
+            double inwardY = -uy * (length * inwardFactor);
+
+            targetMultiplicityLabel.setTranslateX(targetPoint.getX() + offsetX + inwardX);
+            targetMultiplicityLabel.setTranslateY(targetPoint.getY() + offsetY + inwardY);
+
+            // Centrer le texte par rapport au point
+            targetMultiplicityLabel.applyCss();
+            targetMultiplicityLabel.layout();
+            targetMultiplicityLabel.setTranslateX(
+                    targetMultiplicityLabel.getTranslateX() - targetMultiplicityLabel.getWidth() / 2);
+            targetMultiplicityLabel.setTranslateY(
+                    targetMultiplicityLabel.getTranslateY() - targetMultiplicityLabel.getHeight() / 2);
         }
 
         // Position pour l'étiquette de relation
-        relationLabel.setText(relation.getLabel());
         if (!relation.getLabel().isEmpty()) {
             // Point milieu de la ligne
             double midX = (sourcePoint.getX() + targetPoint.getX()) / 2;
             double midY = (sourcePoint.getY() + targetPoint.getY()) / 2;
 
             // Décalage perpendiculaire
-            double labelOffset = 15.0;
+            double labelOffset = 20.0; // Augmenté pour meilleure visibilité
             midX += perpX * labelOffset;
             midY += perpY * labelOffset;
 
             relationLabel.applyCss();
             relationLabel.layout();
 
+            // Positionner le centre du label au point calculé
             relationLabel.setTranslateX(midX - relationLabel.getWidth() / 2);
             relationLabel.setTranslateY(midY - relationLabel.getHeight() / 2);
         }

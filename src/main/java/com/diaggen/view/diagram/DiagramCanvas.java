@@ -17,6 +17,10 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class DiagramCanvas extends Pane {
@@ -164,16 +168,77 @@ public class DiagramCanvas extends Pane {
             DiagramClass selectedClass = getSelectedClass();
             DiagramRelation selectedRelation = getSelectedRelation();
 
-            clear();
+            // Stocker les relations et les classes existantes pour vérifier la présence
+            Map<String, DiagramRelation> existingRelations = new HashMap<>();
+            Map<String, DiagramClass> existingClasses = new HashMap<>();
 
+            for (RelationLine line : relationManager.getRelationLines().values()) {
+                existingRelations.put(line.getRelation().getId(), line.getRelation());
+            }
+
+            for (ClassNode node : nodeManager.getNodes().values()) {
+                existingClasses.put(node.getDiagramClass().getId(), node.getDiagramClass());
+            }
+
+            // Ajouter les nouveaux éléments et mettre à jour les existants
             for (DiagramClass diagramClass : diagram.getClasses()) {
-                nodeManager.createClassNode(diagramClass);
+                if (!existingClasses.containsKey(diagramClass.getId())) {
+                    // Créer un nouveau nœud pour les classes qui n'existent pas encore
+                    ClassNode node = nodeManager.createClassNode(diagramClass);
+                } else {
+                    // Mettre à jour la classe existante
+                    ClassNode node = nodeManager.getNodeById(diagramClass.getId());
+                    if (node != null) {
+                        node.refresh();
+                    }
+                }
             }
 
             for (DiagramRelation relation : diagram.getRelations()) {
-                relationManager.createRelationLine(relation);
+                if (!existingRelations.containsKey(relation.getId())) {
+                    // Créer une nouvelle ligne pour les relations qui n'existent pas encore
+                    relationManager.createRelationLine(relation);
+                }
             }
 
+            // Supprimer les éléments qui ne sont plus dans le diagramme
+            List<String> classesToRemove = new ArrayList<>();
+            for (String classId : existingClasses.keySet()) {
+                boolean found = false;
+                for (DiagramClass diagramClass : diagram.getClasses()) {
+                    if (diagramClass.getId().equals(classId)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    classesToRemove.add(classId);
+                }
+            }
+
+            for (String classId : classesToRemove) {
+                nodeManager.removeClassNode(existingClasses.get(classId));
+            }
+
+            List<String> relationsToRemove = new ArrayList<>();
+            for (String relationId : existingRelations.keySet()) {
+                boolean found = false;
+                for (DiagramRelation relation : diagram.getRelations()) {
+                    if (relation.getId().equals(relationId)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    relationsToRemove.add(relationId);
+                }
+            }
+
+            for (String relationId : relationsToRemove) {
+                relationManager.removeRelationLine(existingRelations.get(relationId));
+            }
+
+            // Mettre à jour toutes les relations
             relationManager.updateAllRelationsLater();
 
             // Restaurer la sélection si possible

@@ -5,6 +5,7 @@ import com.diaggen.model.DiagramClass;
 import com.diaggen.model.Member;
 import com.diaggen.model.Method;
 import com.diaggen.model.Parameter;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.scene.layout.Region;
@@ -46,6 +47,56 @@ public class ClassNode extends Region {
                     newBounds.getHeight() + PADDING
             );
         });
+
+        // Ajouter des écouteurs pour les changements du modèle
+        bindModelToView();
+    }
+
+    /**
+     * Lie les propriétés du modèle à la vue pour les mises à jour automatiques
+     */
+    private void bindModelToView() {
+        // Observer les changements de nom
+        diagramClass.nameProperty().addListener((obs, oldVal, newVal) -> refresh());
+
+        // Observer les changements de package
+        diagramClass.packageNameProperty().addListener((obs, oldVal, newVal) -> refresh());
+
+        // Note: classType n'est pas une propriété JavaFX observable dans DiagramClass
+        // Les changements de type seront captés lors du rafraîchissement manuel après édition
+
+        // Observer les changements dans la liste des attributs
+        diagramClass.getAttributes().addListener((ListChangeListener<Member>) change -> {
+            while (change.next()) {
+                if (change.wasAdded() || change.wasRemoved() || change.wasUpdated()) {
+                    refresh();
+                    break;
+                }
+            }
+        });
+
+        // Observer les changements dans la liste des méthodes
+        diagramClass.getMethods().addListener((ListChangeListener<Method>) change -> {
+            while (change.next()) {
+                if (change.wasAdded() || change.wasRemoved() || change.wasUpdated()) {
+                    refresh();
+                    break;
+                }
+            }
+        });
+
+        // Observer les changements des attributs individuels
+        for (Member member : diagramClass.getAttributes()) {
+            member.nameProperty().addListener((obs, oldVal, newVal) -> refresh());
+            member.typeProperty().addListener((obs, oldVal, newVal) -> refresh());
+        }
+
+        // Observer les changements des méthodes individuelles
+        for (Method method : diagramClass.getMethods()) {
+            method.nameProperty().addListener((obs, oldVal, newVal) -> refresh());
+            method.returnTypeProperty().addListener((obs, oldVal, newVal) -> refresh());
+            method.getParameters().addListener((ListChangeListener<Parameter>) change -> refresh());
+        }
     }
 
     public DiagramClass getDiagramClass() {
@@ -132,8 +183,42 @@ public class ClassNode extends Region {
         return new Point2D(boundaryX, boundaryY);
     }
 
+    /**
+     * Rafraîchit l'affichage du nœud en fonction des données du modèle
+     */
     public void refresh() {
+        // Mettre à jour les écouteurs pour les nouveaux éléments
+        updateModelListeners();
+
+        // Rafraîchir le contenu
         content.update();
+    }
+
+    /**
+     * Met à jour les écouteurs pour les attributs et méthodes
+     * Cette méthode est nécessaire car de nouveaux éléments peuvent avoir été ajoutés
+     */
+    private void updateModelListeners() {
+        // Observer les changements des attributs individuels
+        for (Member member : diagramClass.getAttributes()) {
+            // Vérifier si les écouteurs sont déjà ajoutés pour éviter les doublons
+            member.nameProperty().removeListener(observable -> refresh());
+            member.typeProperty().removeListener(observable -> refresh());
+
+            member.nameProperty().addListener((obs, oldVal, newVal) -> refresh());
+            member.typeProperty().addListener((obs, oldVal, newVal) -> refresh());
+        }
+
+        // Observer les changements des méthodes individuelles
+        for (Method method : diagramClass.getMethods()) {
+            // Vérifier si les écouteurs sont déjà ajoutés pour éviter les doublons
+            method.nameProperty().removeListener(observable -> refresh());
+            method.returnTypeProperty().removeListener(observable -> refresh());
+
+            method.nameProperty().addListener((obs, oldVal, newVal) -> refresh());
+            method.returnTypeProperty().addListener((obs, oldVal, newVal) -> refresh());
+            method.getParameters().addListener((ListChangeListener<Parameter>) change -> refresh());
+        }
     }
 
     private static class ClassNodeContent extends VBox {
