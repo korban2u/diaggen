@@ -64,8 +64,10 @@
 
     <center>
         <HBox>
-            <SplitPane dividerPositions="0.2" HBox.hgrow="ALWAYS">
-                <VBox>
+            <!-- Utilisation de HBox.hgrow pour contrôler l'expansion -->
+            <SplitPane dividerPositions="0.2" HBox.hgrow="ALWAYS" minWidth="800">
+                <!-- Panneau de gauche avec taille minimale fixe -->
+                <VBox minWidth="200" maxWidth="300">
                     <Label text="Diagrammes"/>
                     <ListView fx:id="diagramListView" VBox.vgrow="ALWAYS">
                         <contextMenu>
@@ -79,11 +81,13 @@
                         </contextMenu>
                     </ListView>
                 </VBox>
-                <StackPane fx:id="diagramCanvasContainer"/>
+
+                <!-- Conteneur du canevas avec taille minimale -->
+                <StackPane fx:id="diagramCanvasContainer" minWidth="600"/>
             </SplitPane>
 
-            <!-- Panneau d'édition (toujours à droite) -->
-            <VBox fx:id="editorPanel" prefWidth="300" styleClass="editor-panel" visible="false">
+            <!-- Panneau d'édition avec taille fixe -->
+            <VBox fx:id="editorPanel" prefWidth="300" minWidth="300" maxWidth="300" styleClass="editor-panel" visible="false">
                 <Label text="Éditeur" styleClass="editor-title">
                     <padding>
                         <Insets top="10" right="15" bottom="10" left="15"/>

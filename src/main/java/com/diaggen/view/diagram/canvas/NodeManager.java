@@ -62,8 +62,28 @@ public class NodeManager {
                 double offsetX = e.getSceneX() - dragStartX;
                 double offsetY = e.getSceneY() - dragStartY;
 
-                classNode.setLayoutX(dragStartPoint.getX() + offsetX);
-                classNode.setLayoutY(dragStartPoint.getY() + offsetY);
+                // Calculer les nouvelles positions
+                double newX = dragStartPoint.getX() + offsetX;
+                double newY = dragStartPoint.getY() + offsetY;
+
+                // Récupérer les dimensions du canevas
+                double canvasWidth = container.getWidth();
+                double canvasHeight = container.getHeight();
+
+                // Récupérer les dimensions du nœud
+                double nodeWidth = classNode.getWidth();
+                double nodeHeight = classNode.getHeight();
+
+                // Marge de sécurité pour éviter de toucher les bords
+                double margin = 20;
+
+                // Contraindre la position pour garder le nœud dans les limites du canevas
+                // avec une petite marge pour éviter les cas limites
+                newX = Math.max(margin, Math.min(canvasWidth - nodeWidth - margin, newX));
+                newY = Math.max(margin, Math.min(canvasHeight - nodeHeight - margin, newY));
+
+                classNode.setLayoutX(newX);
+                classNode.setLayoutY(newY);
 
                 // Mettre à jour les relations en temps réel pendant le déplacement
                 if (relationManager != null) {

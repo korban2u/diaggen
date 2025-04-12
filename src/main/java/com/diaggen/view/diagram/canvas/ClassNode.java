@@ -9,6 +9,7 @@ import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Line;
@@ -141,6 +142,10 @@ public class ClassNode extends Region {
         double width = getWidth();
         double height = getHeight();
 
+        // Vérifier que les dimensions sont valides
+        if (width <= 0) width = MIN_WIDTH;
+        if (height <= 0) height = MIN_WIDTH;
+
         // Vecteur du centre vers la cible
         double dx = target.getX() - cx;
         double dy = target.getY() - cy;
@@ -157,7 +162,7 @@ public class ClassNode extends Region {
         double boundaryX, boundaryY;
 
         // Ajouter une petite marge pour éviter que la ligne touche exactement le bord
-        double margin = 1.0;
+        double margin = 2.0;
 
         // Calculer les distances aux bords selon l'angle
         double distToVertical = Math.abs(width / 2 / Math.cos(angle)) - margin;
@@ -191,27 +196,56 @@ public class ClassNode extends Region {
         // Calculer et mettre à jour la taille
         double width = Math.max(MIN_WIDTH, content.getLayoutBounds().getWidth() + PADDING * 2);
         double height = content.getLayoutBounds().getHeight() + PADDING * 2;
-        setPrefSize(width, height);
 
-        // Force le redimensionnement immédiat
+        // Stocker les anciennes dimensions pour détecter les changements
+        double oldWidth = getWidth();
+        double oldHeight = getHeight();
+
+        // Mettre à jour la taille du nœud
+        setPrefSize(width, height);
         resize(width, height);
 
-        // Force une mise à jour visuelle
-        setVisible(false);
-        setVisible(true);
+        // Force une mise à jour visuelle seulement si nécessaire
+        if (oldWidth != width || oldHeight != height) {
+            setVisible(false);
+            setVisible(true);
+        }
 
-        // Utiliser requestLayout pour s'assurer que le composant se redessine correctement
+        // Force le recalcul du layout
         requestLayout();
-
-        // Forcer JavaFX à recalculer le layout
         applyCss();
         layout();
+
+        // Vérifier si le nœud est maintenant hors des limites de son parent
+        if (getParent() != null && getParent() instanceof Pane) {
+            Pane parent = (Pane) getParent();
+            double parentWidth = parent.getWidth();
+            double parentHeight = parent.getHeight();
+
+            // S'assurer que le nœud reste dans les limites du parent
+            if (parentWidth > 0 && parentHeight > 0) {
+                double margin = 20;
+                double newX = Math.max(margin, Math.min(parentWidth - width - margin, getLayoutX()));
+                double newY = Math.max(margin, Math.min(parentHeight - height - margin, getLayoutY()));
+
+                // N'appliquer les changements que si nécessaire
+                if (newX != getLayoutX() || newY != getLayoutY()) {
+                    setLayoutX(newX);
+                    setLayoutY(newY);
+
+                    // Mettre à jour le modèle
+                    diagramClass.setX(newX);
+                    diagramClass.setY(newY);
+                }
+            }
+        }
 
         // Notifier d'éventuels changements de position
         if (positionChangeListener != null) {
             Platform.runLater(positionChangeListener);
         }
     }
+
 
         private void updateModelListeners() {
         // Observer les changements des attributs individuels

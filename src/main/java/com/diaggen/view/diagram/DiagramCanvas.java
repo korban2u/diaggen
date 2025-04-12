@@ -13,6 +13,7 @@ import com.diaggen.view.diagram.canvas.NodeManager;
 import com.diaggen.view.diagram.canvas.RelationLine;
 import com.diaggen.view.diagram.canvas.RelationManager;
 import javafx.application.Platform;
+import javafx.geometry.Dimension2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -194,6 +195,8 @@ public class DiagramCanvas extends Pane {
         });
     }
 
+    // Méthode refresh améliorée à insérer dans DiagramCanvas.java
+
     public void refresh() {
         if (diagram != null) {
             DiagramClass selectedClass = getSelectedClass();
@@ -219,6 +222,8 @@ public class DiagramCanvas extends Pane {
                     // Mettre à jour la classe existante
                     ClassNode node = nodeManager.getNodeById(diagramClass.getId());
                     if (node != null) {
+                        // Vérifier que les positions sont dans les limites du canevas
+                        ensureNodeWithinBounds(node);
                         node.refresh();
                     }
                 }
@@ -278,6 +283,73 @@ public class DiagramCanvas extends Pane {
                 selectRelation(selectedRelation);
             }
         }
+    }
+
+    private void ensureNodeWithinBounds(ClassNode node) {
+        double nodeWidth = node.getWidth();
+        double nodeHeight = node.getHeight();
+
+        // Si le nœud n'a pas encore de dimensions, on attend le prochain cycle de mise en page
+        if (nodeWidth <= 0 || nodeHeight <= 0) {
+            return;
+        }
+
+        double canvasWidth = getWidth();
+        double canvasHeight = getHeight();
+
+        // Marge de sécurité
+        double margin = 20;
+
+        // Position actuelle
+        double currentX = node.getLayoutX();
+        double currentY = node.getLayoutY();
+
+        // Calculer les nouvelles positions contraintes
+        double newX = Math.max(margin, Math.min(canvasWidth - nodeWidth - margin, currentX));
+        double newY = Math.max(margin, Math.min(canvasHeight - nodeHeight - margin, currentY));
+
+        // Appliquer les nouvelles positions si elles diffèrent
+        if (currentX != newX || currentY != newY) {
+            node.setLayoutX(newX);
+            node.setLayoutY(newY);
+
+            // Mettre à jour le modèle sous-jacent
+            DiagramClass diagramClass = node.getDiagramClass();
+            diagramClass.setX(newX);
+            diagramClass.setY(newY);
+        }
+    }
+
+    public Dimension2D calculateRequiredSize() {
+        if (diagram == null || diagram.getClasses().isEmpty()) {
+            return new Dimension2D(600, 400); // Taille par défaut
+        }
+
+        double maxX = 0;
+        double maxY = 0;
+        double minX = Double.MAX_VALUE;
+        double minY = Double.MAX_VALUE;
+
+        // Parcourir toutes les classes pour déterminer les extrémités
+        for (DiagramClass diagramClass : diagram.getClasses()) {
+            ClassNode node = nodeManager.getNodeById(diagramClass.getId());
+            if (node != null) {
+                double nodeRight = node.getLayoutX() + node.getWidth();
+                double nodeBottom = node.getLayoutY() + node.getHeight();
+
+                maxX = Math.max(maxX, nodeRight);
+                maxY = Math.max(maxY, nodeBottom);
+                minX = Math.min(minX, node.getLayoutX());
+                minY = Math.min(minY, node.getLayoutY());
+            }
+        }
+
+        // Ajouter une marge
+        double margin = 100;
+        double width = Math.max(600, maxX - minX + 2 * margin);
+        double height = Math.max(400, maxY - minY + 2 * margin);
+
+        return new Dimension2D(width, height);
     }
 
     public void clear() {
