@@ -17,12 +17,8 @@ import javafx.stage.Window;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Optional;
 
-/**
- * Contrôleur principal de l'application
- */
 public class MainController {
 
     private final DiagramStore diagramStore;
@@ -56,15 +52,12 @@ public class MainController {
             loadDiagram(diagramStore.getActiveDiagram());
         }
 
-        // Configurer le canvas pour qu'il notifie le contrôleur lors d'une demande d'ajout de classe
+
         diagramCanvas.setOnAddClassRequest(this::handleAddClass);
         diagramCanvas.setOnDeleteRequest(this::handleDeleteSelected);
     }
 
-    /**
-     * Gère la suppression de l'élément sélectionné (classe ou relation)
-     */
-    private void handleDeleteSelected() {
+        private void handleDeleteSelected() {
         DiagramClass selectedClass = viewController.getSelectedClass();
         DiagramRelation selectedRelation = viewController.getSelectedRelation();
 
@@ -75,11 +68,7 @@ public class MainController {
         }
     }
 
-    /**
-     * Charge un diagramme dans l'application
-     * @param diagram Le diagramme à charger
-     */
-    private void loadDiagram(ClassDiagram diagram) {
+        private void loadDiagram(ClassDiagram diagram) {
         diagramStore.setActiveDiagram(diagram);
         diagramCanvas.loadDiagram(diagram);
         viewController.updateSelectedDiagram(diagram);
@@ -129,10 +118,7 @@ public class MainController {
         }
     }
 
-    /**
-     * Gestion de l'ajout d'une classe
-     */
-    public void handleAddClass() {
+        public void handleAddClass() {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram == null) return;
 
@@ -143,31 +129,10 @@ public class MainController {
 
             diagramCanvas.refresh();
 
-            // Sélectionner automatiquement la nouvelle classe
+
             diagramCanvas.selectClass(diagramClass);
 
             viewController.setStatus("Classe " + diagramClass.getName() + " ajoutée");
-        });
-    }
-
-    public void handleEditClass() {
-        ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
-        if (currentDiagram == null) return;
-
-        // Utiliser la classe sélectionnée du viewController
-        DiagramClass selectedClass = viewController.getSelectedClass();
-        if (selectedClass == null) {
-            showWarning("Aucune classe sélectionnée",
-                    "Veuillez sélectionner une classe à modifier.");
-            return;
-        }
-
-        var dialog = dialogFactory.createClassEditorDialog(selectedClass);
-        dialog.showAndWait().ifPresent(updatedClass -> {
-            // Rafraîchir le canvas pour refléter les changements
-            diagramCanvas.refresh();
-            // Maintenir la sélection
-            diagramCanvas.selectClass(selectedClass);
         });
     }
 
@@ -175,7 +140,7 @@ public class MainController {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram == null) return;
 
-        // Utiliser la classe sélectionnée du viewController
+
         DiagramClass selectedClass = viewController.getSelectedClass();
         if (selectedClass == null) {
             showWarning("Aucune classe sélectionnée",
@@ -190,17 +155,17 @@ public class MainController {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            // Créer et exécuter la commande
+
             RemoveClassCommand command = new RemoveClassCommand(currentDiagram, selectedClass);
             commandManager.executeCommand(command);
 
-            // Rafraîchir le canvas
+
             diagramCanvas.refresh();
 
-            // Désélectionner tout
+
             diagramCanvas.deselectAll();
 
-            // Mettre à jour le statut
+
             viewController.setStatus("Classe " + selectedClass.getName() + " supprimée");
         }
     }
@@ -231,45 +196,6 @@ public class MainController {
             // Mettre à jour le statut
             viewController.setStatus("Relation ajoutée entre " + relation.getSourceClass().getName() +
                     " et " + relation.getTargetClass().getName());
-        });
-    }
-
-    public void handleEditRelation() {
-        ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
-        if (currentDiagram == null) return;
-
-        // Utiliser la relation sélectionnée du viewController
-        DiagramRelation selectedRelation = viewController.getSelectedRelation();
-        if (selectedRelation == null) {
-            showWarning("Aucune relation sélectionnée",
-                    "Veuillez sélectionner une relation à modifier.");
-            return;
-        }
-
-        // Obtenir le type de relation original avant modification
-        RelationType originalType = selectedRelation.getRelationType();
-
-        var dialog = dialogFactory.createRelationEditorDialog(
-                selectedRelation, currentDiagram.getClasses());
-
-        dialog.showAndWait().ifPresent(updatedRelation -> {
-            // Vérifier si le type de relation a changé
-            if (!updatedRelation.getRelationType().equals(originalType)) {
-                // Si oui, créer et exécuter une commande de changement de type avec rafraîchissement
-                ChangeRelationTypeCommand command = new ChangeRelationTypeCommand(
-                        currentDiagram, selectedRelation, updatedRelation.getRelationType(), diagramCanvas);
-                commandManager.executeCommand(command);
-
-                // La mise à jour de l'affichage et la sélection sont gérées par la commande
-            } else {
-                // Sinon, juste rafraîchir le canvas
-                diagramCanvas.refresh();
-                // Maintenir la sélection
-                diagramCanvas.selectRelation(selectedRelation);
-            }
-
-            // Mettre à jour le statut
-            viewController.setStatus("Relation modifiée");
         });
     }
 
@@ -307,12 +233,7 @@ public class MainController {
         }
     }
 
-    /**
-     * Change le type d'une relation (méthode utilitaire)
-     * @param relation La relation à modifier
-     * @param newType Le nouveau type de relation
-     */
-    public void changeRelationType(DiagramRelation relation, RelationType newType) {
+        public void changeRelationType(DiagramRelation relation, RelationType newType) {
         if (relation == null || relation.getRelationType() == newType) return;
 
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
@@ -327,10 +248,7 @@ public class MainController {
         viewController.setStatus("Type de relation modifié en " + newType.getDisplayName());
     }
 
-    /**
-     * Gère l'enregistrement du diagramme actif
-     */
-    public void handleSave() {
+        public void handleSave() {
         File currentFile = diagramStore.getCurrentFile();
         if (currentFile != null) {
             saveToFile(currentFile);
@@ -339,10 +257,7 @@ public class MainController {
         }
     }
 
-    /**
-     * Gère l'enregistrement du diagramme actif avec choix de fichier
-     */
-    public void handleSaveAs() {
+        public void handleSaveAs() {
         if (diagramStore.getActiveDiagram() == null) {
             showWarning("Aucun diagramme actif", "Il n'y a pas de diagramme à enregistrer.");
             return;
@@ -365,11 +280,7 @@ public class MainController {
         }
     }
 
-    /**
-     * Enregistre le diagramme dans un fichier
-     * @param file Le fichier de destination
-     */
-    private void saveToFile(File file) {
+        private void saveToFile(File file) {
         try {
             DiagramSerializer serializer = new DiagramSerializer();
             serializer.serialize(diagramStore.getActiveDiagram(), file);
@@ -380,10 +291,7 @@ public class MainController {
         }
     }
 
-    /**
-     * Gère l'ouverture d'un fichier diagramme
-     */
-    public void handleOpen() {
+        public void handleOpen() {
         Window window = viewController.getWindow();
 
         FileChooser fileChooser = new FileChooser();
@@ -413,10 +321,7 @@ public class MainController {
         }
     }
 
-    /**
-     * Gère l'importation de code Java
-     */
-    public void handleImportJavaCode() {
+        public void handleImportJavaCode() {
         Window window = viewController.getWindow();
 
         // Choisir un fichier Java ou un répertoire
@@ -495,11 +400,7 @@ public class MainController {
         }
     }
 
-    /**
-     * Arrange les classes dans le diagramme en grille
-     * @param diagram Le diagramme à arranger
-     */
-    private void arrangeClassesAutomatically(ClassDiagram diagram) {
+        private void arrangeClassesAutomatically(ClassDiagram diagram) {
         if (diagram == null || diagram.getClasses().isEmpty()) return;
 
         final int GRID_WIDTH = 250;
@@ -524,10 +425,7 @@ public class MainController {
         diagramCanvas.refresh();
     }
 
-    /**
-     * Gère l'exportation du diagramme au format PNG
-     */
-    public void handleExportImage() {
+        public void handleExportImage() {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram == null) {
             showWarning("Aucun diagramme actif", "Il n'y a pas de diagramme à exporter.");
@@ -557,10 +455,7 @@ public class MainController {
         }
     }
 
-    /**
-     * Gère l'exportation du diagramme au format SVG
-     */
-    public void handleExportSVG() {
+        public void handleExportSVG() {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram == null) {
             showWarning("Aucun diagramme actif", "Il n'y a pas de diagramme à exporter.");
@@ -590,10 +485,7 @@ public class MainController {
         }
     }
 
-    /**
-     * Gère l'exportation du diagramme au format PlantUML
-     */
-    public void handleExportPlantUML() {
+        public void handleExportPlantUML() {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram == null) {
             showWarning("Aucun diagramme actif", "Il n'y a pas de diagramme à exporter.");
@@ -623,10 +515,7 @@ public class MainController {
         }
     }
 
-    /**
-     * Gère l'exportation du diagramme en code Java
-     */
-    public void handleExportJavaCode() {
+        public void handleExportJavaCode() {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram == null) {
             showWarning("Aucun diagramme actif", "Il n'y a pas de diagramme à exporter.");
@@ -671,37 +560,15 @@ public class MainController {
         }
     }
 
-    /**
-     * Affiche un message d'information
-     * @param title Le titre de la boîte de dialogue
-     * @param message Le message à afficher
-     */
-    private void showInfo(String title, String message) {
-        AlertHelper.showInfo(title, message);
-    }
-
-    /**
-     * Affiche un message d'avertissement
-     * @param title Le titre de la boîte de dialogue
-     * @param message Le message à afficher
-     */
     private void showWarning(String title, String message) {
         AlertHelper.showWarning(title, message);
     }
 
-    /**
-     * Affiche un message d'erreur
-     * @param title Le titre de la boîte de dialogue
-     * @param message Le message à afficher
-     */
-    private void showError(String title, String message) {
+        private void showError(String title, String message) {
         AlertHelper.showError(title, message);
     }
 
-    /**
-     * Gère l'annulation de la dernière action
-     */
-    public void handleUndo() {
+        public void handleUndo() {
         if (commandManager.canUndo()) {
             commandManager.undo();
             diagramCanvas.refresh();
@@ -709,10 +576,7 @@ public class MainController {
         }
     }
 
-    /**
-     * Gère le rétablissement de la dernière action annulée
-     */
-    public void handleRedo() {
+        public void handleRedo() {
         if (commandManager.canRedo()) {
             commandManager.redo();
             diagramCanvas.refresh();
@@ -720,19 +584,11 @@ public class MainController {
         }
     }
 
-    /**
-     * Donne accès au DiagramStore pour des opérations spéciales
-     * @return le DiagramStore
-     */
-    public DiagramStore getDiagramStore() {
+        public DiagramStore getDiagramStore() {
         return diagramStore;
     }
 
-    /**
-     * Ajoute une nouvelle classe directement au diagramme actif
-     * @param newClass la classe à ajouter
-     */
-    public void addNewClass(DiagramClass newClass) {
+        public void addNewClass(DiagramClass newClass) {
         ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
         if (currentDiagram != null) {
             // Créer et exécuter la commande pour ajouter une classe

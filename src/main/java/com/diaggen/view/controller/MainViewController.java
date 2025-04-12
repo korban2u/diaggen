@@ -19,9 +19,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-/**
- * Contrôleur de vue principale amélioré pour une meilleure gestion des relations
- */
 public class MainViewController {
 
     @FXML
@@ -55,7 +52,7 @@ public class MainViewController {
 
     @FXML
     public void initialize() {
-        // Configurer la liste des diagrammes
+
         diagramListView.setCellFactory(param -> new ListCell<>() {
             @Override
             protected void updateItem(ClassDiagram item, boolean empty) {
@@ -75,44 +72,44 @@ public class MainViewController {
             }
         });
 
-        // Initialiser le canvas
+
         diagramCanvas = new DiagramCanvas();
         diagramCanvasContainer.getChildren().add(diagramCanvas);
 
-        // Initialiser le factory de dialogues
+
         dialogFactory = DialogFactory.getInstance();
 
-        // Initialiser le contrôleur du panneau d'édition
+
         editorController = new EditorPanelController(editorContent, dialogFactory);
 
-        // Configurer les boutons de suppression (désactivés par défaut)
+
         deleteClassButton.setDisable(true);
         deleteRelationButton.setDisable(true);
 
-        // Configurer le mécanisme de sélection
+
         setupSelectionHandling();
 
-        // Configurer les raccourcis clavier
+
         setupKeyboardShortcuts();
     }
 
     private void setupSelectionHandling() {
-        // Configurer le gestionnaire d'événements pour la sélection de classe
+
         diagramCanvas.setClassSelectionListener(diagramClass -> {
-            // Désélectionner la relation si une classe est sélectionnée
+
             if (diagramClass != null) {
                 selectedClass = diagramClass;
                 selectedRelation = null;
 
-                // Mettre à jour l'état des boutons
+
                 deleteClassButton.setDisable(false);
                 deleteRelationButton.setDisable(true);
 
-                // Afficher le panneau d'édition de classe
+
                 editorPanel.setVisible(true);
                 editorController.showClassEditor(diagramClass);
 
-                // Mettre à jour le statut
+
                 setStatus("Classe sélectionnée: " + diagramClass.getName());
             } else {
                 selectedClass = null;
@@ -241,19 +238,11 @@ public class MainViewController {
         }
     }
 
-    /**
-     * Accesseur pour la classe sélectionnée
-     * @return la classe sélectionnée ou null si aucune classe n'est sélectionnée
-     */
-    public DiagramClass getSelectedClass() {
+        public DiagramClass getSelectedClass() {
         return selectedClass;
     }
 
-    /**
-     * Accesseur pour la relation sélectionnée
-     * @return la relation sélectionnée ou null si aucune relation n'est sélectionnée
-     */
-    public DiagramRelation getSelectedRelation() {
+        public DiagramRelation getSelectedRelation() {
         return selectedRelation;
     }
 

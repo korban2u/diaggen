@@ -9,9 +9,6 @@ import javafx.scene.control.DialogPane;
 
 import java.io.IOException;
 
-/**
- * Factory pour la création de dialogues basés sur FXML
- */
 public class DialogFactory {
 
     private static DialogFactory instance;
@@ -25,12 +22,7 @@ public class DialogFactory {
         return instance;
     }
 
-    /**
-     * Crée un dialogue d'édition de paramètres
-     * @param parameter Le paramètre à éditer (null pour création)
-     * @return Le dialogue configuré
-     */
-    public Dialog<Parameter> createParameterEditorDialog(Parameter parameter) {
+        public Dialog<Parameter> createParameterEditorDialog(Parameter parameter) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dialog/ParameterEditorDialog.fxml"));
             DialogPane dialogPane = loader.load();
@@ -47,12 +39,7 @@ public class DialogFactory {
         }
     }
 
-    /**
-     * Crée un dialogue d'édition d'attributs
-     * @param attribute L'attribut à éditer (null pour création)
-     * @return Le dialogue configuré
-     */
-    public Dialog<Member> createAttributeEditorDialog(Member attribute) {
+        public Dialog<Member> createAttributeEditorDialog(Member attribute) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dialog/AttributeEditorDialog.fxml"));
             DialogPane dialogPane = loader.load();
@@ -69,12 +56,7 @@ public class DialogFactory {
         }
     }
 
-    /**
-     * Crée un dialogue d'édition de méthodes
-     * @param method La méthode à éditer (null pour création)
-     * @return Le dialogue configuré
-     */
-    public Dialog<Method> createMethodEditorDialog(Method method) {
+        public Dialog<Method> createMethodEditorDialog(Method method) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dialog/MethodEditorDialog.fxml"));
             DialogPane dialogPane = loader.load();
@@ -91,12 +73,7 @@ public class DialogFactory {
         }
     }
 
-    /**
-     * Crée un dialogue d'édition de classes
-     * @param diagramClass La classe à éditer (null pour création)
-     * @return Le dialogue configuré
-     */
-    public Dialog<DiagramClass> createClassEditorDialog(DiagramClass diagramClass) {
+        public Dialog<DiagramClass> createClassEditorDialog(DiagramClass diagramClass) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dialog/ClassEditorDialog.fxml"));
             DialogPane dialogPane = loader.load();
@@ -113,13 +90,7 @@ public class DialogFactory {
         }
     }
 
-    /**
-     * Crée un dialogue d'édition de relations
-     * @param relation La relation à éditer (null pour création)
-     * @param classes La liste des classes disponibles
-     * @return Le dialogue configuré
-     */
-    public Dialog<DiagramRelation> createRelationEditorDialog(DiagramRelation relation,
+        public Dialog<DiagramRelation> createRelationEditorDialog(DiagramRelation relation,
                                                               ObservableList<DiagramClass> classes) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dialog/RelationEditorDialog.fxml"));
@@ -137,12 +108,7 @@ public class DialogFactory {
         }
     }
 
-    /**
-     * Crée un dialogue de propriétés de diagramme
-     * @param diagram Le diagramme à éditer
-     * @return Le dialogue configuré
-     */
-    public Dialog<String> createDiagramPropertiesDialog(ClassDiagram diagram) {
+        public Dialog<String> createDiagramPropertiesDialog(ClassDiagram diagram) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dialog/DiagramPropertiesDialog.fxml"));
             DialogPane dialogPane = loader.load();

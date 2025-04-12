@@ -14,34 +14,31 @@ import javafx.stage.Stage;
 
 import java.util.Objects;
 
-/**
- * Classe principale de l'application
- */
 public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // Charger la vue principale depuis FXML
+
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MainView.fxml"));
         Parent root = loader.load();
 
-        // Obtenir le contrôleur de vue
+
         MainViewController viewController = loader.getController();
 
-        // Créer le modèle et les services
+
         DiagramStore diagramStore = new DiagramStore();
         DialogFactory dialogFactory = DialogFactory.getInstance();
         ExportService exportService = new ExportService(viewController.getDiagramCanvas());
 
-        // Créer et configurer le contrôleur principal
+
         MainController mainController = new MainController(diagramStore, dialogFactory, exportService);
         mainController.setMainViewController(viewController);
         viewController.setMainController(mainController);
 
-        // Configuration initiale
+
         mainController.initialize();
 
-        // Configurer la scène et le stage
+
         Scene scene = new Scene(root, 1280, 800);
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/main.css")).toExternalForm());
 
@@ -53,10 +50,6 @@ public class Main extends Application {
         primaryStage.show();
     }
 
-    /**
-     * Point d'entrée de l'application
-     * @param args Arguments de la ligne de commande
-     */
     public static void main(String[] args) {
         launch(args);
     }

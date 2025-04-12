@@ -18,7 +18,7 @@ public class CommandGroup implements Command {
 
     @Override
     public void execute() {
-        // Exécuter les commandes dans l'ordre
+
         for (Command command : commands) {
             command.execute();
         }
@@ -26,7 +26,7 @@ public class CommandGroup implements Command {
 
     @Override
     public void undo() {
-        // Défaire les commandes dans l'ordre inverse
+
         for (int i = commands.size() - 1; i >= 0; i--) {
             commands.get(i).undo();
         }

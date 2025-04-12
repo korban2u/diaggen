@@ -20,14 +20,14 @@ public class EditorPanelController {
     private DialogFactory dialogFactory;
     private CommandManager commandManager;
 
-    // Éléments pour l'édition de classe
+
     private TextField classNameField;
     private TextField packageNameField;
     private ComboBox<ClassType> classTypeComboBox;
     private ListView<Member> attributesListView;
     private ListView<Method> methodsListView;
 
-    // Éléments pour l'édition de relation
+
     private ComboBox<RelationType> relationTypeComboBox;
     private TextField sourceMultiplicityField;
     private TextField targetMultiplicityField;
@@ -35,7 +35,7 @@ public class EditorPanelController {
     private Label sourceClassLabel;
     private Label targetClassLabel;
 
-    // Objets actuellement édités
+
     private DiagramClass currentClass;
     private DiagramRelation currentRelation;
 
@@ -54,23 +54,23 @@ public class EditorPanelController {
 
         editorContent.getChildren().clear();
 
-        // Titre avec le type d'éditeur
+
         Label titleLabel = new Label("Édition de classe");
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
         editorContent.getChildren().add(titleLabel);
 
-        // Panneau pour les propriétés générales
+
         TitledPane generalPane = createClassGeneralSection();
 
-        // Panneau pour les attributs
+
         TitledPane attributesPane = createAttributesSection();
 
-        // Panneau pour les méthodes
+
         TitledPane methodsPane = createMethodsSection();
 
         editorContent.getChildren().addAll(generalPane, attributesPane, methodsPane);
 
-        // Remplir les champs avec les valeurs de la classe
+
         updateClassFields();
     }
 
@@ -80,33 +80,33 @@ public class EditorPanelController {
 
         editorContent.getChildren().clear();
 
-        // Titre avec le type d'éditeur
+
         Label titleLabel = new Label("Édition de relation");
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
         editorContent.getChildren().add(titleLabel);
 
-        // Panneau pour les propriétés de la relation
+
         TitledPane propertiesPane = createRelationPropertiesSection();
 
         editorContent.getChildren().add(propertiesPane);
 
-        // Remplir les champs avec les valeurs de la relation
+
         updateRelationFields();
     }
 
-    // Nouvelle méthode pour utiliser un RelationEditorPanel personnalisé
+
     public void showCustomRelationEditor(RelationEditorPanel relationEditorPanel) {
         this.currentRelation = relationEditorPanel.getRelation();
         this.currentClass = null;
 
         editorContent.getChildren().clear();
 
-        // Titre avec le type d'éditeur
+
         Label titleLabel = new Label("Édition de relation");
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
         editorContent.getChildren().add(titleLabel);
 
-        // Ajouter le panneau d'édition de relation personnalisé
+
         editorContent.getChildren().add(relationEditorPanel);
     }
 
@@ -121,7 +121,7 @@ public class EditorPanelController {
         grid.setVgap(10);
         grid.setPadding(new Insets(10));
 
-        // Nom de la classe
+
         Label nameLabel = new Label("Nom:");
         classNameField = new TextField();
         classNameField.textProperty().addListener((obs, oldValue, newValue) -> {

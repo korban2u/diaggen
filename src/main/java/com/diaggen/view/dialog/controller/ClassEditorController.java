@@ -73,12 +73,7 @@ public class ClassEditorController {
         methodsListView.setCellFactory(param -> new MethodListCell());
     }
 
-    /**
-     * Configure le dialogue et définit la classe à éditer
-     * @param dialog Le dialogue à configurer
-     * @param diagramClass La classe à éditer (null pour création)
-     */
-    public void setDialog(Dialog<DiagramClass> dialog, DiagramClass diagramClass) {
+        public void setDialog(Dialog<DiagramClass> dialog, DiagramClass diagramClass) {
         this.dialog = dialog;
         this.diagramClass = diagramClass;
 
@@ -104,10 +99,7 @@ public class ClassEditorController {
         dialog.setResultConverter(createResultConverter());
     }
 
-    /**
-     * Gestion de l'ajout d'un attribut
-     */
-    @FXML
+        @FXML
     public void handleAddAttribute() {
         DialogFactory dialogFactory = DialogFactory.getInstance();
         Dialog<Member> dialog = dialogFactory.createAttributeEditorDialog(null);
@@ -117,10 +109,7 @@ public class ClassEditorController {
         });
     }
 
-    /**
-     * Gestion de la modification d'un attribut
-     */
-    @FXML
+        @FXML
     public void handleEditAttribute() {
         Member selectedAttribute = attributesListView.getSelectionModel().getSelectedItem();
         if (selectedAttribute != null) {
@@ -132,10 +121,7 @@ public class ClassEditorController {
         }
     }
 
-    /**
-     * Gestion de la suppression d'un attribut
-     */
-    @FXML
+        @FXML
     public void handleRemoveAttribute() {
         Member selectedAttribute = attributesListView.getSelectionModel().getSelectedItem();
         if (selectedAttribute != null) {
@@ -143,10 +129,7 @@ public class ClassEditorController {
         }
     }
 
-    /**
-     * Gestion de l'ajout d'une méthode
-     */
-    @FXML
+        @FXML
     public void handleAddMethod() {
         DialogFactory dialogFactory = DialogFactory.getInstance();
         Dialog<Method> dialog = dialogFactory.createMethodEditorDialog(null);
@@ -156,10 +139,7 @@ public class ClassEditorController {
         });
     }
 
-    /**
-     * Gestion de la modification d'une méthode
-     */
-    @FXML
+        @FXML
     public void handleEditMethod() {
         Method selectedMethod = methodsListView.getSelectionModel().getSelectedItem();
         if (selectedMethod != null) {
@@ -171,10 +151,7 @@ public class ClassEditorController {
         }
     }
 
-    /**
-     * Gestion de la suppression d'une méthode
-     */
-    @FXML
+        @FXML
     public void handleRemoveMethod() {
         Method selectedMethod = methodsListView.getSelectionModel().getSelectedItem();
         if (selectedMethod != null) {
@@ -182,10 +159,7 @@ public class ClassEditorController {
         }
     }
 
-    /**
-     * Crée un convertisseur de résultat pour le dialogue
-     */
-    private Callback<ButtonType, DiagramClass> createResultConverter() {
+        private Callback<ButtonType, DiagramClass> createResultConverter() {
         return buttonType -> {
             if (buttonType == ButtonType.OK) {
                 ClassType selectedType = typeComboBox.getSelectionModel().getSelectedItem();
@@ -219,10 +193,7 @@ public class ClassEditorController {
         };
     }
 
-    /**
-     * Classe interne pour l'affichage des attributs dans la ListView
-     */
-    private static class AttributeListCell extends TextFieldListCell<Member> {
+        private static class AttributeListCell extends TextFieldListCell<Member> {
         public AttributeListCell() {
             setConverter(new StringConverter<>() {
                 @Override
@@ -240,10 +211,7 @@ public class ClassEditorController {
         }
     }
 
-    /**
-     * Classe interne pour l'affichage des méthodes dans la ListView
-     */
-    private static class MethodListCell extends TextFieldListCell<Method> {
+        private static class MethodListCell extends TextFieldListCell<Method> {
         public MethodListCell() {
             setConverter(new StringConverter<>() {
                 @Override

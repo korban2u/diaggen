@@ -80,13 +80,7 @@ public class RelationEditorController {
         targetClassComboBox.setConverter(classConverter);
     }
 
-    /**
-     * Configure le dialogue et définit la relation à éditer
-     * @param dialog Le dialogue à configurer
-     * @param relation La relation à éditer (null pour création)
-     * @param classes La liste des classes disponibles
-     */
-    public void setDialog(Dialog<DiagramRelation> dialog, DiagramRelation relation, ObservableList<DiagramClass> classes) {
+        public void setDialog(Dialog<DiagramRelation> dialog, DiagramRelation relation, ObservableList<DiagramClass> classes) {
         this.dialog = dialog;
         this.relation = relation;
         this.classes = classes;
@@ -120,10 +114,7 @@ public class RelationEditorController {
         dialog.setResultConverter(createResultConverter());
     }
 
-    /**
-     * Crée un convertisseur de résultat pour le dialogue
-     */
-    private Callback<ButtonType, DiagramRelation> createResultConverter() {
+        private Callback<ButtonType, DiagramRelation> createResultConverter() {
         return buttonType -> {
             if (buttonType == ButtonType.OK) {
                 DiagramClass sourceClass = sourceClassComboBox.getSelectionModel().getSelectedItem();
@@ -169,19 +160,11 @@ public class RelationEditorController {
         };
     }
 
-    /**
-     * Vérifie si le type de relation a été modifié
-     * @return true si le type a été modifié
-     */
-    public boolean isRelationTypeChanged() {
+        public boolean isRelationTypeChanged() {
         return relationTypeChanged;
     }
 
-    /**
-     * Obtient le type de relation original
-     * @return le type de relation original
-     */
-    public RelationType getOriginalRelationType() {
+        public RelationType getOriginalRelationType() {
         return originalRelationType;
     }
 }

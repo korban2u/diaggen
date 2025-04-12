@@ -42,12 +42,7 @@ public class AttributeEditorController {
         });
     }
 
-    /**
-     * Configure le dialogue et définit l'attribut à éditer
-     * @param dialog Le dialogue à configurer
-     * @param attribute L'attribut à éditer (null pour création)
-     */
-    public void setDialog(Dialog<Member> dialog, Member attribute) {
+        public void setDialog(Dialog<Member> dialog, Member attribute) {
         this.dialog = dialog;
         this.attribute = attribute;
 
@@ -69,10 +64,7 @@ public class AttributeEditorController {
         dialog.setResultConverter(createResultConverter());
     }
 
-    /**
-     * Crée un convertisseur de résultat pour le dialogue
-     */
-    private Callback<ButtonType, Member> createResultConverter() {
+        private Callback<ButtonType, Member> createResultConverter() {
         return buttonType -> {
             if (buttonType == ButtonType.OK) {
                 Visibility selectedVisibility = visibilityComboBox.getSelectionModel().getSelectedItem();

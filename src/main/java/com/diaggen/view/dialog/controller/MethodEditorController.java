@@ -65,12 +65,7 @@ public class MethodEditorController {
         parametersListView.setCellFactory(param -> new ParameterListCell());
     }
 
-    /**
-     * Configure le dialogue et définit la méthode à éditer
-     * @param dialog Le dialogue à configurer
-     * @param method La méthode à éditer (null pour création)
-     */
-    public void setDialog(Dialog<Method> dialog, Method method) {
+        public void setDialog(Dialog<Method> dialog, Method method) {
         this.dialog = dialog;
         this.method = method;
 
@@ -97,10 +92,7 @@ public class MethodEditorController {
         dialog.setResultConverter(createResultConverter());
     }
 
-    /**
-     * Gestion de l'ajout d'un paramètre
-     */
-    @FXML
+        @FXML
     public void handleAddParameter() {
         DialogFactory dialogFactory = DialogFactory.getInstance();
         Dialog<Parameter> dialog = dialogFactory.createParameterEditorDialog(null);
@@ -110,10 +102,7 @@ public class MethodEditorController {
         });
     }
 
-    /**
-     * Gestion de la modification d'un paramètre
-     */
-    @FXML
+        @FXML
     public void handleEditParameter() {
         Parameter selectedParameter = parametersListView.getSelectionModel().getSelectedItem();
         if (selectedParameter != null) {
@@ -125,10 +114,7 @@ public class MethodEditorController {
         }
     }
 
-    /**
-     * Gestion de la suppression d'un paramètre
-     */
-    @FXML
+        @FXML
     public void handleRemoveParameter() {
         Parameter selectedParameter = parametersListView.getSelectionModel().getSelectedItem();
         if (selectedParameter != null) {
@@ -136,10 +122,7 @@ public class MethodEditorController {
         }
     }
 
-    /**
-     * Crée un convertisseur de résultat pour le dialogue
-     */
-    private Callback<ButtonType, Method> createResultConverter() {
+        private Callback<ButtonType, Method> createResultConverter() {
         return dialogButton -> {
             if (dialogButton == ButtonType.OK) {
                 Visibility selectedVisibility = visibilityComboBox.getSelectionModel().getSelectedItem();
@@ -164,10 +147,7 @@ public class MethodEditorController {
         };
     }
 
-    /**
-     * Classe interne pour l'affichage des paramètres dans la ListView
-     */
-    private static class ParameterListCell extends TextFieldListCell<Parameter> {
+        private static class ParameterListCell extends TextFieldListCell<Parameter> {
         public ParameterListCell() {
             setConverter(new StringConverter<>() {
                 @Override

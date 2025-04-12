@@ -113,7 +113,7 @@ public class JavaCodeParser {
             boolean isAbstract = method.isAbstract();
             boolean isStatic = method.isStatic();
 
-            // Utiliser le nom complet pour éviter la confusion avec java.lang.reflect.Method
+
             com.diaggen.model.Method diagramMethod = new com.diaggen.model.Method(
                     method.getNameAsString(),
                     method.getType().asString(),
@@ -174,7 +174,7 @@ public class JavaCodeParser {
         classDecl.getFields().forEach(field -> {
             String fieldType = field.getElementType().asString();
             if (!isPrimitive(fieldType)) {
-                // Vérifier si le champ est final pour déterminer le type de relation
+
                 boolean isFinal = isFieldFinal(field);
                 RelationType relationType = isFinal
                         ? RelationType.COMPOSITION

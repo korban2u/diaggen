@@ -13,10 +13,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
-/**
- * Panneau d'édition amélioré pour les relations, avec mise à jour instantanée
- * lorsque le type de relation est modifié.
- */
 public class RelationEditorPanel extends VBox {
 
     private DiagramRelation relation;
@@ -24,7 +20,7 @@ public class RelationEditorPanel extends VBox {
     private ClassDiagram diagram;
     private DiagramCanvas diagramCanvas;
 
-    // Champs d'édition
+
     private Label sourceClassLabel;
     private Label targetClassLabel;
     private ComboBox<RelationType> relationTypeComboBox;
@@ -32,12 +28,6 @@ public class RelationEditorPanel extends VBox {
     private TextField targetMultiplicityField;
     private TextField labelField;
 
-    /**
-     * Constructeur complet
-     * @param commandManager Le gestionnaire de commandes
-     * @param diagram Le diagramme
-     * @param diagramCanvas Le canvas (pour les mises à jour d'affichage)
-     */
     public RelationEditorPanel(CommandManager commandManager, ClassDiagram diagram, DiagramCanvas diagramCanvas) {
         this.commandManager = commandManager;
         this.diagram = diagram;
@@ -49,9 +39,6 @@ public class RelationEditorPanel extends VBox {
         createGeneralSection();
     }
 
-    /**
-     * Constructeur simplifié pour compatibilité
-     */
     public RelationEditorPanel() {
         this(null, null, null);
     }
@@ -67,7 +54,7 @@ public class RelationEditorPanel extends VBox {
         grid.setVgap(10);
         grid.setPadding(new Insets(10));
 
-        // Classes source et cible
+
         Label sourceTitleLabel = new Label("Classe source:");
         sourceClassLabel = new Label();
         sourceClassLabel.setStyle("-fx-font-weight: bold;");
@@ -80,7 +67,7 @@ public class RelationEditorPanel extends VBox {
         grid.add(targetTitleLabel, 0, 1);
         grid.add(targetClassLabel, 1, 1);
 
-        // Type de relation
+
         Label typeLabel = new Label("Type de relation:");
         relationTypeComboBox = new ComboBox<>(FXCollections.observableArrayList(RelationType.values()));
         relationTypeComboBox.setConverter(new StringConverter<>() {
@@ -97,15 +84,14 @@ public class RelationEditorPanel extends VBox {
         relationTypeComboBox.setMaxWidth(Double.MAX_VALUE);
         relationTypeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (relation != null && newVal != null && oldVal != null && !oldVal.equals(newVal)) {
-                // Utiliser la commande améliorée pour changer le type de relation
+
                 if (commandManager != null && diagram != null && diagramCanvas != null) {
-                    // Créer et exécuter la commande pour changer le type de relation
+
                     ChangeRelationTypeCommand command = new ChangeRelationTypeCommand(
                             diagram, relation, newVal, diagramCanvas);
                     commandManager.executeCommand(command);
 
-                    // Mettre à jour la référence à la relation (puisque c'est un nouvel objet)
-                    // La dernière relation ajoutée au diagramme est celle qui remplace l'originale
+
                     if (!diagram.getRelations().isEmpty()) {
                         relation = diagram.getRelations().get(diagram.getRelations().size() - 1);
                     }
@@ -115,13 +101,13 @@ public class RelationEditorPanel extends VBox {
         grid.add(typeLabel, 0, 2);
         grid.add(relationTypeComboBox, 1, 2);
 
-        // Multiplicité source
+
         Label sourceMultiplicityLabel = new Label("Multiplicité source:");
         sourceMultiplicityField = new TextField();
         sourceMultiplicityField.textProperty().addListener((obs, oldVal, newVal) -> {
             if (relation != null) {
                 relation.setSourceMultiplicity(newVal);
-                // Actualiser l'affichage après modification
+
                 if (diagramCanvas != null) {
                     diagramCanvas.refresh();
                 }
@@ -130,13 +116,13 @@ public class RelationEditorPanel extends VBox {
         grid.add(sourceMultiplicityLabel, 0, 3);
         grid.add(sourceMultiplicityField, 1, 3);
 
-        // Multiplicité cible
+
         Label targetMultiplicityLabel = new Label("Multiplicité cible:");
         targetMultiplicityField = new TextField();
         targetMultiplicityField.textProperty().addListener((obs, oldVal, newVal) -> {
             if (relation != null) {
                 relation.setTargetMultiplicity(newVal);
-                // Actualiser l'affichage après modification
+
                 if (diagramCanvas != null) {
                     diagramCanvas.refresh();
                 }
@@ -145,13 +131,13 @@ public class RelationEditorPanel extends VBox {
         grid.add(targetMultiplicityLabel, 0, 4);
         grid.add(targetMultiplicityField, 1, 4);
 
-        // Libellé
+
         Label labelTextLabel = new Label("Libellé:");
         labelField = new TextField();
         labelField.textProperty().addListener((obs, oldVal, newVal) -> {
             if (relation != null) {
                 relation.setLabel(newVal);
-                // Actualiser l'affichage après modification
+
                 if (diagramCanvas != null) {
                     diagramCanvas.refresh();
                 }
@@ -221,10 +207,6 @@ public class RelationEditorPanel extends VBox {
         }
     }
 
-    /**
-     * Obtient la relation en cours d'édition
-     * @return La relation en cours d'édition
-     */
     public DiagramRelation getRelation() {
         return this.relation;
     }
@@ -238,12 +220,6 @@ public class RelationEditorPanel extends VBox {
         alert.showAndWait();
     }
 
-    /**
-     * Méthode pour configurer tous les paramètres nécessaires après la construction
-     * @param commandManager Le gestionnaire de commandes
-     * @param diagram Le diagramme
-     * @param diagramCanvas Le canvas pour les mises à jour d'affichage
-     */
     public void configure(CommandManager commandManager, ClassDiagram diagram, DiagramCanvas diagramCanvas) {
         this.commandManager = commandManager;
         this.diagram = diagram;

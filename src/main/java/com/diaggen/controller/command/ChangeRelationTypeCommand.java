@@ -5,11 +5,6 @@ import com.diaggen.model.DiagramRelation;
 import com.diaggen.model.RelationType;
 import com.diaggen.view.diagram.DiagramCanvas;
 
-/**
- * Commande améliorée pour changer le type d'une relation.
- * Cette commande crée une nouvelle relation et remplace l'ancienne,
- * puis notifie le canvas pour une mise à jour instantanée de l'affichage.
- */
 public class ChangeRelationTypeCommand implements Command {
 
     private final ClassDiagram diagram;
@@ -18,14 +13,7 @@ public class ChangeRelationTypeCommand implements Command {
     private final RelationType newType;
     private final DiagramCanvas diagramCanvas; // Référence au canvas pour la mise à jour
 
-    /**
-     * Constructeur
-     * @param diagram Le diagramme contenant la relation
-     * @param relation La relation à modifier
-     * @param newType Le nouveau type de relation
-     * @param diagramCanvas Le canvas sur lequel dessiner la relation
-     */
-    public ChangeRelationTypeCommand(ClassDiagram diagram, DiagramRelation relation, RelationType newType, DiagramCanvas diagramCanvas) {
+        public ChangeRelationTypeCommand(ClassDiagram diagram, DiagramRelation relation, RelationType newType, DiagramCanvas diagramCanvas) {
         this.diagram = diagram;
         this.oldRelation = relation;
         this.newType = newType;

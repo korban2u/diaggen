@@ -3,20 +3,12 @@ package com.diaggen.controller.command;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramClass;
 
-/**
- * Commande pour ajouter une classe au diagramme
- */
 public class AddClassCommand implements Command {
 
     private final ClassDiagram diagram;
     private final DiagramClass diagramClass;
 
-    /**
-     * Constructeur
-     * @param diagram Le diagramme
-     * @param diagramClass La classe à ajouter
-     */
-    public AddClassCommand(ClassDiagram diagram, DiagramClass diagramClass) {
+        public AddClassCommand(ClassDiagram diagram, DiagramClass diagramClass) {
         this.diagram = diagram;
         this.diagramClass = diagramClass;
     }

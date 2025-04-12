@@ -51,24 +51,24 @@ public class DiagramCanvas extends Pane {
 
         nodeManager.setRelationManager(relationManager);
 
-        // Menu contextuel pour le canvas
+
         setupContextMenu();
 
-        // Gérer le clic sur le fond pour désélectionner
+
         setOnMousePressed(e -> {
             if (e.getButton() == MouseButton.PRIMARY && e.getTarget() == this) {
                 deselectAll();
             }
         });
 
-        // Configurer la gestion des touches clavier
+
         setupKeyHandlers();
 
         widthProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
         heightProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
         gridRenderer.drawGrid();
 
-        // Configurer les écouteurs de sélection
+
         setupSelectionListeners();
     }
 
@@ -85,7 +85,7 @@ public class DiagramCanvas extends Pane {
         contextMenu.getItems().add(addClassItem);
 
         setOnContextMenuRequested(e -> {
-            // Ne montrer le menu contextuel que si le clic est sur le fond
+
             if (e.getTarget() == this) {
                 contextMenu.show(this, e.getScreenX(), e.getScreenY());
             }
@@ -93,29 +93,29 @@ public class DiagramCanvas extends Pane {
     }
 
     private void setupKeyHandlers() {
-        // Gérer les touches clavier
+
         setOnKeyPressed(this::handleKeyPress);
 
-        // S'assurer que le composant peut recevoir le focus et les événements clavier
+
         setFocusTraversable(true);
     }
 
     private void handleKeyPress(KeyEvent event) {
         if (event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.BACK_SPACE) {
-            // Si un élément est sélectionné et que la touche Delete est pressée
+
             if ((getSelectedClass() != null || getSelectedRelation() != null) && onDeleteRequest != null) {
                 onDeleteRequest.run();
                 event.consume();
             }
         } else if (event.getCode() == KeyCode.ESCAPE) {
-            // Echap désélectionne tout
+
             deselectAll();
             event.consume();
         }
     }
 
     private void setupSelectionListeners() {
-        // Configurer les écouteurs de sélection
+
         nodeManager.setNodeSelectionListener(node -> {
             if (node != null) {
                 relationManager.selectRelation(null);
@@ -159,16 +159,13 @@ public class DiagramCanvas extends Pane {
         relationManager.updateAllRelationsLater();
     }
 
-    /**
-     * Rafraîchit l'affichage du diagramme
-     */
-    public void refresh() {
+        public void refresh() {
         if (diagram != null) {
-            // Sauvegarder l'élément sélectionné
+
             DiagramClass selectedClass = getSelectedClass();
             DiagramRelation selectedRelation = getSelectedRelation();
 
-            // Stocker les relations et les classes existantes pour vérifier la présence
+
             Map<String, DiagramRelation> existingRelations = new HashMap<>();
             Map<String, DiagramClass> existingClasses = new HashMap<>();
 
@@ -301,11 +298,7 @@ public class DiagramCanvas extends Pane {
         }
     }
 
-    /**
-     * Vérifie s'il y a une sélection active (classe ou relation)
-     * @return true si une classe ou une relation est sélectionnée
-     */
-    public boolean hasSelection() {
+        public boolean hasSelection() {
         return getSelectedClass() != null || getSelectedRelation() != null;
     }
 

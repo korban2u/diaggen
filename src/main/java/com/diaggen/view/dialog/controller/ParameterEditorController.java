@@ -23,12 +23,7 @@ public class ParameterEditorController {
         // Initialisation des composants après chargement du FXML
     }
 
-    /**
-     * Configure le dialogue et définit le paramètre à éditer
-     * @param dialog Le dialogue à configurer
-     * @param parameter Le paramètre à éditer (null pour création)
-     */
-    public void setDialog(Dialog<Parameter> dialog, Parameter parameter) {
+        public void setDialog(Dialog<Parameter> dialog, Parameter parameter) {
         this.dialog = dialog;
         this.parameter = parameter;
 
@@ -46,10 +41,7 @@ public class ParameterEditorController {
         dialog.setResultConverter(createResultConverter());
     }
 
-    /**
-     * Crée un convertisseur de résultat pour le dialogue
-     */
-    private Callback<ButtonType, Parameter> createResultConverter() {
+        private Callback<ButtonType, Parameter> createResultConverter() {
         return buttonType -> {
             if (buttonType == ButtonType.OK) {
                 if (parameter == null) {

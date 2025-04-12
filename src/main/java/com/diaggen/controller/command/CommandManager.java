@@ -18,7 +18,7 @@ public class CommandManager {
 
     private final ObservableList<String> commandHistory = FXCollections.observableArrayList();
 
-    // CommandGroup en cours de construction (si utilisé)
+
     private CommandGroup currentGroup = null;
 
     public void executeCommand(Command command) {

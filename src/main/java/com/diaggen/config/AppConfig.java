@@ -38,13 +38,13 @@ public class AppConfig {
 
     private void load() {
         try {
-            // Créer le répertoire de configuration s'il n'existe pas
+
             Path configDir = Paths.get(CONFIG_DIRECTORY);
             if (!Files.exists(configDir)) {
                 Files.createDirectories(configDir);
             }
 
-            // Créer le fichier de configuration s'il n'existe pas
+
             File configFile = new File(CONFIG_FILE);
             if (!configFile.exists()) {
                 setDefaultProperties();
@@ -52,7 +52,7 @@ public class AppConfig {
                 return;
             }
 
-            // Charger les propriétés depuis le fichier
+
             try (FileInputStream fis = new FileInputStream(configFile)) {
                 properties.load(fis);
             }
@@ -121,7 +121,7 @@ public class AppConfig {
     public void addRecentFile(String filePath, int maxFiles) {
         String recentFiles = getRecentFiles();
 
-        // Supprimer le fichier s'il est déjà dans la liste
+
         if (recentFiles.contains(filePath)) {
             recentFiles = recentFiles.replace(filePath + ";", "");
             recentFiles = recentFiles.replace(filePath, "");

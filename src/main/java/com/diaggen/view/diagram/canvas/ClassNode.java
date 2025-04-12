@@ -53,10 +53,7 @@ public class ClassNode extends Region {
         bindModelToView();
     }
 
-    /**
-     * Lie les propriétés du modèle à la vue pour les mises à jour automatiques
-     */
-    private void bindModelToView() {
+        private void bindModelToView() {
         // Observer les changements de nom
         diagramClass.nameProperty().addListener((obs, oldVal, newVal) -> refresh());
 
@@ -104,11 +101,7 @@ public class ClassNode extends Region {
         return diagramClass;
     }
 
-    /**
-     * Définit l'état de sélection du nœud
-     * @param selected true si le nœud est sélectionné, false sinon
-     */
-    public void setSelected(boolean selected) {
+        public void setSelected(boolean selected) {
         // Utiliser des classes CSS pour la sélection au lieu de styles en ligne
         if (selected) {
             // S'assurer que la classe selected est ajoutée uniquement si elle n'existe pas déjà
@@ -184,10 +177,7 @@ public class ClassNode extends Region {
         return new Point2D(boundaryX, boundaryY);
     }
 
-    /**
-     * Rafraîchit l'affichage du nœud en fonction des données du modèle
-     */
-    public void refresh() {
+        public void refresh() {
         // Mettre à jour les écouteurs pour les nouveaux éléments
         updateModelListeners();
 
@@ -212,11 +202,7 @@ public class ClassNode extends Region {
         }
     }
 
-    /**
-     * Met à jour les écouteurs pour les attributs et méthodes
-     * Cette méthode est nécessaire car de nouveaux éléments peuvent avoir été ajoutés
-     */
-    private void updateModelListeners() {
+        private void updateModelListeners() {
         // Observer les changements des attributs individuels
         for (Member member : diagramClass.getAttributes()) {
             // Vérifier si les écouteurs sont déjà ajoutés pour éviter les doublons

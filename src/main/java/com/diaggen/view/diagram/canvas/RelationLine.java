@@ -64,10 +64,7 @@ public class RelationLine extends Pane {
         Platform.runLater(this::update);
     }
 
-    /**
-     * Lie les propriétés du modèle à la vue pour les mises à jour automatiques
-     */
-    private void bindModelToView() {
+        private void bindModelToView() {
         // Observer les changements de multiplicité source
         relation.sourceMultiplicityProperty().addListener((obs, oldVal, newVal) -> {
             sourceMultiplicityLabel.setText(newVal);
@@ -87,10 +84,7 @@ public class RelationLine extends Pane {
         });
     }
 
-    /**
-     * Met à jour l'infobulle avec les informations de la relation
-     */
-    private void updateTooltip() {
+        private void updateTooltip() {
         String tooltipText = relation.getRelationType().getDisplayName() + "\n" +
                 "De: " + relation.getSourceClass().getName() +
                 (relation.getSourceMultiplicity().isEmpty() ? "" : " [" + relation.getSourceMultiplicity() + "]") + "\n" +
@@ -250,13 +244,7 @@ public class RelationLine extends Pane {
         }
     }
 
-    /**
-     * Vérifie si le point (x, y) est proche de la ligne de relation
-     * @param x Coordonnée x du point
-     * @param y Coordonnée y du point
-     * @return true si le point est proche de la ligne
-     */
-    public boolean isNearLine(double x, double y) {
+        public boolean isNearLine(double x, double y) {
         // Points de connexion des classes
         Point2D sourceCenter = new Point2D(
                 sourceNode.getLayoutX() + sourceNode.getWidth() / 2,
@@ -274,17 +262,7 @@ public class RelationLine extends Pane {
                 targetPoint.getX(), targetPoint.getY()) <= CLICK_TOLERANCE;
     }
 
-    /**
-     * Calcule la distance d'un point à une ligne
-     * @param x X du point
-     * @param y Y du point
-     * @param x1 X du début de la ligne
-     * @param y1 Y du début de la ligne
-     * @param x2 X de la fin de la ligne
-     * @param y2 Y de la fin de la ligne
-     * @return La distance du point à la ligne
-     */
-    private double distanceToLine(double x, double y, double x1, double y1, double x2, double y2) {
+        private double distanceToLine(double x, double y, double x1, double y1, double x2, double y2) {
         // Longueur de la ligne au carré
         double lineLengthSquared = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
 
