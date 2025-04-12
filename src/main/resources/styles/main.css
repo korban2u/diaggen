@@ -221,3 +221,39 @@
     -fx-font-size: 12px;
     -fx-padding: 8;
 }
+
+/* Ajoutez ces styles à votre fichier main.css */
+
+/* Styles pour le panneau d'édition flottant */
+.editor-panel {
+    -fx-background-color: #f8f8f8;
+    -fx-border-color: #ddd;
+    -fx-border-width: 0 0 0 1;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, -5, 0);
+    -fx-opacity: 0.95; /* Légère transparence pour voir ce qui est derrière */
+}
+
+.editor-panel:hover {
+    -fx-opacity: 1.0; /* Opacité complète au survol */
+}
+
+.editor-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+/* Styles pour le bouton de fermeture du panneau */
+.close-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #666;
+    -fx-font-weight: bold;
+    -fx-padding: 2px 8px;
+    -fx-cursor: hand;
+    -fx-font-size: 16px;
+}
+
+.close-button:hover {
+    -fx-background-color: #e0e0e0;
+    -fx-text-fill: #333;
+}

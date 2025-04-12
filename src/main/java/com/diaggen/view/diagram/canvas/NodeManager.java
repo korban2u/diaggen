@@ -6,14 +6,11 @@ import com.diaggen.event.ClassMovedEvent;
 import com.diaggen.event.EventBus;
 import com.diaggen.model.DiagramClass;
 import javafx.geometry.Point2D;
-import javafx.scene.Node;
 import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 public class NodeManager {
 
@@ -24,6 +21,7 @@ public class NodeManager {
     private double dragStartX;
     private double dragStartY;
     private Point2D dragStartPoint;
+    private boolean isDragging = false;
 
     private NodeSelectionListener selectionListener;
     private RelationManager relationManager;
@@ -45,42 +43,37 @@ public class NodeManager {
 
     public ClassNode createClassNode(DiagramClass diagramClass) {
         ClassNode classNode = new ClassNode(diagramClass);
-
         classNode.setOnMousePressed(e -> {
             if (e.getButton() == MouseButton.PRIMARY) {
                 selectNode(classNode);
                 dragStartX = e.getSceneX();
                 dragStartY = e.getSceneY();
                 dragStartPoint = new Point2D(classNode.getLayoutX(), classNode.getLayoutY());
+                isDragging = false; // Réinitialiser l'état de déplacement
                 e.consume();
             }
         });
 
         classNode.setOnMouseDragged(e -> {
             if (e.getButton() == MouseButton.PRIMARY) {
+                isDragging = true;
+
                 double offsetX = e.getSceneX() - dragStartX;
                 double offsetY = e.getSceneY() - dragStartY;
-
                 double newX = dragStartPoint.getX() + offsetX;
                 double newY = dragStartPoint.getY() + offsetY;
-
                 double canvasWidth = container.getWidth();
                 double canvasHeight = container.getHeight();
-
                 double nodeWidth = classNode.getWidth();
                 double nodeHeight = classNode.getHeight();
-
                 double margin = 20;
-
-
                 newX = Math.max(margin, Math.min(canvasWidth - nodeWidth - margin, newX));
                 newY = Math.max(margin, Math.min(canvasHeight - nodeHeight - margin, newY));
 
                 classNode.setLayoutX(newX);
                 classNode.setLayoutY(newY);
-
                 if (relationManager != null) {
-                    relationManager.updateAllRelations();
+                    relationManager.updateAllRelationsLater();
                 }
 
                 e.consume();
@@ -89,36 +82,35 @@ public class NodeManager {
 
         classNode.setOnMouseReleased(e -> {
             if (e.getButton() == MouseButton.PRIMARY) {
-                double oldX = dragStartPoint.getX();
-                double oldY = dragStartPoint.getY();
-                double newX = classNode.getLayoutX();
-                double newY = classNode.getLayoutY();
-
-                if (commandManager != null && (oldX != newX || oldY != newY)) {
-                    MoveClassCommand command = new MoveClassCommand(diagramClass, oldX, oldY, newX, newY);
-                    commandManager.executeCommand(command);
-
-                    String diagramId = diagramClass.getDiagramId();
-                    if (diagramId != null) {
-                        eventBus.publish(new ClassMovedEvent(diagramId, diagramClass.getId(), oldX, oldY, newX, newY));
+                if (isDragging) {
+                    double oldX = dragStartPoint.getX();
+                    double oldY = dragStartPoint.getY();
+                    double newX = classNode.getLayoutX();
+                    double newY = classNode.getLayoutY();
+                    if (Math.abs(oldX - newX) > 2 || Math.abs(oldY - newY) > 2) {
+                        if (commandManager != null) {
+                            MoveClassCommand command = new MoveClassCommand(diagramClass, oldX, oldY, newX, newY);
+                            commandManager.executeCommand(command);
+                            String diagramId = diagramClass.getDiagramId();
+                            if (diagramId != null) {
+                                eventBus.publish(new ClassMovedEvent(diagramId, diagramClass.getId(), oldX, oldY, newX, newY));
+                            }
+                        } else {
+                            diagramClass.setX(newX);
+                            diagramClass.setY(newY);
+                        }
+                        if (relationManager != null) {
+                            relationManager.updateAllRelations();
+                        }
                     }
-                } else {
-
-                    diagramClass.setX(newX);
-                    diagramClass.setY(newY);
                 }
-
-                if (relationManager != null) {
-                    relationManager.updateAllRelations();
-                }
+                isDragging = false;
             }
         });
-
         container.getChildren().add(classNode);
         classNodes.put(diagramClass.getId(), classNode);
-
         if (relationManager != null) {
-            classNode.setPositionChangeListener(() -> relationManager.updateAllRelations());
+            classNode.setPositionChangeListener(() -> relationManager.updateAllRelationsLater());
         }
 
         return classNode;
@@ -132,6 +124,9 @@ public class NodeManager {
 
             if (selectedNode == node) {
                 selectedNode = null;
+                if (selectionListener != null) {
+                    selectionListener.onNodeSelected(null);
+                }
             }
         }
     }
@@ -140,6 +135,9 @@ public class NodeManager {
         container.getChildren().removeIf(node -> node instanceof ClassNode);
         classNodes.clear();
         selectedNode = null;
+        if (selectionListener != null) {
+            selectionListener.onNodeSelected(null);
+        }
     }
 
     public void selectNode(ClassNode node) {
@@ -152,10 +150,9 @@ public class NodeManager {
         if (node != null) {
             node.setSelected(true);
             node.toFront();
-
-            if (selectionListener != null) {
-                selectionListener.onNodeSelected(node);
-            }
+        }
+        if (selectionListener != null) {
+            selectionListener.onNodeSelected(node);
         }
     }
 

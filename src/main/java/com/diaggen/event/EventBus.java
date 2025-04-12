@@ -1,18 +1,21 @@
 package com.diaggen.event;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 
 public class EventBus {
 
     private static EventBus instance;
 
     private final Map<Class<? extends DiagramEvent>, CopyOnWriteArrayList<EventListener<? extends DiagramEvent>>> listeners;
+    private final ThreadLocal<Boolean> isPublishing = new ThreadLocal<>();
 
     private EventBus() {
         listeners = new ConcurrentHashMap<>();
+        isPublishing.set(false);
     }
 
     public static synchronized EventBus getInstance() {
@@ -35,21 +38,28 @@ public class EventBus {
 
     @SuppressWarnings("unchecked")
     public <T extends DiagramEvent> void publish(T event) {
-        Class<? extends DiagramEvent> eventType = event.getClass();
-
-        if (listeners.containsKey(eventType)) {
-            for (EventListener<?> listener : listeners.get(eventType)) {
-                ((EventListener<T>) listener).onEvent(event);
-            }
+        if (Boolean.TRUE.equals(isPublishing.get())) {
+            return;
         }
 
-        for (Map.Entry<Class<? extends DiagramEvent>, CopyOnWriteArrayList<EventListener<? extends DiagramEvent>>> entry : listeners.entrySet()) {
-            if (entry.getKey().isAssignableFrom(eventType) && !entry.getKey().equals(eventType)) {
-                for (EventListener<?> listener : entry.getValue()) {
-                    ((EventListener<T>) listener).onEvent(event);
+        try {
+            isPublishing.set(true);
+
+            Class<? extends DiagramEvent> eventType = event.getClass();
+            List<EventListener<?>> eventListeners = new ArrayList<>();
+            if (listeners.containsKey(eventType)) {
+                eventListeners.addAll(listeners.get(eventType));
+            }
+            for (Map.Entry<Class<? extends DiagramEvent>, CopyOnWriteArrayList<EventListener<? extends DiagramEvent>>> entry : listeners.entrySet()) {
+                if (entry.getKey().isAssignableFrom(eventType) && !entry.getKey().equals(eventType)) {
+                    eventListeners.addAll(entry.getValue());
                 }
             }
+            for (EventListener<?> listener : eventListeners) {
+                ((EventListener<T>) listener).onEvent(event);
+            }
+        } finally {
+            isPublishing.set(false);
         }
     }
 }
-

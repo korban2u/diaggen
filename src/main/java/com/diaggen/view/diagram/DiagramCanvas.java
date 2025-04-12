@@ -35,7 +35,7 @@ public class DiagramCanvas extends Pane {
     private final GridRenderer gridRenderer;
     private final NodeManager nodeManager;
     private final RelationManager relationManager;
-    private final EventBus eventBus;
+    private final EventBus eventBus = EventBus.getInstance();
 
     private Runnable onAddClassRequest;
     private Runnable onDeleteRequest;
@@ -54,7 +54,6 @@ public class DiagramCanvas extends Pane {
         gridRenderer = new GridRenderer(gridCanvas, 20);
         nodeManager = new NodeManager(this);
         relationManager = new RelationManager(this, nodeManager);
-        eventBus = EventBus.getInstance();
 
         nodeManager.setRelationManager(relationManager);
 
@@ -66,13 +65,23 @@ public class DiagramCanvas extends Pane {
         widthProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
         heightProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
         gridRenderer.drawGrid();
-
         setOnMousePressed(e -> {
-            if (e.getButton() == MouseButton.PRIMARY && e.getTarget() == this) {
+            if (e.getButton() == MouseButton.PRIMARY) {
+                if (e.getTarget() == this || e.getTarget() == gridCanvas) {
+                    deselectAll();
+                    e.consume(); // Important pour ne pas propager l'événement aux parents
+                }
+            }
+        });
+        gridCanvas.setOnMousePressed(e -> {
+            if (e.getButton() == MouseButton.PRIMARY) {
                 deselectAll();
+                e.consume();
             }
         });
     }
+
+
 
     private void setupContextMenu() {
         ContextMenu contextMenu = new ContextMenu();
@@ -202,16 +211,12 @@ public class DiagramCanvas extends Pane {
             for (ClassNode node : nodeManager.getNodes().values()) {
                 existingClasses.put(node.getDiagramClass().getId(), node.getDiagramClass());
             }
-
             for (DiagramClass diagramClass : diagram.getClasses()) {
                 if (!existingClasses.containsKey(diagramClass.getId())) {
-
                     nodeManager.createClassNode(diagramClass);
                 } else {
-
                     ClassNode node = nodeManager.getNodeById(diagramClass.getId());
                     if (node != null) {
-
                         ensureNodeWithinBounds(node);
                         node.refresh();
                     }
@@ -220,11 +225,9 @@ public class DiagramCanvas extends Pane {
 
             for (DiagramRelation relation : diagram.getRelations()) {
                 if (!existingRelations.containsKey(relation.getId())) {
-
                     relationManager.createRelationLine(relation);
                 }
             }
-
             List<String> classesToRemove = new ArrayList<>();
             for (String classId : existingClasses.keySet()) {
                 boolean found = false;
@@ -260,13 +263,13 @@ public class DiagramCanvas extends Pane {
             for (String relationId : relationsToRemove) {
                 relationManager.removeRelationLine(existingRelations.get(relationId));
             }
-
             relationManager.updateAllRelationsLater();
-
-            if (selectedClass != null) {
+            if (selectedClass != null && diagram.getClasses().contains(selectedClass)) {
                 selectClass(selectedClass);
-            } else if (selectedRelation != null) {
+            } else if (selectedRelation != null && diagram.getRelations().contains(selectedRelation)) {
                 selectRelation(selectedRelation);
+            } else if (classesToRemove.contains(selectedClass) || relationsToRemove.contains(selectedRelation)) {
+                deselectAll();
             }
         }
     }
@@ -338,7 +341,7 @@ public class DiagramCanvas extends Pane {
     public void deselectAll() {
         nodeManager.selectNode(null);
         relationManager.selectRelation(null);
-        requestFocus(); // S'assurer que le canvas a le focus pour les événements clavier
+        requestFocus();
     }
 
     public DiagramClass getSelectedClass() {

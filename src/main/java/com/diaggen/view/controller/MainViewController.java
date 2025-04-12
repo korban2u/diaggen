@@ -12,11 +12,16 @@ import com.diaggen.view.diagram.DiagramCanvas;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -55,14 +60,12 @@ public class MainViewController {
 
     private DiagramClass selectedClass;
     private DiagramRelation selectedRelation;
-
     private boolean isProcessingSelection = false;
     private boolean isProcessingEvent = false;
 
     @FXML
     public void initialize() {
         LOGGER.log(Level.INFO, "Initializing MainViewController");
-
         diagramListView.setCellFactory(param -> new ListCell<>() {
             @Override
             protected void updateItem(ClassDiagram item, boolean empty) {
@@ -76,7 +79,6 @@ public class MainViewController {
         });
 
         diagramListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-
         diagramListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && !isProcessingSelection) {
                 isProcessingSelection = true;
@@ -87,15 +89,42 @@ public class MainViewController {
                 }
             }
         });
-
         diagramCanvas = new DiagramCanvas();
         diagramCanvasContainer.getChildren().add(diagramCanvas);
-
         editorController = new EditorPanelController(editorContent);
+        StackPane editorPaneContainer = (StackPane) editorPanel.getParent().getParent();
+        editorPanel.visibleProperty().addListener((obs, wasVisible, isVisible) -> {
+            editorPaneContainer.setMouseTransparent(!isVisible);
+        });
+        Button closeButton = new Button("×");
+        closeButton.getStyleClass().add("close-button");
+        closeButton.setOnAction(e -> {
+            editorPanel.setVisible(false);
+            if (diagramCanvas != null) {
+                diagramCanvas.deselectAll();
+            }
+        });
+        Label editorTitleLabel = (Label) editorPanel.getChildren().stream()
+                .filter(node -> node instanceof Label && ((Label) node).getText().equals("Éditeur"))
+                .findFirst()
+                .orElse(null);
 
+        if (editorTitleLabel != null) {
+            HBox titleBox = new HBox();
+            titleBox.setAlignment(Pos.CENTER_LEFT);
+            titleBox.setSpacing(10);
+            Label newTitleLabel = new Label("Éditeur");
+            newTitleLabel.getStyleClass().add("editor-title");
+
+            titleBox.getChildren().addAll(newTitleLabel, new Region(), closeButton);
+            HBox.setHgrow(titleBox.getChildren().get(1), Priority.ALWAYS);
+            int labelIndex = editorPanel.getChildren().indexOf(editorTitleLabel);
+            editorPanel.getChildren().remove(editorTitleLabel);
+            editorPanel.getChildren().add(labelIndex, titleBox);
+            titleBox.setPadding(new Insets(10, 15, 10, 15));
+        }
         deleteClassButton.setDisable(true);
         deleteRelationButton.setDisable(true);
-
         setupSelectionHandling();
         setupEventBusListeners();
         setupKeyboardShortcuts();
@@ -103,18 +132,14 @@ public class MainViewController {
         LOGGER.log(Level.INFO, "MainViewController initialization complete");
     }
 
-
     private void setupEventBusListeners() {
-
         eventBus.subscribe(DiagramActivatedEvent.class, (EventListener<DiagramActivatedEvent>) event -> {
             if (isProcessingEvent) return;
 
             LOGGER.log(Level.INFO, "DiagramActivatedEvent received for diagram ID: {0}", event.getDiagramId());
-
             isProcessingEvent = true;
             try {
                 Platform.runLater(() -> {
-
                     ObservableList<ClassDiagram> diagrams = diagramListView.getItems();
                     ClassDiagram targetDiagram = null;
 
@@ -126,20 +151,16 @@ public class MainViewController {
                     }
 
                     if (targetDiagram != null) {
-
                         if (editorController != null) {
                             editorController.clearEditor();
                             editorPanel.setVisible(false);
                         }
-
                         selectedClass = null;
                         selectedRelation = null;
                         deleteClassButton.setDisable(true);
                         deleteRelationButton.setDisable(true);
-
                         ClassDiagram selectedDiagram = diagramListView.getSelectionModel().getSelectedItem();
                         if (selectedDiagram != targetDiagram) {
-
                             isProcessingSelection = true;
                             try {
                                 diagramListView.getSelectionModel().select(targetDiagram);
@@ -147,7 +168,6 @@ public class MainViewController {
                                 isProcessingSelection = false;
                             }
                         }
-
                         diagramCanvas.loadDiagram(targetDiagram);
                         setStatus("Diagramme actif: " + targetDiagram.getName());
                         LOGGER.log(Level.INFO, "Diagram activated in UI: {0}", targetDiagram.getName());
@@ -159,14 +179,10 @@ public class MainViewController {
                 isProcessingEvent = false;
             }
         });
-
         eventBus.subscribe(DiagramChangedEvent.class, (EventListener<DiagramChangedEvent>) event -> {
             LOGGER.log(Level.FINE, "DiagramChangedEvent received for diagram ID: {0}", event.getDiagramId());
-
             Platform.runLater(() -> {
-
                 diagramListView.refresh();
-
                 if (diagramCanvas.getDiagram() != null &&
                         diagramCanvas.getDiagram().getId().equals(event.getDiagramId())) {
                     diagramCanvas.refresh();
@@ -176,7 +192,6 @@ public class MainViewController {
     }
 
     private void setupSelectionHandling() {
-
         diagramCanvas.setClassSelectionListener(diagramClass -> {
             if (diagramClass != null) {
                 selectedClass = diagramClass;
@@ -184,7 +199,6 @@ public class MainViewController {
 
                 deleteClassButton.setDisable(false);
                 deleteRelationButton.setDisable(true);
-
                 editorPanel.setVisible(true);
                 editorController.showClassEditor(diagramClass);
 
@@ -192,7 +206,6 @@ public class MainViewController {
             } else {
                 selectedClass = null;
                 deleteClassButton.setDisable(true);
-
                 if (selectedRelation == null) {
                     editorPanel.setVisible(false);
                 }
@@ -200,7 +213,6 @@ public class MainViewController {
                 setStatus("Prêt");
             }
         });
-
         diagramCanvas.setRelationSelectionListener(relation -> {
             if (relation != null) {
                 selectedRelation = relation;
@@ -208,7 +220,6 @@ public class MainViewController {
 
                 deleteRelationButton.setDisable(false);
                 deleteClassButton.setDisable(true);
-
                 editorPanel.setVisible(true);
                 editorController.showRelationEditor(relation);
 
@@ -218,7 +229,6 @@ public class MainViewController {
             } else {
                 selectedRelation = null;
                 deleteRelationButton.setDisable(true);
-
                 if (selectedClass == null) {
                     editorPanel.setVisible(false);
                 }
@@ -226,7 +236,6 @@ public class MainViewController {
                 setStatus("Prêt");
             }
         });
-
         diagramCanvas.setOnDeleteRequest(() -> {
             if (selectedClass != null) {
                 handleDeleteClass();
@@ -239,7 +248,6 @@ public class MainViewController {
     private void setupKeyboardShortcuts() {
         Scene scene = diagramCanvasContainer.getScene();
         if (scene != null) {
-
             KeyCombination deleteKey = new KeyCodeCombination(KeyCode.DELETE);
             scene.getAccelerators().put(deleteKey, () -> {
                 if (diagramCanvas.hasSelection()) {
@@ -250,10 +258,8 @@ public class MainViewController {
                     }
                 }
             });
-
             KeyCombination undoKey = new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN);
             scene.getAccelerators().put(undoKey, this::handleUndo);
-
             KeyCombination redoKey = new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN);
             scene.getAccelerators().put(redoKey, this::handleRedo);
         }
@@ -262,7 +268,6 @@ public class MainViewController {
     public void setMainController(MainController mainController) {
         LOGGER.log(Level.INFO, "Setting MainController");
         this.mainController = mainController;
-
         if (editorController != null) {
             editorController.setMainController(mainController);
         }
@@ -276,7 +281,6 @@ public class MainViewController {
     public void updateSelectedDiagram(ClassDiagram diagram) {
         if (diagram != null) {
             LOGGER.log(Level.INFO, "Updating selected diagram to: {0}", diagram.getName());
-
             isProcessingSelection = true;
             try {
                 diagramListView.getSelectionModel().select(diagram);

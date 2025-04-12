@@ -9,6 +9,7 @@ import javafx.scene.layout.Pane;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RelationManager {
 
@@ -18,6 +19,7 @@ public class RelationManager {
     private RelationLine selectedRelation;
 
     private RelationSelectionListener selectionListener;
+    private final AtomicBoolean updateScheduled = new AtomicBoolean(false);
 
     public RelationManager(Pane container, NodeManager nodeManager) {
         this.container = container;
@@ -30,21 +32,16 @@ public class RelationManager {
 
         if (sourceNode != null && targetNode != null) {
             RelationLine relationLine = new RelationLine(relation, sourceNode, targetNode);
-
             container.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
-
                 if (e.getButton() == MouseButton.PRIMARY) {
-
                     double x = e.getX();
                     double y = e.getY();
-
                     if (relationLine.isNearLine(x, y)) {
                         selectRelation(relationLine);
                         e.consume(); // Empêcher la propagation de l'événement
                     }
                 }
             });
-
             container.getChildren().add(0, relationLine);
             relationLines.put(relation.getId(), relationLine);
 
@@ -78,12 +75,19 @@ public class RelationManager {
         selectedRelation = null;
     }
 
-    public void updateAllRelationsLater() {
-        Platform.runLater(this::updateAllRelations);
+        public void updateAllRelationsLater() {
+        if (updateScheduled.compareAndSet(false, true)) {
+            Platform.runLater(() -> {
+                try {
+                    updateAllRelations();
+                } finally {
+                    updateScheduled.set(false);
+                }
+            });
+        }
     }
 
     public void selectRelation(RelationLine line) {
-
         if (selectedRelation != null) {
             selectedRelation.setSelected(false);
         }
@@ -93,7 +97,6 @@ public class RelationManager {
         if (line != null) {
             line.setSelected(true);
             line.toFront();
-
             if (selectionListener != null) {
                 selectionListener.onRelationSelected(line);
             }

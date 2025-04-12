@@ -63,11 +63,11 @@
     </top>
 
     <center>
-        <HBox>
-            <!-- Utilisation de HBox.hgrow pour contrôler l'expansion -->
-            <SplitPane dividerPositions="0.2" HBox.hgrow="ALWAYS" minWidth="800">
-                <!-- Panneau de gauche avec taille minimale fixe -->
-                <VBox minWidth="200" maxWidth="300">
+        <!-- Utiliser un BorderPane pour le layout principal -->
+        <BorderPane>
+            <!-- Liste de diagrammes à gauche -->
+            <left>
+                <VBox minWidth="200" maxWidth="300" prefWidth="250" HBox.hgrow="NEVER">
                     <Label text="Diagrammes"/>
                     <ListView fx:id="diagramListView" VBox.vgrow="ALWAYS">
                         <contextMenu>
@@ -81,26 +81,38 @@
                         </contextMenu>
                     </ListView>
                 </VBox>
+            </left>
 
-                <!-- Conteneur du canevas avec taille minimale -->
-                <StackPane fx:id="diagramCanvasContainer" minWidth="600"/>
-            </SplitPane>
+            <!-- Zone principale: StackPane pour la grille et le panneau d'édition -->
+            <center>
+                <!-- Conteneur pour le canvas et le panneau d'édition -->
+                <StackPane fx:id="mainContentPane">
+                    <!-- Canvas qui occupe tout l'espace (au fond) -->
+                    <StackPane fx:id="diagramCanvasContainer" />
 
-            <!-- Panneau d'édition avec taille fixe -->
-            <VBox fx:id="editorPanel" prefWidth="300" minWidth="300" maxWidth="300" styleClass="editor-panel" visible="false">
-                <Label text="Éditeur" styleClass="editor-title">
-                    <padding>
-                        <Insets top="10" right="15" bottom="10" left="15"/>
-                    </padding>
-                </Label>
-                <Separator/>
-                <VBox fx:id="editorContent" VBox.vgrow="ALWAYS" spacing="10">
-                    <padding>
-                        <Insets top="15" right="15" bottom="15" left="15"/>
-                    </padding>
-                </VBox>
-            </VBox>
-        </HBox>
+                    <!-- Panneau d'édition flottant (par-dessus) - transparent aux clics quand invisible -->
+                    <StackPane fx:id="editorPaneContainer" mouseTransparent="true" pickOnBounds="false">
+                        <AnchorPane pickOnBounds="false">
+                            <VBox fx:id="editorPanel" prefWidth="300" minWidth="300" maxWidth="300"
+                                  styleClass="editor-panel" visible="false" pickOnBounds="true"
+                                  AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0">
+                                <Label text="Éditeur" styleClass="editor-title">
+                                    <padding>
+                                        <Insets top="10" right="15" bottom="10" left="15"/>
+                                    </padding>
+                                </Label>
+                                <Separator/>
+                                <VBox fx:id="editorContent" VBox.vgrow="ALWAYS" spacing="10">
+                                    <padding>
+                                        <Insets top="15" right="15" bottom="15" left="15"/>
+                                    </padding>
+                                </VBox>
+                            </VBox>
+                        </AnchorPane>
+                    </StackPane>
+                </StackPane>
+            </center>
+        </BorderPane>
     </center>
 
     <bottom>
