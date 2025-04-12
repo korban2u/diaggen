@@ -17,10 +17,11 @@ import javafx.stage.Window;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Optional;
 
 /**
- * Contrôleur principal amélioré pour gérer les changements de type de relation
+ * Contrôleur principal de l'application
  */
 public class MainController {
 
@@ -137,7 +138,6 @@ public class MainController {
 
         var dialog = dialogFactory.createClassEditorDialog(null);
         dialog.showAndWait().ifPresent(diagramClass -> {
-
             AddClassCommand command = new AddClassCommand(currentDiagram, diagramClass);
             commandManager.executeCommand(command);
 
@@ -327,8 +327,9 @@ public class MainController {
         viewController.setStatus("Type de relation modifié en " + newType.getDisplayName());
     }
 
-    // Les méthodes de gestion des fichiers restent inchangées
-
+    /**
+     * Gère l'enregistrement du diagramme actif
+     */
     public void handleSave() {
         File currentFile = diagramStore.getCurrentFile();
         if (currentFile != null) {
@@ -338,7 +339,15 @@ public class MainController {
         }
     }
 
+    /**
+     * Gère l'enregistrement du diagramme actif avec choix de fichier
+     */
     public void handleSaveAs() {
+        if (diagramStore.getActiveDiagram() == null) {
+            showWarning("Aucun diagramme actif", "Il n'y a pas de diagramme à enregistrer.");
+            return;
+        }
+
         Window window = viewController.getWindow();
 
         FileChooser fileChooser = new FileChooser();
@@ -356,55 +365,342 @@ public class MainController {
         }
     }
 
+    /**
+     * Enregistre le diagramme dans un fichier
+     * @param file Le fichier de destination
+     */
     private void saveToFile(File file) {
         try {
             DiagramSerializer serializer = new DiagramSerializer();
             serializer.serialize(diagramStore.getActiveDiagram(), file);
-            showInfo("Enregistrement réussi", "Le diagramme a été enregistré avec succès.");
+            viewController.setStatus("Diagramme enregistré dans " + file.getName());
         } catch (IOException e) {
             showError("Erreur lors de l'enregistrement",
                     "Une erreur est survenue lors de l'enregistrement du diagramme : " + e.getMessage());
         }
     }
 
+    /**
+     * Gère l'ouverture d'un fichier diagramme
+     */
     public void handleOpen() {
-        // ... code inchangé ...
+        Window window = viewController.getWindow();
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Ouvrir un diagramme");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Fichiers DiagGen (*.dgn)", "*.dgn"));
+
+        File file = fileChooser.showOpenDialog(window);
+        if (file != null) {
+            try {
+                DiagramSerializer serializer = new DiagramSerializer();
+                ClassDiagram loadedDiagram = serializer.deserialize(file);
+
+                // Ajouter le diagramme chargé à la liste et le définir comme actif
+                diagramStore.getDiagrams().add(loadedDiagram);
+                diagramStore.setActiveDiagram(loadedDiagram);
+                diagramStore.setCurrentFile(file);
+
+                // Mettre à jour l'interface
+                viewController.updateDiagramList(diagramStore.getDiagrams());
+                loadDiagram(loadedDiagram);
+                viewController.setStatus("Diagramme chargé depuis " + file.getName());
+            } catch (IOException | ClassNotFoundException e) {
+                showError("Erreur lors de l'ouverture",
+                        "Une erreur est survenue lors de l'ouverture du diagramme : " + e.getMessage());
+            }
+        }
     }
 
-    // Autres méthodes inchangées...
-
+    /**
+     * Gère l'importation de code Java
+     */
     public void handleImportJavaCode() {
-        // ... code inchangé ...
+        Window window = viewController.getWindow();
+
+        // Choisir un fichier Java ou un répertoire
+        Alert choiceAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        choiceAlert.setTitle("Importer du code Java");
+        choiceAlert.setHeaderText("Choisir le type d'importation");
+        choiceAlert.setContentText("Voulez-vous importer un fichier Java unique ou un projet/dossier complet?");
+
+        ButtonType fileButton = new ButtonType("Fichier unique");
+        ButtonType dirButton = new ButtonType("Projet/Dossier");
+        ButtonType cancelButton = ButtonType.CANCEL;
+
+        choiceAlert.getButtonTypes().setAll(fileButton, dirButton, cancelButton);
+
+        Optional<ButtonType> choice = choiceAlert.showAndWait();
+        if (!choice.isPresent()) {
+            return;
+        }
+
+        JavaCodeParser parser = new JavaCodeParser();
+        ClassDiagram parsedDiagram = null;
+
+        if (choice.get() == fileButton) {
+            // Importer un fichier unique
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Importer un fichier Java");
+            fileChooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("Fichiers Java (*.java)", "*.java"));
+
+            File file = fileChooser.showOpenDialog(window);
+            if (file != null) {
+                try {
+                    parsedDiagram = parser.parseFile(file);
+                } catch (Exception e) {
+                    showError("Erreur d'importation",
+                            "Erreur lors de l'analyse du fichier Java: " + e.getMessage());
+                    return;
+                }
+            } else {
+                return; // Opération annulée
+            }
+        } else if (choice.get() == dirButton) {
+            // Importer un projet/dossier
+            DirectoryChooser dirChooser = new DirectoryChooser();
+            dirChooser.setTitle("Importer un projet Java");
+
+            File dir = dirChooser.showDialog(window);
+            if (dir != null) {
+                try {
+                    parsedDiagram = parser.parseProject(dir.toPath());
+                } catch (Exception e) {
+                    showError("Erreur d'importation",
+                            "Erreur lors de l'analyse du projet Java: " + e.getMessage());
+                    return;
+                }
+            } else {
+                return; // Opération annulée
+            }
+        } else {
+            return; // Opération annulée
+        }
+
+        if (parsedDiagram != null) {
+            // Ajouter le diagramme importé à la liste et le définir comme actif
+            diagramStore.getDiagrams().add(parsedDiagram);
+            diagramStore.setActiveDiagram(parsedDiagram);
+            diagramStore.setCurrentFile(null); // Pas encore enregistré
+
+            // Mettre à jour l'interface
+            viewController.updateDiagramList(diagramStore.getDiagrams());
+            loadDiagram(parsedDiagram);
+            viewController.setStatus("Code Java importé avec succès");
+
+            // Disposition automatique des classes si nécessaire
+            arrangeClassesAutomatically(parsedDiagram);
+        }
     }
 
+    /**
+     * Arrange les classes dans le diagramme en grille
+     * @param diagram Le diagramme à arranger
+     */
+    private void arrangeClassesAutomatically(ClassDiagram diagram) {
+        if (diagram == null || diagram.getClasses().isEmpty()) return;
+
+        final int GRID_WIDTH = 250;
+        final int GRID_HEIGHT = 200;
+        final int MAX_COLUMNS = 4;
+
+        int row = 0;
+        int col = 0;
+
+        for (DiagramClass diagramClass : diagram.getClasses()) {
+            diagramClass.setX(50 + col * GRID_WIDTH);
+            diagramClass.setY(50 + row * GRID_HEIGHT);
+
+            col++;
+            if (col >= MAX_COLUMNS) {
+                col = 0;
+                row++;
+            }
+        }
+
+        // Rafraîchir l'affichage
+        diagramCanvas.refresh();
+    }
+
+    /**
+     * Gère l'exportation du diagramme au format PNG
+     */
     public void handleExportImage() {
-        // ... code inchangé ...
+        ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
+        if (currentDiagram == null) {
+            showWarning("Aucun diagramme actif", "Il n'y a pas de diagramme à exporter.");
+            return;
+        }
+
+        Window window = viewController.getWindow();
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Exporter en PNG");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Images PNG (*.png)", "*.png"));
+
+        File file = fileChooser.showSaveDialog(window);
+        if (file != null) {
+            if (!file.getName().endsWith(".png")) {
+                file = new File(file.getAbsolutePath() + ".png");
+            }
+
+            try {
+                exportService.exportDiagram(currentDiagram, "png", file);
+                viewController.setStatus("Diagramme exporté en PNG: " + file.getName());
+            } catch (IOException e) {
+                showError("Erreur d'exportation",
+                        "Erreur lors de l'exportation en PNG: " + e.getMessage());
+            }
+        }
     }
 
+    /**
+     * Gère l'exportation du diagramme au format SVG
+     */
     public void handleExportSVG() {
-        // ... code inchangé ...
+        ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
+        if (currentDiagram == null) {
+            showWarning("Aucun diagramme actif", "Il n'y a pas de diagramme à exporter.");
+            return;
+        }
+
+        Window window = viewController.getWindow();
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Exporter en SVG");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Images SVG (*.svg)", "*.svg"));
+
+        File file = fileChooser.showSaveDialog(window);
+        if (file != null) {
+            if (!file.getName().endsWith(".svg")) {
+                file = new File(file.getAbsolutePath() + ".svg");
+            }
+
+            try {
+                exportService.exportDiagram(currentDiagram, "svg", file);
+                viewController.setStatus("Diagramme exporté en SVG: " + file.getName());
+            } catch (IOException e) {
+                showError("Erreur d'exportation",
+                        "Erreur lors de l'exportation en SVG: " + e.getMessage());
+            }
+        }
     }
 
+    /**
+     * Gère l'exportation du diagramme au format PlantUML
+     */
     public void handleExportPlantUML() {
-        // ... code inchangé ...
+        ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
+        if (currentDiagram == null) {
+            showWarning("Aucun diagramme actif", "Il n'y a pas de diagramme à exporter.");
+            return;
+        }
+
+        Window window = viewController.getWindow();
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Exporter en PlantUML");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Fichiers PlantUML (*.puml)", "*.puml"));
+
+        File file = fileChooser.showSaveDialog(window);
+        if (file != null) {
+            if (!file.getName().endsWith(".puml")) {
+                file = new File(file.getAbsolutePath() + ".puml");
+            }
+
+            try {
+                exportService.exportDiagram(currentDiagram, "puml", file);
+                viewController.setStatus("Diagramme exporté en PlantUML: " + file.getName());
+            } catch (IOException e) {
+                showError("Erreur d'exportation",
+                        "Erreur lors de l'exportation en PlantUML: " + e.getMessage());
+            }
+        }
     }
 
+    /**
+     * Gère l'exportation du diagramme en code Java
+     */
     public void handleExportJavaCode() {
-        // ... code inchangé ...
+        ClassDiagram currentDiagram = diagramStore.getActiveDiagram();
+        if (currentDiagram == null) {
+            showWarning("Aucun diagramme actif", "Il n'y a pas de diagramme à exporter.");
+            return;
+        }
+
+        Window window = viewController.getWindow();
+
+        DirectoryChooser dirChooser = new DirectoryChooser();
+        dirChooser.setTitle("Exporter en code Java - Sélectionner le répertoire de destination");
+
+        File dir = dirChooser.showDialog(window);
+        if (dir != null) {
+            if (!dir.isDirectory()) {
+                showError("Erreur de sélection", "Veuillez sélectionner un répertoire valide.");
+                return;
+            }
+
+            try {
+                exportService.exportDiagram(currentDiagram, "java", dir);
+                viewController.setStatus("Code Java généré dans: " + dir.getAbsolutePath());
+
+                // Demander à l'utilisateur s'il souhaite ouvrir le répertoire
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Exportation réussie");
+                alert.setHeaderText("Le code Java a été généré avec succès");
+                alert.setContentText("Voulez-vous ouvrir le répertoire contenant les fichiers?");
+
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result.isPresent() && result.get() == ButtonType.OK) {
+                    try {
+                        // Ouvrir le répertoire avec l'explorateur de fichiers par défaut
+                        java.awt.Desktop.getDesktop().open(dir);
+                    } catch (IOException e) {
+                        // Ignorer silencieusement si l'ouverture échoue
+                    }
+                }
+            } catch (IOException e) {
+                showError("Erreur d'exportation",
+                        "Erreur lors de la génération du code Java: " + e.getMessage());
+            }
+        }
     }
 
+    /**
+     * Affiche un message d'information
+     * @param title Le titre de la boîte de dialogue
+     * @param message Le message à afficher
+     */
     private void showInfo(String title, String message) {
         AlertHelper.showInfo(title, message);
     }
 
+    /**
+     * Affiche un message d'avertissement
+     * @param title Le titre de la boîte de dialogue
+     * @param message Le message à afficher
+     */
     private void showWarning(String title, String message) {
         AlertHelper.showWarning(title, message);
     }
 
+    /**
+     * Affiche un message d'erreur
+     * @param title Le titre de la boîte de dialogue
+     * @param message Le message à afficher
+     */
     private void showError(String title, String message) {
         AlertHelper.showError(title, message);
     }
 
+    /**
+     * Gère l'annulation de la dernière action
+     */
     public void handleUndo() {
         if (commandManager.canUndo()) {
             commandManager.undo();
@@ -413,6 +709,9 @@ public class MainController {
         }
     }
 
+    /**
+     * Gère le rétablissement de la dernière action annulée
+     */
     public void handleRedo() {
         if (commandManager.canRedo()) {
             commandManager.redo();
