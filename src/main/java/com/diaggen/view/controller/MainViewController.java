@@ -66,6 +66,8 @@ public class MainViewController {
     @FXML
     public void initialize() {
         LOGGER.log(Level.INFO, "Initializing MainViewController");
+
+        // Setup diagram list view
         diagramListView.setCellFactory(param -> new ListCell<>() {
             @Override
             protected void updateItem(ClassDiagram item, boolean empty) {
@@ -89,13 +91,19 @@ public class MainViewController {
                 }
             }
         });
+
+        // Create and setup the enhanced diagram canvas
         diagramCanvas = new DiagramCanvas();
         diagramCanvasContainer.getChildren().add(diagramCanvas);
+
+        // Setup editor panel
         editorController = new EditorPanelController(editorContent);
         StackPane editorPaneContainer = (StackPane) editorPanel.getParent().getParent();
         editorPanel.visibleProperty().addListener((obs, wasVisible, isVisible) -> {
             editorPaneContainer.setMouseTransparent(!isVisible);
         });
+
+        // Add close button to editor panel
         Button closeButton = new Button("×");
         closeButton.getStyleClass().add("close-button");
         closeButton.setOnAction(e -> {
@@ -104,6 +112,8 @@ public class MainViewController {
                 diagramCanvas.deselectAll();
             }
         });
+
+        // Replace the title with a title bar containing the close button
         Label editorTitleLabel = (Label) editorPanel.getChildren().stream()
                 .filter(node -> node instanceof Label && ((Label) node).getText().equals("Éditeur"))
                 .findFirst()
@@ -123,8 +133,11 @@ public class MainViewController {
             editorPanel.getChildren().add(labelIndex, titleBox);
             titleBox.setPadding(new Insets(10, 15, 10, 15));
         }
+
+        // Set initial button states
         deleteClassButton.setDisable(true);
         deleteRelationButton.setDisable(true);
+
         setupSelectionHandling();
         setupEventBusListeners();
         setupKeyboardShortcuts();
@@ -169,6 +182,7 @@ public class MainViewController {
                             }
                         }
                         diagramCanvas.loadDiagram(targetDiagram);
+
                         setStatus("Diagramme actif: " + targetDiagram.getName());
                         LOGGER.log(Level.INFO, "Diagram activated in UI: {0}", targetDiagram.getName());
                     } else {
@@ -179,6 +193,7 @@ public class MainViewController {
                 isProcessingEvent = false;
             }
         });
+
         eventBus.subscribe(DiagramChangedEvent.class, (EventListener<DiagramChangedEvent>) event -> {
             LOGGER.log(Level.FINE, "DiagramChangedEvent received for diagram ID: {0}", event.getDiagramId());
             Platform.runLater(() -> {
@@ -213,6 +228,7 @@ public class MainViewController {
                 setStatus("Prêt");
             }
         });
+
         diagramCanvas.setRelationSelectionListener(relation -> {
             if (relation != null) {
                 selectedRelation = relation;
@@ -236,6 +252,7 @@ public class MainViewController {
                 setStatus("Prêt");
             }
         });
+
         diagramCanvas.setOnDeleteRequest(() -> {
             if (selectedClass != null) {
                 handleDeleteClass();
@@ -243,11 +260,18 @@ public class MainViewController {
                 handleDeleteRelation();
             }
         });
+
+        diagramCanvas.setOnAddClassRequest(() -> {
+            if (mainController != null) {
+                mainController.handleAddClass();
+            }
+        });
     }
 
     private void setupKeyboardShortcuts() {
         Scene scene = diagramCanvasContainer.getScene();
         if (scene != null) {
+            // Selection and deletion shortcuts
             KeyCombination deleteKey = new KeyCodeCombination(KeyCode.DELETE);
             scene.getAccelerators().put(deleteKey, () -> {
                 if (diagramCanvas.hasSelection()) {
@@ -258,10 +282,42 @@ public class MainViewController {
                     }
                 }
             });
+
+            // Undo/redo shortcuts
             KeyCombination undoKey = new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN);
             scene.getAccelerators().put(undoKey, this::handleUndo);
+
             KeyCombination redoKey = new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN);
             scene.getAccelerators().put(redoKey, this::handleRedo);
+
+            // Zoom shortcuts
+            KeyCombination zoomInKey = new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.CONTROL_DOWN);
+            scene.getAccelerators().put(zoomInKey, () -> diagramCanvas.getNavigationManager().zoomIn());
+
+            KeyCombination zoomOutKey = new KeyCodeCombination(KeyCode.MINUS, KeyCombination.CONTROL_DOWN);
+            scene.getAccelerators().put(zoomOutKey, () -> diagramCanvas.getNavigationManager().zoomOut());
+
+            KeyCombination resetZoomKey = new KeyCodeCombination(KeyCode.DIGIT0, KeyCombination.CONTROL_DOWN);
+            scene.getAccelerators().put(resetZoomKey, () -> diagramCanvas.getNavigationManager().resetView());
+
+            KeyCombination fitToViewKey = new KeyCodeCombination(KeyCode.F, KeyCombination.CONTROL_DOWN);
+            scene.getAccelerators().put(fitToViewKey, () -> diagramCanvas.zoomToFit());
+
+            // Add class shortcut
+            KeyCombination addClassKey = new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN);
+            scene.getAccelerators().put(addClassKey, () -> {
+                if (mainController != null) {
+                    mainController.handleAddClass();
+                }
+            });
+
+            // Add relation shortcut
+            KeyCombination addRelationKey = new KeyCodeCombination(KeyCode.R, KeyCombination.CONTROL_DOWN);
+            scene.getAccelerators().put(addRelationKey, () -> {
+                if (mainController != null) {
+                    mainController.handleAddRelation();
+                }
+            });
         }
     }
 
@@ -447,6 +503,11 @@ public class MainViewController {
             LOGGER.log(Level.INFO, "Redoing action");
             mainController.handleRedo();
         }
+    }
+
+    @FXML
+    private void handleZoomToFit() {
+        diagramCanvas.zoomToFit();
     }
 
     public Window getWindow() {

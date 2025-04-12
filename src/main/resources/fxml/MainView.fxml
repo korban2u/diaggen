@@ -13,24 +13,26 @@
             <!-- Menu Bar -->
             <MenuBar>
                 <Menu text="Fichier">
-                    <MenuItem text="Nouveau" onAction="#handleNewDiagram"/>
-                    <MenuItem text="Ouvrir..." onAction="#handleOpenDiagram"/>
+                    <MenuItem text="Nouveau" onAction="#handleNewDiagram" accelerator="Ctrl+N"/>
+                    <MenuItem text="Ouvrir..." onAction="#handleOpenDiagram" accelerator="Ctrl+O"/>
                     <SeparatorMenuItem />
-                    <MenuItem text="Enregistrer" onAction="#handleSaveDiagram"/>
-                    <MenuItem text="Enregistrer sous..." onAction="#handleSaveAsDiagram"/>
+                    <MenuItem text="Enregistrer" onAction="#handleSaveDiagram" accelerator="Ctrl+S"/>
+                    <MenuItem text="Enregistrer sous..." onAction="#handleSaveAsDiagram" accelerator="Ctrl+Shift+S"/>
                     <SeparatorMenuItem />
-                    <MenuItem text="Quitter" onAction="#handleExit"/>
+                    <MenuItem text="Quitter" onAction="#handleExit" accelerator="Alt+F4"/>
                 </Menu>
                 <Menu text="Édition">
-                    <MenuItem text="Annuler" onAction="#handleUndo"/>
-                    <MenuItem text="Rétablir" onAction="#handleRedo"/>
+                    <MenuItem text="Annuler" onAction="#handleUndo" accelerator="Ctrl+Z"/>
+                    <MenuItem text="Rétablir" onAction="#handleRedo" accelerator="Ctrl+Y"/>
                 </Menu>
                 <Menu text="Diagramme">
-                    <MenuItem text="Ajouter une classe" onAction="#handleAddClass"/>
-                    <MenuItem text="Supprimer la classe sélectionnée" onAction="#handleDeleteClass"/>
+                    <MenuItem text="Ajouter une classe" onAction="#handleAddClass" accelerator="Ctrl+N"/>
+                    <MenuItem text="Supprimer la classe sélectionnée" onAction="#handleDeleteClass" accelerator="Delete"/>
                     <SeparatorMenuItem />
-                    <MenuItem text="Ajouter une relation" onAction="#handleAddRelation"/>
-                    <MenuItem text="Supprimer la relation sélectionnée" onAction="#handleDeleteRelation"/>
+                    <MenuItem text="Ajouter une relation" onAction="#handleAddRelation" accelerator="Ctrl+R"/>
+                    <MenuItem text="Supprimer la relation sélectionnée" onAction="#handleDeleteRelation" accelerator="Delete"/>
+                    <SeparatorMenuItem />
+                    <MenuItem text="Adapter à la vue" onAction="#handleZoomToFit" accelerator="Ctrl+F"/>
                 </Menu>
                 <Menu text="Import/Export">
                     <MenuItem text="Importer du code Java..." onAction="#handleImportJavaCode"/>
@@ -57,7 +59,7 @@
                 <Button text="+ Relation" onAction="#handleAddRelation"/>
                 <Button text="- Relation" onAction="#handleDeleteRelation" fx:id="deleteRelationButton"/>
                 <Separator orientation="VERTICAL"/>
-                <Button text="Export PNG" onAction="#handleExportImage"/>
+                <Button text="Adapter à la vue" onAction="#handleZoomToFit"/>
             </ToolBar>
         </VBox>
     </top>

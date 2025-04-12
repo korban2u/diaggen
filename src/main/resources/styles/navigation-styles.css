@@ -1,0 +1,138 @@
+/* Styles for navigation components */
+
+/* Modern grid styles */
+.modern-grid {
+    -fx-background-color: white;
+}
+
+/* Mini-map styles */
+.mini-map {
+    -fx-background-color: rgba(255, 255, 255, 0.9);
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+    -fx-border-color: rgba(180, 180, 180, 0.8);
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 1, 1);
+}
+
+.mini-map:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.95);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 1, 2);
+}
+
+.mini-map .viewport-rect {
+    -fx-fill: rgba(66, 134, 244, 0.2);
+    -fx-stroke: rgba(50, 120, 220, 0.9);
+    -fx-stroke-width: 1;
+}
+
+/* Navigation controls */
+.navigation-controls {
+    -fx-background-color: rgba(245, 245, 245, 0.85);
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-border-color: rgba(200, 200, 200, 0.8);
+    -fx-border-width: 1;
+    -fx-padding: 5;
+    -fx-spacing: 5;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 1, 1);
+}
+
+.navigation-controls:hover {
+    -fx-background-color: rgba(250, 250, 250, 0.95);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 1, 2);
+}
+
+.navigation-controls .button {
+    -fx-background-color: white;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-color: #ccc;
+    -fx-font-weight: bold;
+    -fx-padding: 2 8;
+    -fx-min-width: 30;
+    -fx-cursor: hand;
+}
+
+.navigation-controls .button:hover {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #999;
+}
+
+.navigation-controls .button:pressed {
+    -fx-background-color: #e0e0e0;
+}
+
+.navigation-controls .toggle-button {
+    -fx-background-color: white;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-color: #ccc;
+    -fx-padding: 2 8;
+    -fx-cursor: hand;
+}
+
+.navigation-controls .toggle-button:hover {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #999;
+}
+
+.navigation-controls .toggle-button:selected {
+    -fx-background-color: #4a89dc;
+    -fx-text-fill: white;
+    -fx-border-color: #2a69bc;
+}
+
+.navigation-controls .separator {
+    -fx-background-color: #ddd;
+}
+
+.navigation-controls .label {
+    -fx-padding: 3 8;
+    -fx-background-color: white;
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-color: #ddd;
+    -fx-min-width: 45;
+    -fx-alignment: center;
+}
+
+/* Custom styles for the zoom slider */
+.zoom-slider .track {
+    -fx-background-color: #eee;
+    -fx-background-radius: 2;
+    -fx-border-radius: 2;
+    -fx-border-color: #ccc;
+}
+
+.zoom-slider .thumb {
+    -fx-background-color: #4a89dc;
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 3, 0, 0, 1);
+}
+
+.zoom-slider:hover .thumb {
+    -fx-background-color: #3a79cc;
+}
+
+/* Contextual info display */
+.info-overlay {
+    -fx-background-color: rgba(0, 0, 0, 0.6);
+    -fx-background-radius: 20;
+    -fx-padding: 10 20;
+    -fx-text-fill: white;
+    -fx-opacity: 0.8;
+    -fx-font-size: 14px;
+    -fx-alignment: center;
+}
+
+.info-overlay .text {
+    -fx-fill: white;
+}
+
+/* Enhanced diagram canvas */
+.diagram-canvas {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-background-color: white;
+}
