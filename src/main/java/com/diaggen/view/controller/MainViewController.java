@@ -391,15 +391,6 @@ public class MainViewController {
     public void setMainController(MainController mainController) {
         LOGGER.log(Level.INFO, "Setting MainController");
         this.mainController = mainController;
-        if (editorController != null) {
-            editorController.setMainController(mainController);
-        }
-
-        if (projectExplorerController != null) {
-            projectExplorerController.setDiagramStore(mainController.getDiagramStore());
-            projectExplorerController.setProjectController(projectController);
-            projectExplorerController.setDiagramController(mainController.getDiagramController());
-        }
     }
 
     public DiagramCanvas getDiagramCanvas() {
@@ -720,6 +711,28 @@ public class MainViewController {
                         LayoutFactory.LayoutType.GRID
                 );
             }
+        }
+    }
+
+    public void configureAllControllers() {
+        LOGGER.log(Level.INFO, "Configuring all controllers");
+
+        // S'assurer que tous les contrôleurs nécessaires sont injectés dans ProjectExplorerController
+        if (projectExplorerController != null && mainController != null && projectController != null) {
+            projectExplorerController.setDiagramStore(mainController.getDiagramStore());
+            projectExplorerController.setProjectController(projectController);
+            projectExplorerController.setDiagramController(mainController.getDiagramController());
+
+            // Rafraîchir les UI components qui dépendent de ces contrôleurs
+            Platform.runLater(() -> {
+                projectExplorerController.refreshUI();
+            });
+        } else {
+            LOGGER.log(Level.WARNING, "Cannot configure ProjectExplorerController: one or more controllers are missing");
+        }
+
+        if (editorController != null && mainController != null) {
+            editorController.setMainController(mainController);
         }
     }
 }

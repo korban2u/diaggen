@@ -81,17 +81,20 @@ public class Main extends Application {
                 diagramCanvas
         );
 
-        viewController.setMainController(mainController);
-        viewController.setLayoutController(layoutController);
+        // Injecter tous les contrôleurs
         viewController.setProjectController(projectController);
         viewController.setExportController(exportController);
+        viewController.setMainController(mainController);
+        viewController.setLayoutController(layoutController);
+
+        // Configurer tous les contrôleurs une fois qu'ils sont tous injectés
+        viewController.configureAllControllers();
 
         setupEventListeners(eventBus, diagramCanvas, viewController);
 
         Scene scene = new Scene(root, 1280, 800);
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/main.css")).toExternalForm());
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/navigation-styles.css")).toExternalForm());
-
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/project-explorer.css")).toExternalForm());
 
         primaryStage.setTitle("DiagGen - Générateur de diagrammes de classe");
@@ -123,7 +126,7 @@ public class Main extends Application {
                 if (!Files.exists(stylesDir)) {
                     Files.createDirectories(stylesDir);
                 }
-                Files.copy(getClass().getResourceAsStream("/styles/navigation-styles.css"), navigationStylesPath);
+                Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/styles/navigation-styles.css")), navigationStylesPath);
             }
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to ensure styles directory structure: " + e.getMessage());
