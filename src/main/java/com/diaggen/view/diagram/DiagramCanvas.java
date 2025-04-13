@@ -12,20 +12,18 @@ import javafx.application.Platform;
 import javafx.geometry.Dimension2D;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
-import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -43,11 +41,16 @@ public class DiagramCanvas extends AnchorPane {
     private final Pane contentPane = new Pane();
     private final NavigationControls navigationControls;
     private final MiniMapView miniMapView;
+    private final PositionIndicator positionIndicator;
 
     private Runnable onAddClassRequest;
     private Runnable onDeleteRequest;
     private Consumer<DiagramClass> classSelectionListener;
     private Consumer<DiagramRelation> relationSelectionListener;
+
+    // Constantes pour la taille de la grille virtuelle - beaucoup plus grande maintenant
+    private static final double DEFAULT_GRID_WIDTH = 50000;
+    private static final double DEFAULT_GRID_HEIGHT = 50000;
 
     public DiagramCanvas() {
         getStyleClass().add("diagram-canvas");
@@ -55,64 +58,76 @@ public class DiagramCanvas extends AnchorPane {
         setPrefSize(800, 600);
         canvasContainer.getStyleClass().add("canvas-container");
         canvasContainer.setStyle("-fx-background-color: white;");
+
+        // Configuration du canvas et de la grille
         gridCanvas = new Canvas();
         gridCanvas.widthProperty().bind(canvasContainer.widthProperty());
         gridCanvas.heightProperty().bind(canvasContainer.heightProperty());
+
+        // Configuration des conteneurs principaux
         canvasContainer.getChildren().addAll(gridCanvas, contentPane);
         AnchorPane.setTopAnchor(canvasContainer, 0.0);
         AnchorPane.setRightAnchor(canvasContainer, 0.0);
         AnchorPane.setBottomAnchor(canvasContainer, 0.0);
         AnchorPane.setLeftAnchor(canvasContainer, 0.0);
         getChildren().add(canvasContainer);
+
+        // Initialisation des composants de navigation et visualisation
         viewportTransform = new ViewportTransform();
         gridRenderer = new GridRenderer(gridCanvas, 10, 50);
         nodeManager = new NodeManager(contentPane);
         relationManager = new RelationManager(contentPane, nodeManager);
         nodeManager.setRelationManager(relationManager);
+
+        // Configuration du gestionnaire de navigation avec un espace plus grand
         navigationManager = new NavigationManager(canvasContainer, viewportTransform);
+
+        // Configuration des contrôles de navigation
         navigationControls = new NavigationControls(
                 viewportTransform,
                 navigationManager,
                 gridRenderer
         );
-        navigationControls.getStyleClass().add("navigation-controls");
-        navigationControls.setPrefHeight(40);
+
         AnchorPane.setBottomAnchor(navigationControls, 10.0);
         AnchorPane.setLeftAnchor(navigationControls, 10.0);
         getChildren().add(navigationControls);
+
+        // Configuration de la mini-carte
         miniMapView = new MiniMapView(canvasContainer, viewportTransform);
-        miniMapView.getStyleClass().add("mini-map");
-        miniMapView.setPrefSize(150, 120);
         AnchorPane.setTopAnchor(miniMapView, 10.0);
         AnchorPane.setRightAnchor(miniMapView, 10.0);
         getChildren().add(miniMapView);
+
+        // Configuration de l'indicateur de position
+        positionIndicator = new PositionIndicator(viewportTransform);
+        AnchorPane.setBottomAnchor(positionIndicator, 60.0);
+        AnchorPane.setLeftAnchor(positionIndicator, 10.0);
+        getChildren().add(positionIndicator);
+
+        // Configuration du menu contextuel et des raccourcis clavier
         setupContextMenu();
         setupKeyHandlers();
+        setupMouseHandlers();
         setupSelectionListeners();
         setupEventBusListeners();
+
+        // Liaison des propriétés du transform
         viewportTransform.scaleProperty().addListener((obs, oldVal, newVal) -> updateTransform());
         viewportTransform.translateXProperty().addListener((obs, oldVal, newVal) -> updateTransform());
         viewportTransform.translateYProperty().addListener((obs, oldVal, newVal) -> updateTransform());
+
+        // Liaison des propriétés du canvas pour le redimensionnement
         canvasContainer.widthProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
         canvasContainer.heightProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
 
+        // Dessin initial de la grille
         Platform.runLater(gridRenderer::drawGrid);
-        canvasContainer.setOnMousePressed(e -> {
-            if (e.getButton() == MouseButton.PRIMARY) {
-                if (e.getTarget() == canvasContainer || e.getTarget() == gridCanvas) {
-                    deselectAll();
-                    e.consume();
-                }
-            }
-        });
 
-        gridCanvas.setOnMousePressed(e -> {
-            if (e.getButton() == MouseButton.PRIMARY) {
-                deselectAll();
-                e.consume();
-            }
-        });
         setFocusTraversable(true);
+
+        // S'assurer que contentPane a une taille suffisamment grande pour accueillir un espace très large
+        contentPane.setPrefSize(DEFAULT_GRID_WIDTH, DEFAULT_GRID_HEIGHT);
     }
 
     private void updateTransform() {
@@ -120,6 +135,7 @@ public class DiagramCanvas extends AnchorPane {
         contentPane.setScaleY(viewportTransform.getScale());
         contentPane.setTranslateX(viewportTransform.getTranslateX());
         contentPane.setTranslateY(viewportTransform.getTranslateY());
+
         gridRenderer.setTransform(
                 viewportTransform.getScale(),
                 viewportTransform.getTranslateX(),
@@ -140,7 +156,10 @@ public class DiagramCanvas extends AnchorPane {
         MenuItem fitToViewItem = new MenuItem("Ajuster à la vue");
         fitToViewItem.setOnAction(e -> zoomToFit());
 
-        contextMenu.getItems().addAll(addClassItem, fitToViewItem);
+        MenuItem resetViewItem = new MenuItem("Réinitialiser la vue");
+        resetViewItem.setOnAction(e -> navigationManager.resetView());
+
+        contextMenu.getItems().addAll(addClassItem, fitToViewItem, resetViewItem);
 
         canvasContainer.setOnContextMenuRequested(e -> {
             if (e.getTarget() == canvasContainer || e.getTarget() == gridCanvas) {
@@ -151,6 +170,29 @@ public class DiagramCanvas extends AnchorPane {
 
     private void setupKeyHandlers() {
         setOnKeyPressed(this::handleKeyPress);
+    }
+
+    private void setupMouseHandlers() {
+        canvasContainer.setOnMousePressed(e -> {
+            if (e.getButton() == MouseButton.PRIMARY) {
+                if (e.getTarget() == canvasContainer || e.getTarget() == gridCanvas) {
+                    deselectAll();
+                    e.consume();
+                }
+            }
+        });
+
+        gridCanvas.setOnMousePressed(e -> {
+            if (e.getButton() == MouseButton.PRIMARY) {
+                deselectAll();
+                e.consume();
+            }
+        });
+
+        // Mise à jour de l'indicateur de position
+        canvasContainer.setOnMouseMoved(e -> {
+            positionIndicator.updatePosition(e, canvasContainer);
+        });
     }
 
     private void handleKeyPress(KeyEvent event) {
@@ -185,12 +227,22 @@ public class DiagramCanvas extends AnchorPane {
 
                 if (diagram != null) {
                     eventBus.publish(new ElementSelectedEvent(diagram.getId(), selectedClass.getId(), true));
+
+                    // Mise en évidence dans la mini-carte
+                    miniMapView.highlightClass(selectedClass.getId());
                 }
 
                 if (classSelectionListener != null) {
                     classSelectionListener.accept(selectedClass);
                 }
             } else {
+                // Supprimer toutes les mises en évidence
+                if (diagram != null) {
+                    for (DiagramClass diagramClass : diagram.getClasses()) {
+                        miniMapView.unhighlightClass(diagramClass.getId());
+                    }
+                }
+
                 if (classSelectionListener != null) {
                     classSelectionListener.accept(null);
                 }
@@ -265,6 +317,8 @@ public class DiagramCanvas extends AnchorPane {
             for (ClassNode node : nodeManager.getNodes().values()) {
                 existingClasses.put(node.getDiagramClass().getId(), node.getDiagramClass());
             }
+
+            // Créer les nouveaux nœuds
             for (DiagramClass diagramClass : diagram.getClasses()) {
                 if (!existingClasses.containsKey(diagramClass.getId())) {
                     nodeManager.createClassNode(diagramClass);
@@ -275,13 +329,16 @@ public class DiagramCanvas extends AnchorPane {
                     }
                 }
             }
+
+            // Créer les nouvelles relations
             for (DiagramRelation relation : diagram.getRelations()) {
                 if (!existingRelations.containsKey(relation.getId())) {
                     relationManager.createRelationLine(relation);
                 }
             }
-            List<String> classesToRemove = new ArrayList<>();
-            for (String classId : existingClasses.keySet()) {
+
+            // Supprimer les classes obsolètes
+            for (String classId : new HashMap<>(existingClasses).keySet()) {
                 boolean found = false;
                 for (DiagramClass diagramClass : diagram.getClasses()) {
                     if (diagramClass.getId().equals(classId)) {
@@ -290,15 +347,12 @@ public class DiagramCanvas extends AnchorPane {
                     }
                 }
                 if (!found) {
-                    classesToRemove.add(classId);
+                    nodeManager.removeClassNode(existingClasses.get(classId));
                 }
             }
 
-            for (String classId : classesToRemove) {
-                nodeManager.removeClassNode(existingClasses.get(classId));
-            }
-            List<String> relationsToRemove = new ArrayList<>();
-            for (String relationId : existingRelations.keySet()) {
+            // Supprimer les relations obsolètes
+            for (String relationId : new HashMap<>(existingRelations).keySet()) {
                 boolean found = false;
                 for (DiagramRelation relation : diagram.getRelations()) {
                     if (relation.getId().equals(relationId)) {
@@ -307,21 +361,19 @@ public class DiagramCanvas extends AnchorPane {
                     }
                 }
                 if (!found) {
-                    relationsToRemove.add(relationId);
+                    relationManager.removeRelationLine(existingRelations.get(relationId));
                 }
-            }
-
-            for (String relationId : relationsToRemove) {
-                relationManager.removeRelationLine(existingRelations.get(relationId));
             }
 
             relationManager.updateAllRelationsLater();
             miniMapView.updateContent(diagram.getClasses());
+
+            // Restaurer la sélection si possible
             if (selectedClass != null && diagram.getClasses().contains(selectedClass)) {
                 selectClass(selectedClass);
             } else if (selectedRelation != null && diagram.getRelations().contains(selectedRelation)) {
                 selectRelation(selectedRelation);
-            } else if (classesToRemove.contains(selectedClass) || relationsToRemove.contains(selectedRelation)) {
+            } else if (selectedClass != null || selectedRelation != null) {
                 deselectAll();
             }
         }
@@ -329,7 +381,7 @@ public class DiagramCanvas extends AnchorPane {
 
     public Dimension2D calculateRequiredSize() {
         if (diagram == null || diagram.getClasses().isEmpty()) {
-            return new Dimension2D(600, 400); // Default size
+            return new Dimension2D(DEFAULT_GRID_WIDTH, DEFAULT_GRID_HEIGHT);
         }
 
         double maxX = 0;
@@ -350,9 +402,9 @@ public class DiagramCanvas extends AnchorPane {
             }
         }
 
-        double margin = 100;
-        double width = Math.max(600, maxX - minX + 2 * margin);
-        double height = Math.max(400, maxY - minY + 2 * margin);
+        double margin = 1000;  // Marge très large pour un espace de travail étendu
+        double width = Math.max(DEFAULT_GRID_WIDTH, maxX - minX + 2 * margin);
+        double height = Math.max(DEFAULT_GRID_HEIGHT, maxY - minY + 2 * margin);
 
         return new Dimension2D(width, height);
     }

@@ -65,39 +65,40 @@
     </top>
 
     <center>
-        <!-- Utiliser un BorderPane pour le layout principal -->
-        <BorderPane>
-            <!-- Liste de diagrammes à gauche -->
-            <left>
-                <VBox minWidth="200" maxWidth="300" prefWidth="250" HBox.hgrow="NEVER">
-                    <Label text="Diagrammes"/>
-                    <ListView fx:id="diagramListView" VBox.vgrow="ALWAYS">
-                        <contextMenu>
-                            <ContextMenu>
-                                <items>
-                                    <MenuItem text="Nouveau diagramme" onAction="#handleNewDiagram"/>
-                                    <MenuItem text="Renommer" onAction="#handleEditDiagram"/>
-                                    <MenuItem text="Supprimer" onAction="#handleDeleteDiagram"/>
-                                </items>
-                            </ContextMenu>
-                        </contextMenu>
-                    </ListView>
-                </VBox>
-            </left>
+        <!-- Utiliser un StackPane pour contrôler l'ordre d'empilement -->
+        <StackPane>
+            <!-- Canvas de diagramme (en arrière-plan) -->
+            <StackPane fx:id="diagramCanvasContainer" />
 
-            <!-- Zone principale: StackPane pour la grille et le panneau d'édition -->
-            <center>
-                <!-- Conteneur pour le canvas et le panneau d'édition -->
-                <StackPane fx:id="mainContentPane">
-                    <!-- Canvas qui occupe tout l'espace (au fond) -->
-                    <StackPane fx:id="diagramCanvasContainer" />
+            <!-- Superposition du menu et du panneau d'édition -->
+            <BorderPane pickOnBounds="false">
+                <!-- Zone de liste de diagrammes à gauche -->
+                <left>
+                    <VBox minWidth="200" maxWidth="300" prefWidth="250"
+                          style="-fx-background-color: white; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 5);">
+                        <Label text="Diagrammes"/>
+                        <ListView fx:id="diagramListView" VBox.vgrow="ALWAYS">
+                            <contextMenu>
+                                <ContextMenu>
+                                    <items>
+                                        <MenuItem text="Nouveau diagramme" onAction="#handleNewDiagram"/>
+                                        <MenuItem text="Renommer" onAction="#handleEditDiagram"/>
+                                        <MenuItem text="Supprimer" onAction="#handleDeleteDiagram"/>
+                                    </items>
+                                </ContextMenu>
+                            </contextMenu>
+                        </ListView>
+                    </VBox>
+                </left>
 
-                    <!-- Panneau d'édition flottant (par-dessus) - transparent aux clics quand invisible -->
+                <!-- Panneau d'édition flottant (par-dessus) - transparent aux clics quand invisible -->
+                <right>
                     <StackPane fx:id="editorPaneContainer" mouseTransparent="true" pickOnBounds="false">
                         <AnchorPane pickOnBounds="false">
                             <VBox fx:id="editorPanel" prefWidth="300" minWidth="300" maxWidth="300"
                                   styleClass="editor-panel" visible="false" pickOnBounds="true"
-                                  AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0">
+                                  AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0"
+                                  style="-fx-background-color: white; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, -5, 0);">
                                 <Label text="Éditeur" styleClass="editor-title">
                                     <padding>
                                         <Insets top="10" right="15" bottom="10" left="15"/>
@@ -112,9 +113,9 @@
                             </VBox>
                         </AnchorPane>
                     </StackPane>
-                </StackPane>
-            </center>
-        </BorderPane>
+                </right>
+            </BorderPane>
+        </StackPane>
     </center>
 
     <bottom>

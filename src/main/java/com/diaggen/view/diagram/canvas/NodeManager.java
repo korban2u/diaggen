@@ -49,7 +49,7 @@ public class NodeManager {
                 dragStartX = e.getSceneX();
                 dragStartY = e.getSceneY();
                 dragStartPoint = new Point2D(classNode.getLayoutX(), classNode.getLayoutY());
-                isDragging = false; // Réinitialiser l'état de déplacement
+                isDragging = false;
                 e.consume();
             }
         });
@@ -62,14 +62,8 @@ public class NodeManager {
                 double offsetY = e.getSceneY() - dragStartY;
                 double newX = dragStartPoint.getX() + offsetX;
                 double newY = dragStartPoint.getY() + offsetY;
-                double canvasWidth = container.getWidth();
-                double canvasHeight = container.getHeight();
-                double nodeWidth = classNode.getWidth();
-                double nodeHeight = classNode.getHeight();
-                double margin = 20;
-                newX = Math.max(margin, Math.min(canvasWidth - nodeWidth - margin, newX));
-                newY = Math.max(margin, Math.min(canvasHeight - nodeHeight - margin, newY));
 
+                // Déplacement sans restrictions
                 classNode.setLayoutX(newX);
                 classNode.setLayoutY(newY);
                 if (relationManager != null) {
