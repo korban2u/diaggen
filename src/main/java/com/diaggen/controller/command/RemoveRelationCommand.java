@@ -8,7 +8,7 @@ public class RemoveRelationCommand implements Command {
     private final ClassDiagram diagram;
     private final DiagramRelation relation;
 
-        public RemoveRelationCommand(ClassDiagram diagram, DiagramRelation relation) {
+    public RemoveRelationCommand(ClassDiagram diagram, DiagramRelation relation) {
         this.diagram = diagram;
         this.relation = relation;
     }

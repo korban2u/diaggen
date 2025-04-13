@@ -10,7 +10,7 @@ public class MoveClassCommand implements Command {
     private final double newX;
     private final double newY;
 
-        public MoveClassCommand(DiagramClass diagramClass, double oldX, double oldY, double newX, double newY) {
+    public MoveClassCommand(DiagramClass diagramClass, double oldX, double oldY, double newX, double newY) {
         this.diagramClass = diagramClass;
         this.oldX = oldX;
         this.oldY = oldY;

@@ -1,17 +1,15 @@
 package com.diaggen;
 
 import com.diaggen.config.AppConfig;
-import com.diaggen.controller.command.CommandManager;
 import com.diaggen.controller.*;
+import com.diaggen.controller.command.CommandManager;
 import com.diaggen.event.DiagramChangedEvent;
 import com.diaggen.event.EventBus;
-import com.diaggen.layout.LayoutFactory;
 import com.diaggen.model.DiagramStore;
 import com.diaggen.service.ExportService;
 import com.diaggen.service.LayoutService;
-import com.diaggen.view.diagram.DiagramCanvas;
 import com.diaggen.view.controller.MainViewController;
-import com.diaggen.view.controller.ProjectExplorerController;
+import com.diaggen.view.diagram.DiagramCanvas;
 import com.diaggen.view.diagram.canvas.NodeManager;
 import com.diaggen.view.dialog.DialogFactory;
 import javafx.application.Application;
@@ -32,6 +30,10 @@ import java.util.logging.Logger;
 public class Main extends Application {
 
     private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
+
+    public static void main(String[] args) {
+        launch(args);
+    }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -149,9 +151,5 @@ public class Main extends Application {
                 projectController.openProjectFile(projectFile);
             }
         }
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }

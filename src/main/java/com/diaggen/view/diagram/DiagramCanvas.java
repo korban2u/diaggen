@@ -3,7 +3,6 @@ package com.diaggen.view.diagram;
 import com.diaggen.event.DiagramChangedEvent;
 import com.diaggen.event.ElementSelectedEvent;
 import com.diaggen.event.EventBus;
-import com.diaggen.event.EventListener;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramClass;
 import com.diaggen.model.DiagramRelation;
@@ -17,7 +16,6 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Dimension2D;
-import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.ContextMenu;
@@ -25,7 +23,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -37,7 +34,8 @@ import java.util.function.Consumer;
 
 public class DiagramCanvas extends AnchorPane {
 
-    private ClassDiagram diagram;
+    private static final double DEFAULT_GRID_WIDTH = 50000;
+    private static final double DEFAULT_GRID_HEIGHT = 50000;
     private final Canvas gridCanvas;
     private final GridRenderer gridRenderer;
     private final NodeManager nodeManager;
@@ -51,14 +49,12 @@ public class DiagramCanvas extends AnchorPane {
     private final MiniMapView miniMapView;
     private final PositionIndicator positionIndicator;
     private final BooleanProperty editorPanelVisible = new SimpleBooleanProperty(false);
+    private ClassDiagram diagram;
     private double editorPanelWidth = 300.0;
-
     private Runnable onAddClassRequest;
     private Runnable onDeleteRequest;
     private Consumer<DiagramClass> classSelectionListener;
     private Consumer<DiagramRelation> relationSelectionListener;
-    private static final double DEFAULT_GRID_WIDTH = 50000;
-    private static final double DEFAULT_GRID_HEIGHT = 50000;
 
     public DiagramCanvas() {
         getStyleClass().add("diagram-canvas");
@@ -126,7 +122,7 @@ public class DiagramCanvas extends AnchorPane {
         contentPane.setPrefSize(DEFAULT_GRID_WIDTH, DEFAULT_GRID_HEIGHT);
     }
 
-        public void setEditorPanelState(boolean isVisible, double width) {
+    public void setEditorPanelState(boolean isVisible, double width) {
         if (width > 0) {
             this.editorPanelWidth = width;
         }
@@ -137,11 +133,11 @@ public class DiagramCanvas extends AnchorPane {
         }
     }
 
-        private void adjustForEditorPanel(boolean isEditorVisible) {
+    private void adjustForEditorPanel(boolean isEditorVisible) {
         adjustMiniMapPosition(isEditorVisible);
     }
 
-        private void adjustMiniMapPosition(boolean isEditorVisible) {
+    private void adjustMiniMapPosition(boolean isEditorVisible) {
         if (miniMapView == null) return;
         DoubleProperty topAnchor = new SimpleDoubleProperty();
         DoubleProperty rightAnchor = new SimpleDoubleProperty();
@@ -336,7 +332,7 @@ public class DiagramCanvas extends AnchorPane {
     }
 
     private void setupEventBusListeners() {
-        eventBus.subscribe(DiagramChangedEvent.class, (EventListener<DiagramChangedEvent>) event -> {
+        eventBus.subscribe(DiagramChangedEvent.class, event -> {
             if (diagram != null && diagram.getId().equals(event.getDiagramId())) {
                 Platform.runLater(this::refresh);
             }

@@ -3,8 +3,11 @@ package com.diaggen.controller;
 import com.diaggen.controller.command.CommandManager;
 import com.diaggen.event.DiagramChangedEvent;
 import com.diaggen.event.EventBus;
-import com.diaggen.model.*;
-import com.diaggen.view.diagram.DiagramCanvas;
+import com.diaggen.model.ClassDiagram;
+import com.diaggen.model.DiagramClass;
+import com.diaggen.model.DiagramRelation;
+import com.diaggen.model.DiagramStore;
+
 import java.util.Optional;
 
 

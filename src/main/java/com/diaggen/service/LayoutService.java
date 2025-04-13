@@ -7,17 +7,10 @@ import com.diaggen.layout.LayoutManager;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramClass;
 import javafx.geometry.Dimension2D;
-import javafx.geometry.Point2D;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.layout.Pane;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,7 +25,7 @@ public class LayoutService {
         this.diagramContainer = diagramContainer;
     }
 
-        public void arrangeClasses(ClassDiagram diagram, CommandManager commandManager) {
+    public void arrangeClasses(ClassDiagram diagram, CommandManager commandManager) {
         if (diagram == null || diagram.getClasses().isEmpty()) {
             return;
         }
@@ -65,7 +58,7 @@ public class LayoutService {
         });
     }
 
-        public void applyLayoutWithCommands(ClassDiagram diagram, LayoutFactory.LayoutType layoutType,
+    public void applyLayoutWithCommands(ClassDiagram diagram, LayoutFactory.LayoutType layoutType,
                                         CommandManager commandManager) {
         if (diagram == null || diagram.getClasses().isEmpty()) {
             return;
@@ -97,7 +90,7 @@ public class LayoutService {
         LOGGER.log(Level.INFO, "Layout with commands applied successfully");
     }
 
-        public void applyLayout(ClassDiagram diagram, LayoutFactory.LayoutType layoutType) {
+    public void applyLayout(ClassDiagram diagram, LayoutFactory.LayoutType layoutType) {
         if (diagram == null || diagram.getClasses().isEmpty()) {
             LOGGER.log(Level.WARNING, "Cannot apply layout to null or empty diagram");
             return;
@@ -165,7 +158,7 @@ public class LayoutService {
         layoutManagers.clear();
     }
 
-        public static class Point2D {
+    public static class Point2D {
         private final double x;
         private final double y;
 

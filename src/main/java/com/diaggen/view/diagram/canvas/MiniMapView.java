@@ -7,20 +7,10 @@ import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
-import javafx.geometry.Point2D;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -41,21 +31,18 @@ public class MiniMapView extends VBox {
     private final Rectangle viewportRect = new Rectangle();
     private final Label titleLabel = new Label("Aperçu");
     private final AtomicBoolean isUpdating = new AtomicBoolean(false);
+    private final Map<String, Rectangle> classRectangles = new HashMap<>();
+    private final Map<String, Line> relationLines = new HashMap<>();
+    private final double originalRightAnchor = 10.0;
+    private final double originalTopAnchor = 10.0;
     private boolean isRepositioning = false;
-
     private double miniMapScale = 0.1;
     private boolean isDragging = false;
     private boolean isExpanded = false;
-
-    private Map<String, Rectangle> classRectangles = new HashMap<>();
-    private Map<String, Line> relationLines = new HashMap<>();
-
     private double minX = 0;
     private double minY = 0;
     private double maxX = 0;
     private double maxY = 0;
-    private double originalRightAnchor = 10.0;
-    private double originalTopAnchor = 10.0;
 
     public MiniMapView(Pane diagramCanvas, ViewportTransform transform) {
         this.diagramCanvas = diagramCanvas;
@@ -135,6 +122,7 @@ public class MiniMapView extends VBox {
         }
         updateContent(null);
     }
+
     public void repositionForEditorPanel(boolean isEditorVisible, double editorWidth) {
         if (isRepositioning) {
             return;
@@ -165,6 +153,7 @@ public class MiniMapView extends VBox {
             }
         }
     }
+
     public boolean isFullyVisible() {
         if (getParent() == null) {
             return true;

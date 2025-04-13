@@ -20,7 +20,7 @@ public class LayoutController extends BaseController {
         this.layoutService = layoutService;
     }
 
-        public void arrangeClasses() {
+    public void arrangeClasses() {
         ClassDiagram diagram = getActiveDiagram();
         if (diagram == null || diagram.getClasses().isEmpty()) {
             return;
@@ -32,7 +32,7 @@ public class LayoutController extends BaseController {
                 DiagramChangedEvent.ChangeType.DIAGRAM_RENAMED, null));
     }
 
-        public void applyLayout(ClassDiagram diagram, LayoutFactory.LayoutType layoutType) {
+    public void applyLayout(ClassDiagram diagram, LayoutFactory.LayoutType layoutType) {
         if (diagram == null || diagram.getClasses().isEmpty()) {
             return;
         }
@@ -43,7 +43,7 @@ public class LayoutController extends BaseController {
                 DiagramChangedEvent.ChangeType.DIAGRAM_RENAMED, null));
     }
 
-        public void applyLayoutWithoutCommands(ClassDiagram diagram, LayoutFactory.LayoutType layoutType) {
+    public void applyLayoutWithoutCommands(ClassDiagram diagram, LayoutFactory.LayoutType layoutType) {
         if (diagram == null || diagram.getClasses().isEmpty()) {
             return;
         }

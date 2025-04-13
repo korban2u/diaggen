@@ -64,7 +64,7 @@ public class MethodEditorController {
         parametersListView.setCellFactory(param -> new ParameterListCell());
     }
 
-        public void setDialog(Dialog<Method> dialog, Method method) {
+    public void setDialog(Dialog<Method> dialog, Method method) {
         this.dialog = dialog;
         this.method = method;
 
@@ -88,7 +88,7 @@ public class MethodEditorController {
         dialog.setResultConverter(createResultConverter());
     }
 
-        @FXML
+    @FXML
     public void handleAddParameter() {
         DialogFactory dialogFactory = DialogFactory.getInstance();
         Dialog<Parameter> dialog = dialogFactory.createParameterEditorDialog(null);
@@ -98,7 +98,7 @@ public class MethodEditorController {
         });
     }
 
-        @FXML
+    @FXML
     public void handleEditParameter() {
         Parameter selectedParameter = parametersListView.getSelectionModel().getSelectedItem();
         if (selectedParameter != null) {
@@ -110,7 +110,7 @@ public class MethodEditorController {
         }
     }
 
-        @FXML
+    @FXML
     public void handleRemoveParameter() {
         Parameter selectedParameter = parametersListView.getSelectionModel().getSelectedItem();
         if (selectedParameter != null) {
@@ -118,7 +118,7 @@ public class MethodEditorController {
         }
     }
 
-        private Callback<ButtonType, Method> createResultConverter() {
+    private Callback<ButtonType, Method> createResultConverter() {
         return dialogButton -> {
             if (dialogButton == ButtonType.OK) {
                 Visibility selectedVisibility = visibilityComboBox.getSelectionModel().getSelectedItem();
@@ -143,7 +143,7 @@ public class MethodEditorController {
         };
     }
 
-        private static class ParameterListCell extends TextFieldListCell<Parameter> {
+    private static class ParameterListCell extends TextFieldListCell<Parameter> {
         public ParameterListCell() {
             setConverter(new StringConverter<>() {
                 @Override

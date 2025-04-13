@@ -5,11 +5,12 @@ import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 
 public class RelationLine extends Pane {
 
+    private static final double BASE_CLICK_TOLERANCE = 5.0;
+    private static final double MULTIPLICITY_OFFSET = 20.0;
     private final DiagramRelation relation;
     private final ClassNode sourceNode;
     private final ClassNode targetNode;
@@ -17,11 +18,7 @@ public class RelationLine extends Pane {
     private final Label sourceMultiplicityLabel;
     private final Label targetMultiplicityLabel;
     private final Label relationLabel;
-
-    private static final double BASE_CLICK_TOLERANCE = 5.0;
     private double currentZoomScale = 1.0;
-
-    private static final double MULTIPLICITY_OFFSET = 20.0;
 
     public RelationLine(DiagramRelation relation, ClassNode sourceNode, ClassNode targetNode) {
         this.relation = relation;
@@ -55,6 +52,7 @@ public class RelationLine extends Pane {
 
         Platform.runLater(this::update);
     }
+
     public void setZoomScale(double scale) {
         this.currentZoomScale = scale;
         arrowRenderer.setZoomScale(scale);

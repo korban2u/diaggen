@@ -3,7 +3,6 @@ package com.diaggen.controller;
 import com.diaggen.controller.command.CommandManager;
 import com.diaggen.event.DiagramActivatedEvent;
 import com.diaggen.event.DiagramChangedEvent;
-import com.diaggen.event.EventBus;
 import com.diaggen.layout.LayoutFactory;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramStore;

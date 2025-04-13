@@ -1,4 +1,3 @@
-
 package com.diaggen.model;
 
 import javafx.beans.property.SimpleStringProperty;
@@ -30,12 +29,12 @@ public class ClassDiagram {
         return name.get();
     }
 
-    public StringProperty nameProperty() {
-        return name;
-    }
-
     public void setName(String name) {
         this.name.set(name);
+    }
+
+    public StringProperty nameProperty() {
+        return name;
     }
 
     public ObservableList<DiagramClass> getClasses() {
@@ -70,7 +69,7 @@ public class ClassDiagram {
         relation.setDiagramId(null);
     }
 
-    
+
     public ClassDiagram createCopy() {
         ClassDiagram copy = new ClassDiagram(getName() + " (copie)");
 

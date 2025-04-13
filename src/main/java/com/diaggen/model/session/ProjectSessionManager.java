@@ -31,7 +31,7 @@ public class ProjectSessionManager {
         return instance;
     }
 
-        public void setCurrentProject(Project project, File projectFile) {
+    public void setCurrentProject(Project project, File projectFile) {
         this.currentProject = project;
         this.currentProjectFile = projectFile;
         this.projectModified = (projectFile == null && project != null);
@@ -43,16 +43,7 @@ public class ProjectSessionManager {
         }
     }
 
-        public void setCurrentProjectFile(File file) {
-        this.currentProjectFile = file;
-        if (file != null) {
-            LOGGER.log(Level.INFO, "Current project file updated: {0}", file.getAbsolutePath());
-        } else {
-            LOGGER.log(Level.INFO, "Current project file cleared");
-        }
-    }
-
-        public void addRecentProject(String projectPath) {
+    public void addRecentProject(String projectPath) {
         if (projectPath != null && !projectPath.isEmpty()) {
             File file = new File(projectPath);
             if (file.exists() && file.isFile()) {
@@ -64,7 +55,7 @@ public class ProjectSessionManager {
         }
     }
 
-        public List<String> getRecentProjects() {
+    public List<String> getRecentProjects() {
         List<String> recentProjects = new ArrayList<>();
         String recentFilesStr = config.getRecentFiles();
 
@@ -85,34 +76,43 @@ public class ProjectSessionManager {
         return recentProjects;
     }
 
-        public String getMostRecentProject() {
+    public String getMostRecentProject() {
         List<String> recentProjects = getRecentProjects();
         return recentProjects.isEmpty() ? null : recentProjects.get(0);
     }
 
-        public boolean isProjectModified() {
+    public boolean isProjectModified() {
         return projectModified;
     }
 
-        public void markProjectAsModified() {
+    public void markProjectAsModified() {
         this.projectModified = true;
         LOGGER.log(Level.FINE, "Project marked as modified");
     }
 
-        public void markProjectAsSaved() {
+    public void markProjectAsSaved() {
         this.projectModified = false;
         LOGGER.log(Level.FINE, "Project marked as saved");
     }
 
-        public Project getCurrentProject() {
+    public Project getCurrentProject() {
         return currentProject;
     }
 
-        public File getCurrentProjectFile() {
+    public File getCurrentProjectFile() {
         return currentProjectFile;
     }
 
-        public boolean checkSaveBeforeAction(ProjectSaveCallback saveCallback) {
+    public void setCurrentProjectFile(File file) {
+        this.currentProjectFile = file;
+        if (file != null) {
+            LOGGER.log(Level.INFO, "Current project file updated: {0}", file.getAbsolutePath());
+        } else {
+            LOGGER.log(Level.INFO, "Current project file cleared");
+        }
+    }
+
+    public boolean checkSaveBeforeAction(ProjectSaveCallback saveCallback) {
         if (currentProject != null && isProjectModified()) {
             String projectName = currentProject.getName();
             boolean result = AlertHelper.showConfirmation(
@@ -132,7 +132,7 @@ public class ProjectSessionManager {
         return true;
     }
 
-        public interface ProjectSaveCallback {
+    public interface ProjectSaveCallback {
         boolean saveProject();
     }
 }

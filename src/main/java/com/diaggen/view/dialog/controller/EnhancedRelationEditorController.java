@@ -182,8 +182,6 @@ public class EnhancedRelationEditorController {
                     if (relation == null || inversionRequested || relationTypeChanged) {
 
 
-
-
                         return new DiagramRelation(
                                 sourceClass,
                                 targetClass,

@@ -8,7 +8,7 @@ public class AddRelationCommand implements Command {
     private final ClassDiagram diagram;
     private final DiagramRelation relation;
 
-        public AddRelationCommand(ClassDiagram diagram, DiagramRelation relation) {
+    public AddRelationCommand(ClassDiagram diagram, DiagramRelation relation) {
         this.diagram = diagram;
         this.relation = relation;
     }

@@ -1,8 +1,7 @@
 package com.diaggen.layout;
 
 import com.diaggen.model.ClassDiagram;
-import com.diaggen.model.DiagramClass;
-import com.diaggen.model.DiagramRelation;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,6 +43,7 @@ public class LayoutManager {
 
     public interface LayoutAlgorithm {
         void layout(ClassDiagram diagram);
+
         void setDimensions(double width, double height);
     }
 }

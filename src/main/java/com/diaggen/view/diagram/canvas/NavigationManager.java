@@ -11,30 +11,23 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 
 public class NavigationManager {
+    private static final double ZOOM_FACTOR = 1.2;
+    private static final double MIN_SCALE = 0.1;
+    private static final double MAX_SCALE = 10.0;
+    private static final int KEYBOARD_PAN_STEP = 100;
     private final Pane targetPane;
     private final ViewportTransform transform;
-
     private final BooleanProperty panningProperty = new SimpleBooleanProperty(false);
     private final DoubleProperty panSpeedProperty = new SimpleDoubleProperty(20.0);
     private double mouseAnchorX;
     private double mouseAnchorY;
     private double lastTranslateX;
     private double lastTranslateY;
-
-    private static final double ZOOM_FACTOR = 1.2;
-    private static final double MIN_SCALE = 0.1;
-    private static final double MAX_SCALE = 10.0;
-    private static final int KEYBOARD_PAN_STEP = 100;
-
     private Cursor previousCursor;
     private boolean spacePressed = false;
     private boolean altPressed = false;
@@ -163,7 +156,7 @@ public class NavigationManager {
 
     private void handleScroll(ScrollEvent event) {
         if (event.isControlDown()) {
-            double scaleFactor = event.getDeltaY() > 0 ? ZOOM_FACTOR : 1/ZOOM_FACTOR;
+            double scaleFactor = event.getDeltaY() > 0 ? ZOOM_FACTOR : 1 / ZOOM_FACTOR;
             zoomAt(event.getX(), event.getY(), scaleFactor);
             event.consume();
             return;
@@ -340,6 +333,6 @@ public class NavigationManager {
     public void zoomOut() {
         double centerX = targetPane.getWidth() / 2;
         double centerY = targetPane.getHeight() / 2;
-        zoomAt(centerX, centerY, 1/ZOOM_FACTOR);
+        zoomAt(centerX, centerY, 1 / ZOOM_FACTOR);
     }
 }

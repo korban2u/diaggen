@@ -1,6 +1,5 @@
 package com.diaggen.view.diagram.canvas;
 
-import com.diaggen.model.DiagramClass;
 import com.diaggen.model.DiagramRelation;
 import javafx.application.Platform;
 import javafx.scene.input.MouseButton;
@@ -16,19 +15,18 @@ public class RelationManager {
     private final Pane container;
     private final NodeManager nodeManager;
     private final Map<String, RelationLine> relationLines = new HashMap<>();
+    private final AtomicBoolean updateScheduled = new AtomicBoolean(false);
     private RelationLine selectedRelation;
-
     private ViewportTransform viewportTransform;
     private double currentZoomScale = 1.0;
-
     private RelationSelectionListener selectionListener;
-    private final AtomicBoolean updateScheduled = new AtomicBoolean(false);
     private Runnable changeListener;
 
     public RelationManager(Pane container, NodeManager nodeManager) {
         this.container = container;
         this.nodeManager = nodeManager;
     }
+
     public void setViewportTransform(ViewportTransform viewportTransform) {
         this.viewportTransform = viewportTransform;
         this.viewportTransform.scaleProperty().addListener((obs, oldVal, newVal) -> {
@@ -36,14 +34,17 @@ public class RelationManager {
             updateRelationsZoomScale();
         });
     }
+
     private void updateRelationsZoomScale() {
         for (RelationLine line : relationLines.values()) {
             line.setZoomScale(currentZoomScale);
         }
     }
+
     public void setChangeListener(Runnable listener) {
         this.changeListener = listener;
     }
+
     private void notifyChange() {
         if (changeListener != null) {
             changeListener.run();

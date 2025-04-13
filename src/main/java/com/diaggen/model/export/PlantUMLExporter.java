@@ -89,7 +89,7 @@ public class PlantUMLExporter implements DiagramExporter {
 
                     methodStr.append(") : ").append(method.getReturnType());
 
-                    packageContent.append(methodStr.toString()).append("\n");
+                    packageContent.append(methodStr).append("\n");
                 }
 
                 packageContent.append("}\n\n");

@@ -10,11 +10,11 @@ public class ChangeRelationTypeCommand implements Command {
 
     private final ClassDiagram diagram;
     private final DiagramRelation oldRelation;
-    private DiagramRelation newRelation;
     private final RelationType newType;
     private final DiagramCanvas diagramCanvas;
+    private DiagramRelation newRelation;
 
-        public ChangeRelationTypeCommand(ClassDiagram diagram, DiagramRelation relation, RelationType newType, DiagramCanvas diagramCanvas) {
+    public ChangeRelationTypeCommand(ClassDiagram diagram, DiagramRelation relation, RelationType newType, DiagramCanvas diagramCanvas) {
         this.diagram = diagram;
         this.oldRelation = relation;
         this.newType = newType;

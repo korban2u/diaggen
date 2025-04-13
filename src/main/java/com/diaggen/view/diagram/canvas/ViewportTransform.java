@@ -83,14 +83,14 @@ public class ViewportTransform {
         setTranslateY(getTranslateY());
     }
 
-        public Point2D transformPoint(Point2D viewportPoint) {
+    public Point2D transformPoint(Point2D viewportPoint) {
         return new Point2D(
                 (viewportPoint.getX() - getTranslateX()) / getScale(),
                 (viewportPoint.getY() - getTranslateY()) / getScale()
         );
     }
 
-        public Point2D inverseTransformPoint(Point2D contentPoint) {
+    public Point2D inverseTransformPoint(Point2D contentPoint) {
         return new Point2D(
                 contentPoint.getX() * getScale() + getTranslateX(),
                 contentPoint.getY() * getScale() + getTranslateY()

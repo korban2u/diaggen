@@ -191,6 +191,10 @@ public class RelationEditorPanel extends VBox {
         }
     }
 
+    public DiagramRelation getRelation() {
+        return this.relation;
+    }
+
     public void setRelation(DiagramRelation relation) {
         this.relation = relation;
 
@@ -203,10 +207,6 @@ public class RelationEditorPanel extends VBox {
             targetMultiplicityField.setText(relation.getTargetMultiplicity());
             labelField.setText(relation.getLabel());
         }
-    }
-
-    public DiagramRelation getRelation() {
-        return this.relation;
     }
 
     private void handleInverseRelation() {

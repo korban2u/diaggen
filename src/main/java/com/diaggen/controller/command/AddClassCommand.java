@@ -8,7 +8,7 @@ public class AddClassCommand implements Command {
     private final ClassDiagram diagram;
     private final DiagramClass diagramClass;
 
-        public AddClassCommand(ClassDiagram diagram, DiagramClass diagramClass) {
+    public AddClassCommand(ClassDiagram diagram, DiagramClass diagramClass) {
         this.diagram = diagram;
         this.diagramClass = diagramClass;
     }

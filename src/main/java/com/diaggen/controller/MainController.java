@@ -1,11 +1,7 @@
 package com.diaggen.controller;
 
 import com.diaggen.controller.command.CommandManager;
-import com.diaggen.model.ClassDiagram;
-import com.diaggen.model.DiagramClass;
-import com.diaggen.model.DiagramRelation;
-import com.diaggen.model.DiagramStore;
-import com.diaggen.model.RelationType;
+import com.diaggen.model.*;
 import com.diaggen.view.diagram.DiagramCanvas;
 
 public class MainController {

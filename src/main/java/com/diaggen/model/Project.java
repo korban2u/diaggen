@@ -1,13 +1,14 @@
 package com.diaggen.model;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class Project {
     private final String id;

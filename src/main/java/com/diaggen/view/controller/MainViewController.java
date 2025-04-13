@@ -4,12 +4,7 @@ import com.diaggen.controller.ExportController;
 import com.diaggen.controller.LayoutController;
 import com.diaggen.controller.MainController;
 import com.diaggen.controller.ProjectController;
-import com.diaggen.event.DiagramActivatedEvent;
-import com.diaggen.event.DiagramChangedEvent;
-import com.diaggen.event.EventBus;
-import com.diaggen.event.EventListener;
-import com.diaggen.event.ProjectActivatedEvent;
-import com.diaggen.event.ProjectChangedEvent;
+import com.diaggen.event.*;
 import com.diaggen.layout.LayoutFactory;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramClass;
@@ -17,10 +12,12 @@ import com.diaggen.model.DiagramRelation;
 import com.diaggen.model.Project;
 import com.diaggen.view.diagram.DiagramCanvas;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -35,42 +32,31 @@ import java.util.logging.Logger;
 
 public class MainViewController {
     private static final Logger LOGGER = Logger.getLogger(MainViewController.class.getName());
-
+    private final EventBus eventBus = EventBus.getInstance();
+    private final boolean isProcessingSelection = false;
     @FXML
     private StackPane diagramCanvasContainer;
-
     @FXML
     private Label statusLabel;
-
     @FXML
     private Label projectInfoLabel;
-
     @FXML
     private VBox editorPanel;
-
     @FXML
     private VBox editorContent;
-
     @FXML
     private Button deleteClassButton;
-
     @FXML
     private Button deleteRelationButton;
-
     @FXML
     private StackPane editorPaneContainer;
-
     @FXML
     private ProjectExplorerController projectExplorerController;
-
     private MainController mainController;
     private DiagramCanvas diagramCanvas;
     private EditorPanelController editorController;
-    private final EventBus eventBus = EventBus.getInstance();
-
     private DiagramClass selectedClass;
     private DiagramRelation selectedRelation;
-    private boolean isProcessingSelection = false;
     private boolean isProcessingEvent = false;
 
     private LayoutController layoutController;
@@ -171,7 +157,7 @@ public class MainViewController {
     }
 
     private void setupEventBusListeners() {
-        eventBus.subscribe(ProjectActivatedEvent.class, (EventListener<ProjectActivatedEvent>) event -> {
+        eventBus.subscribe(ProjectActivatedEvent.class, event -> {
             if (isProcessingEvent) return;
 
             LOGGER.log(Level.INFO, "ProjectActivatedEvent received for project ID: {0}", event.getDiagramId());
@@ -183,7 +169,7 @@ public class MainViewController {
             }
         });
 
-        eventBus.subscribe(DiagramActivatedEvent.class, (EventListener<DiagramActivatedEvent>) event -> {
+        eventBus.subscribe(DiagramActivatedEvent.class, event -> {
             if (isProcessingEvent) return;
 
             LOGGER.log(Level.INFO, "DiagramActivatedEvent received for diagram ID: {0}", event.getDiagramId());
@@ -206,7 +192,7 @@ public class MainViewController {
             }
         });
 
-        eventBus.subscribe(DiagramChangedEvent.class, (EventListener<DiagramChangedEvent>) event -> {
+        eventBus.subscribe(DiagramChangedEvent.class, event -> {
             LOGGER.log(Level.FINE, "DiagramChangedEvent received for diagram ID: {0}", event.getDiagramId());
             Platform.runLater(() -> {
                 if (diagramCanvas.getDiagram() != null &&
@@ -217,7 +203,7 @@ public class MainViewController {
             });
         });
 
-        eventBus.subscribe(ProjectChangedEvent.class, (EventListener<ProjectChangedEvent>) event -> {
+        eventBus.subscribe(ProjectChangedEvent.class, event -> {
             LOGGER.log(Level.FINE, "ProjectChangedEvent received for project ID: {0}", event.getDiagramId());
             Platform.runLater(() -> {
                 updateProjectInfo();
@@ -429,6 +415,7 @@ public class MainViewController {
             }
         }
     }
+
     @FXML
     private void handleOpenProject() {
         if (projectController != null) {
@@ -496,7 +483,6 @@ public class MainViewController {
             }
         });
     }
-
 
 
     @FXML
@@ -679,12 +665,12 @@ public class MainViewController {
 
     public void setupWindowCloseHandler() {
         Platform.runLater(() -> {
-            if (diagramCanvasContainer.getScene() != null && diagramCanvasContainer.getScene().getWindow() instanceof javafx.stage.Stage) {
-                javafx.stage.Stage stage = (javafx.stage.Stage) diagramCanvasContainer.getScene().getWindow();
+            if (diagramCanvasContainer.getScene() != null && diagramCanvasContainer.getScene().getWindow() instanceof javafx.stage.Stage stage) {
 
                 stage.setOnCloseRequest(event -> {
                     event.consume();
-                    handleExit();                });
+                    handleExit();
+                });
             }
         });
     }

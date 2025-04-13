@@ -18,7 +18,7 @@ public class Method {
     private final boolean isStatic;
 
     public Method(String name, String returnType, List<Parameter> parameters,
-                 Visibility visibility, boolean isAbstract, boolean isStatic) {
+                  Visibility visibility, boolean isAbstract, boolean isStatic) {
         this.id = UUID.randomUUID().toString();
         this.name = new SimpleStringProperty(name);
         this.returnType = new SimpleStringProperty(returnType);
@@ -36,24 +36,24 @@ public class Method {
         return name.get();
     }
 
-    public StringProperty nameProperty() {
-        return name;
-    }
-
     public void setName(String name) {
         this.name.set(name);
+    }
+
+    public StringProperty nameProperty() {
+        return name;
     }
 
     public String getReturnType() {
         return returnType.get();
     }
 
-    public StringProperty returnTypeProperty() {
-        return returnType;
-    }
-
     public void setReturnType(String returnType) {
         this.returnType.set(returnType);
+    }
+
+    public StringProperty returnTypeProperty() {
+        return returnType;
     }
 
     public ObservableList<Parameter> getParameters() {

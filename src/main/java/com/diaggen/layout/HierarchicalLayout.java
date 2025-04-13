@@ -3,26 +3,19 @@ package com.diaggen.layout;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramClass;
 import com.diaggen.model.DiagramRelation;
-import com.diaggen.model.RelationType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class HierarchicalLayout implements LayoutManager.LayoutAlgorithm {
 
     private static final Logger LOGGER = Logger.getLogger(HierarchicalLayout.class.getName());
-
+    private final double horizontalSpacing = 200;
+    private final double verticalSpacing = 150;
+    private final double margin = 50;
     private double width = 1000;
     private double height = 1000;
-    private double horizontalSpacing = 200;
-    private double verticalSpacing = 150;
-    private double margin = 50;
 
     @Override
     public void layout(ClassDiagram diagram) {
@@ -115,7 +108,7 @@ public class HierarchicalLayout implements LayoutManager.LayoutAlgorithm {
                 b.children.size() + b.implementingClasses.size(),
                 a.children.size() + a.implementingClasses.size()
         ));
-        int numRoots = Math.max(1, (int)(nodes.size() * 0.2));
+        int numRoots = Math.max(1, (int) (nodes.size() * 0.2));
         return candidates.subList(0, Math.min(numRoots, candidates.size()));
     }
 
@@ -251,27 +244,21 @@ public class HierarchicalLayout implements LayoutManager.LayoutAlgorithm {
 
     private static class Node {
         final DiagramClass diagramClass;
+        final Set<Node> parents = new HashSet<>();
+        final Set<Node> children = new HashSet<>();
+        final Set<Node> implementedInterfaces = new HashSet<>();
+        final Set<Node> implementingClasses = new HashSet<>();
+        final Set<Node> compositions = new HashSet<>();
+        final Set<Node> compositedBy = new HashSet<>();
+        final Set<Node> aggregations = new HashSet<>();
+        final Set<Node> aggregatedBy = new HashSet<>();
+        final Set<Node> associations = new HashSet<>();
+        final Set<Node> associatedBy = new HashSet<>();
+        final Set<Node> dependencies = new HashSet<>();
+        final Set<Node> dependedOnBy = new HashSet<>();
         double x;
         double y;
         int level = 0;
-
-        final Set<Node> parents = new HashSet<>();
-        final Set<Node> children = new HashSet<>();
-
-        final Set<Node> implementedInterfaces = new HashSet<>();
-        final Set<Node> implementingClasses = new HashSet<>();
-
-        final Set<Node> compositions = new HashSet<>();
-        final Set<Node> compositedBy = new HashSet<>();
-
-        final Set<Node> aggregations = new HashSet<>();
-        final Set<Node> aggregatedBy = new HashSet<>();
-
-        final Set<Node> associations = new HashSet<>();
-        final Set<Node> associatedBy = new HashSet<>();
-
-        final Set<Node> dependencies = new HashSet<>();
-        final Set<Node> dependedOnBy = new HashSet<>();
 
         public Node(DiagramClass diagramClass) {
             this.diagramClass = diagramClass;

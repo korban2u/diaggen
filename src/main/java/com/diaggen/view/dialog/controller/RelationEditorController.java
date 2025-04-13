@@ -6,8 +6,10 @@ import com.diaggen.model.RelationType;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.image.ImageView;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.TextField;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 
@@ -77,7 +79,7 @@ public class RelationEditorController {
         targetClassComboBox.setConverter(classConverter);
     }
 
-        public void setDialog(Dialog<DiagramRelation> dialog, DiagramRelation relation, ObservableList<DiagramClass> classes) {
+    public void setDialog(Dialog<DiagramRelation> dialog, DiagramRelation relation, ObservableList<DiagramClass> classes) {
         this.dialog = dialog;
         this.relation = relation;
         this.classes = classes;
@@ -106,7 +108,7 @@ public class RelationEditorController {
         dialog.setResultConverter(createResultConverter());
     }
 
-        private Callback<ButtonType, DiagramRelation> createResultConverter() {
+    private Callback<ButtonType, DiagramRelation> createResultConverter() {
         return buttonType -> {
             if (buttonType == ButtonType.OK) {
                 DiagramClass sourceClass = sourceClassComboBox.getSelectionModel().getSelectedItem();
@@ -133,7 +135,6 @@ public class RelationEditorController {
                         if (relationTypeChanged) {
 
 
-
                             return new DiagramRelation(
                                     sourceClass,
                                     targetClass,
@@ -151,11 +152,11 @@ public class RelationEditorController {
         };
     }
 
-        public boolean isRelationTypeChanged() {
+    public boolean isRelationTypeChanged() {
         return relationTypeChanged;
     }
 
-        public RelationType getOriginalRelationType() {
+    public RelationType getOriginalRelationType() {
         return originalRelationType;
     }
 }

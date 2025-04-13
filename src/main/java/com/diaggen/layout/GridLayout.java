@@ -9,12 +9,11 @@ import java.util.logging.Logger;
 public class GridLayout implements LayoutManager.LayoutAlgorithm {
 
     private static final Logger LOGGER = Logger.getLogger(GridLayout.class.getName());
-
+    private final double margin = 50;
     private double width = 1000;
     private double height = 1000;
     private double gridWidth = 250;
     private double gridHeight = 200;
-    private double margin = 50;
     private int maxColumns = 4;
 
     @Override

@@ -7,19 +7,7 @@ import javafx.collections.ListChangeListener;
 
 public class ModelListener {
 
-        public interface ClassChangeListener {
-                void onClassAdded(ClassDiagram diagram, DiagramClass diagramClass);
-
-                void onClassRemoved(ClassDiagram diagram, DiagramClass diagramClass);
-    }
-
-        public interface RelationChangeListener {
-                void onRelationAdded(ClassDiagram diagram, DiagramRelation relation);
-
-                void onRelationRemoved(ClassDiagram diagram, DiagramRelation relation);
-    }
-
-        public static void attachClassListener(ClassDiagram diagram, ClassChangeListener listener) {
+    public static void attachClassListener(ClassDiagram diagram, ClassChangeListener listener) {
         diagram.getClasses().addListener((ListChangeListener<DiagramClass>) change -> {
             while (change.next()) {
                 if (change.wasAdded()) {
@@ -36,7 +24,7 @@ public class ModelListener {
         });
     }
 
-        public static void attachRelationListener(ClassDiagram diagram, RelationChangeListener listener) {
+    public static void attachRelationListener(ClassDiagram diagram, RelationChangeListener listener) {
         diagram.getRelations().addListener((ListChangeListener<DiagramRelation>) change -> {
             while (change.next()) {
                 if (change.wasAdded()) {
@@ -51,5 +39,17 @@ public class ModelListener {
                 }
             }
         });
+    }
+
+    public interface ClassChangeListener {
+        void onClassAdded(ClassDiagram diagram, DiagramClass diagramClass);
+
+        void onClassRemoved(ClassDiagram diagram, DiagramClass diagramClass);
+    }
+
+    public interface RelationChangeListener {
+        void onRelationAdded(ClassDiagram diagram, DiagramRelation relation);
+
+        void onRelationRemoved(ClassDiagram diagram, DiagramRelation relation);
     }
 }

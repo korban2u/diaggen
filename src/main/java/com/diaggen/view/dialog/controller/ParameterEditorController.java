@@ -23,7 +23,7 @@ public class ParameterEditorController {
 
     }
 
-        public void setDialog(Dialog<Parameter> dialog, Parameter parameter) {
+    public void setDialog(Dialog<Parameter> dialog, Parameter parameter) {
         this.dialog = dialog;
         this.parameter = parameter;
 
@@ -38,7 +38,7 @@ public class ParameterEditorController {
         dialog.setResultConverter(createResultConverter());
     }
 
-        private Callback<ButtonType, Parameter> createResultConverter() {
+    private Callback<ButtonType, Parameter> createResultConverter() {
         return buttonType -> {
             if (buttonType == ButtonType.OK) {
                 if (parameter == null) {

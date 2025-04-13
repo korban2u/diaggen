@@ -23,8 +23,8 @@ public class ClassController extends BaseController {
 
     private static final Logger LOGGER = Logger.getLogger(ClassController.class.getName());
     private final DialogFactory dialogFactory;
-    private LayoutService layoutService;
     private final ProjectSessionManager sessionManager;
+    private LayoutService layoutService;
 
     public ClassController(DiagramStore diagramStore, CommandManager commandManager, DialogFactory dialogFactory) {
         super(diagramStore, commandManager);

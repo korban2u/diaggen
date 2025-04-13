@@ -48,36 +48,36 @@ public class DiagramRelation {
         return sourceMultiplicity.get();
     }
 
-    public StringProperty sourceMultiplicityProperty() {
-        return sourceMultiplicity;
-    }
-
     public void setSourceMultiplicity(String sourceMultiplicity) {
         this.sourceMultiplicity.set(sourceMultiplicity);
+    }
+
+    public StringProperty sourceMultiplicityProperty() {
+        return sourceMultiplicity;
     }
 
     public String getTargetMultiplicity() {
         return targetMultiplicity.get();
     }
 
-    public StringProperty targetMultiplicityProperty() {
-        return targetMultiplicity;
-    }
-
     public void setTargetMultiplicity(String targetMultiplicity) {
         this.targetMultiplicity.set(targetMultiplicity);
+    }
+
+    public StringProperty targetMultiplicityProperty() {
+        return targetMultiplicity;
     }
 
     public String getLabel() {
         return label.get();
     }
 
-    public StringProperty labelProperty() {
-        return label;
-    }
-
     public void setLabel(String label) {
         this.label.set(label);
+    }
+
+    public StringProperty labelProperty() {
+        return label;
     }
 
     public String getDiagramId() {

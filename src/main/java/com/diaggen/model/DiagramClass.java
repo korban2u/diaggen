@@ -1,11 +1,6 @@
 package com.diaggen.model;
 
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -43,24 +38,24 @@ public class DiagramClass {
         return name.get();
     }
 
-    public StringProperty nameProperty() {
-        return name;
-    }
-
     public void setName(String name) {
         this.name.set(name);
+    }
+
+    public StringProperty nameProperty() {
+        return name;
     }
 
     public String getPackageName() {
         return packageName.get();
     }
 
-    public StringProperty packageNameProperty() {
-        return packageName;
-    }
-
     public void setPackageName(String packageName) {
         this.packageName.set(packageName);
+    }
+
+    public StringProperty packageNameProperty() {
+        return packageName;
     }
 
     public ObservableList<Member> getAttributes() {
@@ -75,36 +70,36 @@ public class DiagramClass {
         return x.get();
     }
 
-    public DoubleProperty xProperty() {
-        return x;
-    }
-
     public void setX(double x) {
         this.x.set(x);
+    }
+
+    public DoubleProperty xProperty() {
+        return x;
     }
 
     public double getY() {
         return y.get();
     }
 
-    public DoubleProperty yProperty() {
-        return y;
-    }
-
     public void setY(double y) {
         this.y.set(y);
+    }
+
+    public DoubleProperty yProperty() {
+        return y;
     }
 
     public ClassType getClassType() {
         return classType.get();
     }
 
-    public ObjectProperty<ClassType> classTypeProperty() {
-        return classType;
-    }
-
     public void setClassType(ClassType classType) {
         this.classType.set(classType);
+    }
+
+    public ObjectProperty<ClassType> classTypeProperty() {
+        return classType;
     }
 
     public String getDiagramId() {

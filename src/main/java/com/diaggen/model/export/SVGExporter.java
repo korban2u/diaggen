@@ -88,10 +88,10 @@ public class SVGExporter implements DiagramExporter {
                 }
 
                 if (!classTypeText.isEmpty()) {
-                    writer.println("<text x=\"" + (classX + classWidth/2) + "\" y=\"" + (classY + 15) + "\" text-anchor=\"middle\" class=\"class-type\">" + classTypeText + "</text>");
-                    writer.println("<text x=\"" + (classX + classWidth/2) + "\" y=\"" + (classY + 35) + "\" text-anchor=\"middle\" class=\"class-name\">" + diagramClass.getName() + "</text>");
+                    writer.println("<text x=\"" + (classX + classWidth / 2) + "\" y=\"" + (classY + 15) + "\" text-anchor=\"middle\" class=\"class-type\">" + classTypeText + "</text>");
+                    writer.println("<text x=\"" + (classX + classWidth / 2) + "\" y=\"" + (classY + 35) + "\" text-anchor=\"middle\" class=\"class-name\">" + diagramClass.getName() + "</text>");
                 } else {
-                    writer.println("<text x=\"" + (classX + classWidth/2) + "\" y=\"" + (classY + 20) + "\" text-anchor=\"middle\" class=\"class-name\">" + diagramClass.getName() + "</text>");
+                    writer.println("<text x=\"" + (classX + classWidth / 2) + "\" y=\"" + (classY + 20) + "\" text-anchor=\"middle\" class=\"class-name\">" + diagramClass.getName() + "</text>");
                 }
 
                 writer.println("<line x1=\"" + classX + "\" y1=\"" + (classY + nameHeight) + "\" x2=\"" + (classX + classWidth) + "\" y2=\"" + (classY + nameHeight) + "\" stroke=\"black\" stroke-width=\"1\"/>");
@@ -136,10 +136,10 @@ public class SVGExporter implements DiagramExporter {
                 }
 
                 double[] position = {
-                    classX + classWidth / 2,
-                    classY + classHeight / 2,
-                    classX, classY,
-                    classX + classWidth, classY + classHeight
+                        classX + classWidth / 2,
+                        classY + classHeight / 2,
+                        classX, classY,
+                        classX + classWidth, classY + classHeight
                 };
                 classPositions.put(diagramClass.getId(), position);
             }
@@ -196,20 +196,20 @@ public class SVGExporter implements DiagramExporter {
 
                 String markerEnd = "";
                 if (relation.getRelationType() == RelationType.INHERITANCE ||
-                    relation.getRelationType() == RelationType.IMPLEMENTATION) {
+                        relation.getRelationType() == RelationType.IMPLEMENTATION) {
                     markerEnd = " marker-end=\"url(#arrow)\"";
                 } else if (relation.getRelationType() == RelationType.AGGREGATION) {
                     markerEnd = " marker-start=\"url(#diamond)\"";
                 } else if (relation.getRelationType() == RelationType.COMPOSITION) {
                     markerEnd = " marker-start=\"url(#filledDiamond)\"";
                 } else if (relation.getRelationType() == RelationType.DEPENDENCY ||
-                           relation.getRelationType() == RelationType.ASSOCIATION) {
+                        relation.getRelationType() == RelationType.ASSOCIATION) {
                     markerEnd = " marker-end=\"url(#arrow)\"";
                 }
 
                 String strokeDashArray = "";
                 if (relation.getRelationType() == RelationType.IMPLEMENTATION ||
-                    relation.getRelationType() == RelationType.DEPENDENCY) {
+                        relation.getRelationType() == RelationType.DEPENDENCY) {
                     strokeDashArray = " stroke-dasharray=\"5,5\"";
                 }
 

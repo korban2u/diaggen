@@ -11,16 +11,16 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class EditorPanelController {
     private static final Logger LOGGER = Logger.getLogger(EditorPanelController.class.getName());
 
-    private VBox editorContent;
+    private final VBox editorContent;
+    private final DialogFactory dialogFactory;
     private MainController mainController;
-    private DialogFactory dialogFactory;
-
     private TextField classNameField;
     private TextField packageNameField;
     private ComboBox<ClassType> classTypeComboBox;
@@ -370,8 +370,6 @@ public class EditorPanelController {
 
         DiagramRelation newRelation = new DiagramRelation(
                 target, source, type, targetMulti, sourceMulti, label);
-
-
 
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);

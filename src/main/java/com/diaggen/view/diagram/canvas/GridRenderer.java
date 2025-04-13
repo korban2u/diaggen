@@ -13,19 +13,17 @@ public class GridRenderer {
     private final Canvas canvas;
     private final int minorGridSize;
     private final int majorGridSize;
+    private final Color backgroundColor = Color.rgb(252, 252, 252);
+    private final Color minorLineColor = Color.rgb(240, 240, 240);
+    private final Color majorLineColor = Color.rgb(225, 225, 225);
+    private final Color originLineColor = Color.rgb(100, 149, 237, 0.5);
+    private final Color textColor = Color.rgb(150, 150, 150);
     private double scale = 1.0;
     private double translateX = 0;
     private double translateY = 0;
     private boolean showGrid = true;
     private boolean showCoordinates = true;
     private boolean showOriginMarker = true;
-
-    private final Color backgroundColor = Color.rgb(252, 252, 252);
-    private final Color minorLineColor = Color.rgb(240, 240, 240);
-    private final Color majorLineColor = Color.rgb(225, 225, 225);
-    private final Color originLineColor = Color.rgb(100, 149, 237, 0.5);
-    private final Color textColor = Color.rgb(150, 150, 150);
-
     private int gridSpacing = 1;
 
     public GridRenderer(Canvas canvas, int minorGridSize, int majorGridSize) {
@@ -84,15 +82,15 @@ public class GridRenderer {
         Point2D bottomRight = viewportToContent(new Point2D(width, height));
         int visibleMinorGridSize = minorGridSize * gridSpacing;
         int visibleMajorGridSize = majorGridSize * gridSpacing;
-        int startX = (int)(Math.floor(topLeft.getX() / visibleMinorGridSize) * visibleMinorGridSize);
-        int startY = (int)(Math.floor(topLeft.getY() / visibleMinorGridSize) * visibleMinorGridSize);
-        int endX = (int)(Math.ceil(bottomRight.getX() / visibleMinorGridSize) * visibleMinorGridSize);
-        int endY = (int)(Math.ceil(bottomRight.getY() / visibleMinorGridSize) * visibleMinorGridSize);
+        int startX = (int) (Math.floor(topLeft.getX() / visibleMinorGridSize) * visibleMinorGridSize);
+        int startY = (int) (Math.floor(topLeft.getY() / visibleMinorGridSize) * visibleMinorGridSize);
+        int endX = (int) (Math.ceil(bottomRight.getX() / visibleMinorGridSize) * visibleMinorGridSize);
+        int endY = (int) (Math.ceil(bottomRight.getY() / visibleMinorGridSize) * visibleMinorGridSize);
 
-        int startMajorX = (int)(Math.floor(topLeft.getX() / visibleMajorGridSize) * visibleMajorGridSize);
-        int startMajorY = (int)(Math.floor(topLeft.getY() / visibleMajorGridSize) * visibleMajorGridSize);
-        int endMajorX = (int)(Math.ceil(bottomRight.getX() / visibleMajorGridSize) * visibleMajorGridSize);
-        int endMajorY = (int)(Math.ceil(bottomRight.getY() / visibleMajorGridSize) * visibleMajorGridSize);
+        int startMajorX = (int) (Math.floor(topLeft.getX() / visibleMajorGridSize) * visibleMajorGridSize);
+        int startMajorY = (int) (Math.floor(topLeft.getY() / visibleMajorGridSize) * visibleMajorGridSize);
+        int endMajorX = (int) (Math.ceil(bottomRight.getX() / visibleMajorGridSize) * visibleMajorGridSize);
+        int endMajorY = (int) (Math.ceil(bottomRight.getY() / visibleMajorGridSize) * visibleMajorGridSize);
         gc.setStroke(minorLineColor);
         gc.setLineWidth(0.5);
 

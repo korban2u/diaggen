@@ -20,7 +20,7 @@ public class DiagramPropertiesController {
 
     }
 
-        public void setDialog(Dialog<String> dialog, ClassDiagram diagram) {
+    public void setDialog(Dialog<String> dialog, ClassDiagram diagram) {
         this.dialog = dialog;
         this.diagram = diagram;
 
@@ -32,7 +32,7 @@ public class DiagramPropertiesController {
         dialog.setResultConverter(createResultConverter());
     }
 
-        private Callback<ButtonType, String> createResultConverter() {
+    private Callback<ButtonType, String> createResultConverter() {
         return buttonType -> {
             if (buttonType == ButtonType.OK) {
                 return nameField.getText();

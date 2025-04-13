@@ -30,10 +30,10 @@ import java.util.logging.Logger;
 
 public class ProjectController extends BaseController {
     private static final Logger LOGGER = Logger.getLogger(ProjectController.class.getName());
-    private Window ownerWindow;
     private final EventBus eventBus = EventBus.getInstance();
     private final ProjectSessionManager sessionManager;
     private final Map<String, File> projectFileCache = new HashMap<>();
+    private Window ownerWindow;
 
     public ProjectController(DiagramStore diagramStore, CommandManager commandManager) {
         super(diagramStore, commandManager);
@@ -129,7 +129,8 @@ public class ProjectController extends BaseController {
                     return;
                 }
             } else {
-                return;            }
+                return;
+            }
         }
 
         LOGGER.log(Level.INFO, "Activating project: {0} (ID: {1})", new Object[]{project.getName(), project.getId()});
@@ -336,6 +337,7 @@ public class ProjectController extends BaseController {
             openProjectFile(projectFile);
         }
     }
+
     private File getProjectFile(Project project) {
         if (project == null) return null;
         File cachedFile = projectFileCache.get(project.getId());
@@ -405,11 +407,7 @@ public class ProjectController extends BaseController {
                 if (result.get() == saveButton) {
                     saveProject();
                     return true;
-                } else if (result.get() == dontSaveButton) {
-                    return true;
-                } else {
-                    return false;
-                }
+                } else return result.get() == dontSaveButton;
             }
 
             return false;

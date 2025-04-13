@@ -2,9 +2,9 @@ package com.diaggen.controller.command;
 
 public interface Command {
 
-        void execute();
+    void execute();
 
-        void undo();
+    void undo();
 
-        String getDescription();
+    String getDescription();
 }

@@ -15,21 +15,51 @@ public class ProjectDTO implements Serializable {
     private LocalDateTime lastModified;
     private List<DiagramSerializer.DiagramDTO> diagrams = new ArrayList<>();
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public String getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setId(String id) {
+        this.id = id;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getName() {
+        return name;
+    }
 
-    public LocalDateTime getCreated() { return created; }
-    public void setCreated(LocalDateTime created) { this.created = created; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public LocalDateTime getLastModified() { return lastModified; }
-    public void setLastModified(LocalDateTime lastModified) { this.lastModified = lastModified; }
+    public String getDescription() {
+        return description;
+    }
 
-    public List<DiagramSerializer.DiagramDTO> getDiagrams() { return diagrams; }
-    public void setDiagrams(List<DiagramSerializer.DiagramDTO> diagrams) { this.diagrams = diagrams; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public LocalDateTime getCreated() {
+        return created;
+    }
+
+    public void setCreated(LocalDateTime created) {
+        this.created = created;
+    }
+
+    public LocalDateTime getLastModified() {
+        return lastModified;
+    }
+
+    public void setLastModified(LocalDateTime lastModified) {
+        this.lastModified = lastModified;
+    }
+
+    public List<DiagramSerializer.DiagramDTO> getDiagrams() {
+        return diagrams;
+    }
+
+    public void setDiagrams(List<DiagramSerializer.DiagramDTO> diagrams) {
+        this.diagrams = diagrams;
+    }
 }

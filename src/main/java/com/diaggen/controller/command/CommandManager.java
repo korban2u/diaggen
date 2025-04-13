@@ -12,9 +12,9 @@ public class CommandManager {
     private final Stack<Command> undoStack = new Stack<>();
     private final Stack<Command> redoStack = new Stack<>();
     private final Stack<Command> groupStack = new Stack<>();
+    private final ProjectSessionManager sessionManager;
     private boolean inGroup = false;
     private String currentGroupName = "";
-    private final ProjectSessionManager sessionManager;
 
     public CommandManager() {
         this.sessionManager = ProjectSessionManager.getInstance();

@@ -73,13 +73,13 @@ public class JavaCodeExporter implements DiagramExporter {
                     methodSig.append(";");
                 } else {
                     methodSig.append(" {");
-                    writer.println(methodSig.toString());
+                    writer.println(methodSig);
                     writer.println("        // TODO: Implement method");
                     writer.println("    }");
                 }
 
                 if (method.isAbstract()) {
-                    writer.println(methodSig.toString());
+                    writer.println(methodSig);
                 }
 
                 writer.println();

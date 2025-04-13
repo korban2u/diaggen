@@ -13,7 +13,8 @@ public class DialogFactory {
 
     private static DialogFactory instance;
 
-    private DialogFactory() {}
+    private DialogFactory() {
+    }
 
     public static DialogFactory getInstance() {
         if (instance == null) {

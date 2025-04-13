@@ -1,40 +1,29 @@
 package com.diaggen.layout;
 
-import com.diaggen.model.ClassDiagram;
-import com.diaggen.model.ClassType;
-import com.diaggen.model.DiagramClass;
-import com.diaggen.model.DiagramRelation;
-import com.diaggen.model.RelationType;
+import com.diaggen.model.*;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ForceDirectedLayout implements LayoutManager.LayoutAlgorithm {
 
     private static final Logger LOGGER = Logger.getLogger(ForceDirectedLayout.class.getName());
-
-    private double width = 1000;
-    private double height = 1000;
-    private double margin = 50;
-
-    private int iterations = 100;
-    private double k = 100.0;
-    private double gravity = 0.1;
-    private double damping = 0.9;
-    private double maxVelocity = 10.0;
     private static final double INHERITANCE_WEIGHT = 2.5;
     private static final double IMPLEMENTATION_WEIGHT = 2.0;
     private static final double COMPOSITION_WEIGHT = 1.8;
     private static final double AGGREGATION_WEIGHT = 1.5;
     private static final double ASSOCIATION_WEIGHT = 1.2;
     private static final double DEPENDENCY_WEIGHT = 1.0;
-
+    private final double margin = 50;
+    private final int iterations = 100;
+    private final double k = 100.0;
+    private final double gravity = 0.1;
+    private final double damping = 0.9;
+    private final double maxVelocity = 10.0;
     private final Random random = new Random(System.currentTimeMillis());
+    private double width = 1000;
+    private double height = 1000;
 
     @Override
     public void layout(ClassDiagram diagram) {

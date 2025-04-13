@@ -26,24 +26,24 @@ public class Member {
         return name.get();
     }
 
-    public StringProperty nameProperty() {
-        return name;
-    }
-
     public void setName(String name) {
         this.name.set(name);
+    }
+
+    public StringProperty nameProperty() {
+        return name;
     }
 
     public String getType() {
         return type.get();
     }
 
-    public StringProperty typeProperty() {
-        return type;
-    }
-
     public void setType(String type) {
         this.type.set(type);
+    }
+
+    public StringProperty typeProperty() {
+        return type;
     }
 
     public Visibility getVisibility() {

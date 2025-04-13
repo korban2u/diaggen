@@ -12,32 +12,26 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ProjectExplorerController {
     private static final Logger LOGGER = Logger.getLogger(ProjectExplorerController.class.getName());
-
+    private final EventBus eventBus = EventBus.getInstance();
     @FXML
     private ListView<Project> projectListView;
-
     @FXML
     private ListView<ClassDiagram> diagramListView;
-
     @FXML
     private Button addDiagramButton;
-
     @FXML
     private Button importDiagramsButton;
-
     @FXML
     private Button newDiagramButton;
-
     private DiagramStore diagramStore;
     private ProjectController projectController;
     private DiagramController diagramController;
-    private final EventBus eventBus = EventBus.getInstance();
-
     private ContextMenu projectContextMenu;
     private ContextMenu diagramContextMenu;
 
@@ -227,19 +221,19 @@ public class ProjectExplorerController {
     }
 
     private void setupEventBusListeners() {
-        eventBus.subscribe(ProjectActivatedEvent.class, (EventListener<ProjectActivatedEvent>) event -> {
+        eventBus.subscribe(ProjectActivatedEvent.class, event -> {
             Platform.runLater(() -> {
                 updateSelection();
             });
         });
 
-        eventBus.subscribe(DiagramActivatedEvent.class, (EventListener<DiagramActivatedEvent>) event -> {
+        eventBus.subscribe(DiagramActivatedEvent.class, event -> {
             Platform.runLater(() -> {
                 updateSelection();
             });
         });
 
-        eventBus.subscribe(ProjectChangedEvent.class, (EventListener<ProjectChangedEvent>) event -> {
+        eventBus.subscribe(ProjectChangedEvent.class, event -> {
             Platform.runLater(() -> {
                 projectListView.refresh();
 
@@ -250,7 +244,7 @@ public class ProjectExplorerController {
             });
         });
 
-        eventBus.subscribe(DiagramChangedEvent.class, (EventListener<DiagramChangedEvent>) event -> {
+        eventBus.subscribe(DiagramChangedEvent.class, event -> {
             Platform.runLater(() -> {
                 diagramListView.refresh();
             });

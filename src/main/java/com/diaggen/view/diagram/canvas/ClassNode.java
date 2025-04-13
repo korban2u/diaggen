@@ -1,11 +1,9 @@
 package com.diaggen.view.diagram.canvas;
 
-import com.diaggen.model.ClassType;
 import com.diaggen.model.DiagramClass;
 import com.diaggen.model.Member;
 import com.diaggen.model.Method;
 import com.diaggen.model.Parameter;
-import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -19,10 +17,10 @@ import javafx.scene.text.TextBoundsType;
 
 public class ClassNode extends Region {
 
-    private final DiagramClass diagramClass;
-    private final ClassNodeContent content;
     private static final double MIN_WIDTH = 150;
     private static final double PADDING = 10;
+    private final DiagramClass diagramClass;
+    private final ClassNodeContent content;
     private Runnable positionChangeListener;
     private boolean isRefreshing = false;
 
@@ -156,8 +154,7 @@ public class ClassNode extends Region {
             requestLayout();
             applyCss();
             layout();
-            if (getParent() != null && getParent() instanceof Pane) {
-                Pane parent = (Pane) getParent();
+            if (getParent() != null && getParent() instanceof Pane parent) {
                 double parentWidth = parent.getWidth();
                 double parentHeight = parent.getHeight();
                 if (parentWidth > 0 && parentHeight > 0) {
@@ -200,9 +197,9 @@ public class ClassNode extends Region {
 
     private static class ClassNodeContent extends VBox {
 
-        private final DiagramClass diagramClass;
         private static final Font DEFAULT_FONT = Font.font("System", 12);
         private static final Font TITLE_FONT = Font.font("System", 14);
+        private final DiagramClass diagramClass;
 
         public ClassNodeContent(DiagramClass diagramClass) {
             this.diagramClass = diagramClass;

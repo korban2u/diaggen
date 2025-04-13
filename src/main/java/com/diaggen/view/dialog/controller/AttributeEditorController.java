@@ -42,7 +42,7 @@ public class AttributeEditorController {
         });
     }
 
-        public void setDialog(Dialog<Member> dialog, Member attribute) {
+    public void setDialog(Dialog<Member> dialog, Member attribute) {
         this.dialog = dialog;
         this.attribute = attribute;
 
@@ -61,7 +61,7 @@ public class AttributeEditorController {
         dialog.setResultConverter(createResultConverter());
     }
 
-        private Callback<ButtonType, Member> createResultConverter() {
+    private Callback<ButtonType, Member> createResultConverter() {
         return buttonType -> {
             if (buttonType == ButtonType.OK) {
                 Visibility selectedVisibility = visibilityComboBox.getSelectionModel().getSelectedItem();

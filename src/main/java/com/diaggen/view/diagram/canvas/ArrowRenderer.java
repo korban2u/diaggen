@@ -9,15 +9,13 @@ import javafx.scene.shape.Polygon;
 
 public class ArrowRenderer {
 
+    private static final Color DEFAULT_COLOR = Color.BLACK;
+    private static final Color SELECTED_COLOR = Color.web("#4a89dc");
+    private static final double BASE_LINE_WIDTH = 1.8;
     private final Group arrowGroup = new Group();
     private final Line line = new Line();
     private final Polygon arrowHead = new Polygon();
-
-    private static final Color DEFAULT_COLOR = Color.BLACK;
-    private static final Color SELECTED_COLOR = Color.web("#4a89dc");
-
     private double zoomScale = 1.0;
-    private static final double BASE_LINE_WIDTH = 1.8;
 
     public ArrowRenderer() {
         line.getStyleClass().add("line");
@@ -28,10 +26,12 @@ public class ArrowRenderer {
 
         arrowGroup.getChildren().addAll(line, arrowHead);
     }
+
     public void setZoomScale(double scale) {
         this.zoomScale = scale;
         updateLineThickness();
     }
+
     private void updateLineThickness() {
         double adjustedWidth = BASE_LINE_WIDTH / Math.sqrt(zoomScale);
         adjustedWidth = Math.min(adjustedWidth, 4.0);
@@ -160,7 +160,7 @@ public class ArrowRenderer {
     }
 
     private void createCompositionArrow(Point2D end, double ux, double uy) {
-        createDiamondArrow(end, ux, uy, line.getStroke() == DEFAULT_COLOR ? Color.BLACK : (Color)line.getStroke());
+        createDiamondArrow(end, ux, uy, line.getStroke() == DEFAULT_COLOR ? Color.BLACK : (Color) line.getStroke());
     }
 
     private void createDiamondArrow(Point2D end, double ux, double uy, Color fillColor) {

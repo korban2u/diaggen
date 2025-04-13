@@ -16,17 +16,15 @@ public class NodeManager {
 
     private final Pane container;
     private final Map<String, ClassNode> classNodes = new HashMap<>();
+    private final EventBus eventBus;
     private ClassNode selectedNode;
-
     private double dragStartX;
     private double dragStartY;
     private Point2D dragStartPoint;
     private boolean isDragging = false;
-
     private NodeSelectionListener selectionListener;
     private RelationManager relationManager;
     private CommandManager commandManager;
-    private final EventBus eventBus;
     private Runnable changeListener;
     private ViewportTransform viewportTransform;
 
@@ -34,6 +32,7 @@ public class NodeManager {
         this.container = container;
         this.eventBus = EventBus.getInstance();
     }
+
     public void setViewportTransform(ViewportTransform viewportTransform) {
         this.viewportTransform = viewportTransform;
     }
@@ -45,9 +44,11 @@ public class NodeManager {
     public void setCommandManager(CommandManager commandManager) {
         this.commandManager = commandManager;
     }
+
     public void setChangeListener(Runnable listener) {
         this.changeListener = listener;
     }
+
     private void notifyChange() {
         if (changeListener != null) {
             changeListener.run();

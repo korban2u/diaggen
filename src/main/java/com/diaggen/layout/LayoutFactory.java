@@ -2,12 +2,6 @@ package com.diaggen.layout;
 
 public class LayoutFactory {
 
-    public enum LayoutType {
-        FORCE_DIRECTED,
-        HIERARCHICAL,
-        GRID
-    }
-
     public static LayoutManager.LayoutAlgorithm createLayout(LayoutType type) {
         switch (type) {
             case FORCE_DIRECTED:
@@ -19,5 +13,11 @@ public class LayoutFactory {
             default:
                 return new ForceDirectedLayout();
         }
+    }
+
+    public enum LayoutType {
+        FORCE_DIRECTED,
+        HIERARCHICAL,
+        GRID
     }
 }

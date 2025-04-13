@@ -25,9 +25,9 @@ import java.util.logging.Logger;
 public class DiagramController extends BaseController {
 
     private static final Logger LOGGER = Logger.getLogger(DiagramController.class.getName());
-    private Window ownerWindow;
     private final EventBus eventBus = EventBus.getInstance();
     private final ProjectSessionManager sessionManager;
+    private Window ownerWindow;
 
     public DiagramController(DiagramStore diagramStore, CommandManager commandManager) {
         super(diagramStore, commandManager);

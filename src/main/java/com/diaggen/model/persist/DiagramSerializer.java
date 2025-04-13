@@ -5,7 +5,6 @@ import com.diaggen.model.*;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -179,17 +178,37 @@ public class DiagramSerializer {
         private java.util.List<DiagramClassDTO> classes = new java.util.ArrayList<>();
         private java.util.List<DiagramRelationDTO> relations = new java.util.ArrayList<>();
 
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
+        public String getId() {
+            return id;
+        }
 
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
+        public void setId(String id) {
+            this.id = id;
+        }
 
-        public java.util.List<DiagramClassDTO> getClasses() { return classes; }
-        public void setClasses(java.util.List<DiagramClassDTO> classes) { this.classes = classes; }
+        public String getName() {
+            return name;
+        }
 
-        public java.util.List<DiagramRelationDTO> getRelations() { return relations; }
-        public void setRelations(java.util.List<DiagramRelationDTO> relations) { this.relations = relations; }
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public java.util.List<DiagramClassDTO> getClasses() {
+            return classes;
+        }
+
+        public void setClasses(java.util.List<DiagramClassDTO> classes) {
+            this.classes = classes;
+        }
+
+        public java.util.List<DiagramRelationDTO> getRelations() {
+            return relations;
+        }
+
+        public void setRelations(java.util.List<DiagramRelationDTO> relations) {
+            this.relations = relations;
+        }
     }
 
     static class DiagramClassDTO implements Serializable {
@@ -204,29 +223,69 @@ public class DiagramSerializer {
         private java.util.List<MemberDTO> attributes = new java.util.ArrayList<>();
         private java.util.List<MethodDTO> methods = new java.util.ArrayList<>();
 
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
+        public String getId() {
+            return id;
+        }
 
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
+        public void setId(String id) {
+            this.id = id;
+        }
 
-        public String getPackageName() { return packageName; }
-        public void setPackageName(String packageName) { this.packageName = packageName; }
+        public String getName() {
+            return name;
+        }
 
-        public double getX() { return x; }
-        public void setX(double x) { this.x = x; }
+        public void setName(String name) {
+            this.name = name;
+        }
 
-        public double getY() { return y; }
-        public void setY(double y) { this.y = y; }
+        public String getPackageName() {
+            return packageName;
+        }
 
-        public String getClassType() { return classType; }
-        public void setClassType(String classType) { this.classType = classType; }
+        public void setPackageName(String packageName) {
+            this.packageName = packageName;
+        }
 
-        public java.util.List<MemberDTO> getAttributes() { return attributes; }
-        public void setAttributes(java.util.List<MemberDTO> attributes) { this.attributes = attributes; }
+        public double getX() {
+            return x;
+        }
 
-        public java.util.List<MethodDTO> getMethods() { return methods; }
-        public void setMethods(java.util.List<MethodDTO> methods) { this.methods = methods; }
+        public void setX(double x) {
+            this.x = x;
+        }
+
+        public double getY() {
+            return y;
+        }
+
+        public void setY(double y) {
+            this.y = y;
+        }
+
+        public String getClassType() {
+            return classType;
+        }
+
+        public void setClassType(String classType) {
+            this.classType = classType;
+        }
+
+        public java.util.List<MemberDTO> getAttributes() {
+            return attributes;
+        }
+
+        public void setAttributes(java.util.List<MemberDTO> attributes) {
+            this.attributes = attributes;
+        }
+
+        public java.util.List<MethodDTO> getMethods() {
+            return methods;
+        }
+
+        public void setMethods(java.util.List<MethodDTO> methods) {
+            this.methods = methods;
+        }
     }
 
     static class MemberDTO implements Serializable {
@@ -237,17 +296,37 @@ public class DiagramSerializer {
         private String type;
         private String visibility;
 
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
+        public String getId() {
+            return id;
+        }
 
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
+        public void setId(String id) {
+            this.id = id;
+        }
 
-        public String getType() { return type; }
-        public void setType(String type) { this.type = type; }
+        public String getName() {
+            return name;
+        }
 
-        public String getVisibility() { return visibility; }
-        public void setVisibility(String visibility) { this.visibility = visibility; }
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public String getVisibility() {
+            return visibility;
+        }
+
+        public void setVisibility(String visibility) {
+            this.visibility = visibility;
+        }
     }
 
     static class MethodDTO implements Serializable {
@@ -261,26 +340,61 @@ public class DiagramSerializer {
         private boolean isStatic;
         private java.util.List<ParameterDTO> parameters = new java.util.ArrayList<>();
 
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
+        public String getId() {
+            return id;
+        }
 
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
+        public void setId(String id) {
+            this.id = id;
+        }
 
-        public String getReturnType() { return returnType; }
-        public void setReturnType(String returnType) { this.returnType = returnType; }
+        public String getName() {
+            return name;
+        }
 
-        public String getVisibility() { return visibility; }
-        public void setVisibility(String visibility) { this.visibility = visibility; }
+        public void setName(String name) {
+            this.name = name;
+        }
 
-        public boolean isAbstract() { return isAbstract; }
-        public void setAbstract(boolean isAbstract) { this.isAbstract = isAbstract; }
+        public String getReturnType() {
+            return returnType;
+        }
 
-        public boolean isStatic() { return isStatic; }
-        public void setStatic(boolean isStatic) { this.isStatic = isStatic; }
+        public void setReturnType(String returnType) {
+            this.returnType = returnType;
+        }
 
-        public java.util.List<ParameterDTO> getParameters() { return parameters; }
-        public void setParameters(java.util.List<ParameterDTO> parameters) { this.parameters = parameters; }
+        public String getVisibility() {
+            return visibility;
+        }
+
+        public void setVisibility(String visibility) {
+            this.visibility = visibility;
+        }
+
+        public boolean isAbstract() {
+            return isAbstract;
+        }
+
+        public void setAbstract(boolean isAbstract) {
+            this.isAbstract = isAbstract;
+        }
+
+        public boolean isStatic() {
+            return isStatic;
+        }
+
+        public void setStatic(boolean isStatic) {
+            this.isStatic = isStatic;
+        }
+
+        public java.util.List<ParameterDTO> getParameters() {
+            return parameters;
+        }
+
+        public void setParameters(java.util.List<ParameterDTO> parameters) {
+            this.parameters = parameters;
+        }
     }
 
     static class ParameterDTO implements Serializable {
@@ -290,14 +404,29 @@ public class DiagramSerializer {
         private String name;
         private String type;
 
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
+        public String getId() {
+            return id;
+        }
 
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
+        public void setId(String id) {
+            this.id = id;
+        }
 
-        public String getType() { return type; }
-        public void setType(String type) { this.type = type; }
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
     }
 
     static class DiagramRelationDTO implements Serializable {
@@ -311,25 +440,60 @@ public class DiagramSerializer {
         private String targetMultiplicity;
         private String label;
 
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
+        public String getId() {
+            return id;
+        }
 
-        public String getSourceClassId() { return sourceClassId; }
-        public void setSourceClassId(String sourceClassId) { this.sourceClassId = sourceClassId; }
+        public void setId(String id) {
+            this.id = id;
+        }
 
-        public String getTargetClassId() { return targetClassId; }
-        public void setTargetClassId(String targetClassId) { this.targetClassId = targetClassId; }
+        public String getSourceClassId() {
+            return sourceClassId;
+        }
 
-        public String getRelationType() { return relationType; }
-        public void setRelationType(String relationType) { this.relationType = relationType; }
+        public void setSourceClassId(String sourceClassId) {
+            this.sourceClassId = sourceClassId;
+        }
 
-        public String getSourceMultiplicity() { return sourceMultiplicity; }
-        public void setSourceMultiplicity(String sourceMultiplicity) { this.sourceMultiplicity = sourceMultiplicity; }
+        public String getTargetClassId() {
+            return targetClassId;
+        }
 
-        public String getTargetMultiplicity() { return targetMultiplicity; }
-        public void setTargetMultiplicity(String targetMultiplicity) { this.targetMultiplicity = targetMultiplicity; }
+        public void setTargetClassId(String targetClassId) {
+            this.targetClassId = targetClassId;
+        }
 
-        public String getLabel() { return label; }
-        public void setLabel(String label) { this.label = label; }
+        public String getRelationType() {
+            return relationType;
+        }
+
+        public void setRelationType(String relationType) {
+            this.relationType = relationType;
+        }
+
+        public String getSourceMultiplicity() {
+            return sourceMultiplicity;
+        }
+
+        public void setSourceMultiplicity(String sourceMultiplicity) {
+            this.sourceMultiplicity = sourceMultiplicity;
+        }
+
+        public String getTargetMultiplicity() {
+            return targetMultiplicity;
+        }
+
+        public void setTargetMultiplicity(String targetMultiplicity) {
+            this.targetMultiplicity = targetMultiplicity;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public void setLabel(String label) {
+            this.label = label;
+        }
     }
 }
