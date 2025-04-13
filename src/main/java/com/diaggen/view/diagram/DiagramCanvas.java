@@ -89,9 +89,19 @@ public class DiagramCanvas extends AnchorPane {
                 gridRenderer
         );
 
+        // Positionner les contrôles de navigation au centre en bas de l'écran
         AnchorPane.setBottomAnchor(navigationControls, 10.0);
-        AnchorPane.setLeftAnchor(navigationControls, 10.0);
+        AnchorPane.setLeftAnchor(navigationControls, null);
         getChildren().add(navigationControls);
+
+        // Ajouter ce code pour centrer horizontalement les contrôles
+        widthProperty().addListener((obs, oldVal, newVal) -> {
+            Platform.runLater(() -> {
+                double controlWidth = navigationControls.getWidth();
+                double newX = (newVal.doubleValue() - controlWidth) / 2;
+                AnchorPane.setLeftAnchor(navigationControls, newX);
+            });
+        });
 
         // Configuration de la mini-carte
         miniMapView = new MiniMapView(canvasContainer, viewportTransform);
@@ -111,6 +121,7 @@ public class DiagramCanvas extends AnchorPane {
         setupMouseHandlers();
         setupSelectionListeners();
         setupEventBusListeners();
+        setupMiniMapUpdates();
 
         // Liaison des propriétés du transform
         viewportTransform.scaleProperty().addListener((obs, oldVal, newVal) -> updateTransform());
@@ -128,6 +139,24 @@ public class DiagramCanvas extends AnchorPane {
 
         // S'assurer que contentPane a une taille suffisamment grande pour accueillir un espace très large
         contentPane.setPrefSize(DEFAULT_GRID_WIDTH, DEFAULT_GRID_HEIGHT);
+    }
+
+    private void setupMiniMapUpdates() {
+        nodeManager.setChangeListener(() -> {
+            Platform.runLater(() -> {
+                if (diagram != null) {
+                    miniMapView.updateContent(diagram.getClasses());
+                }
+            });
+        });
+
+        relationManager.setChangeListener(() -> {
+            Platform.runLater(() -> {
+                if (diagram != null) {
+                    miniMapView.updateContent(diagram.getClasses());
+                }
+            });
+        });
     }
 
     private void updateTransform() {
@@ -297,7 +326,12 @@ public class DiagramCanvas extends AnchorPane {
 
             relationManager.updateAllRelations();
             requestLayout();
-            miniMapView.updateContent(diagram.getClasses());
+
+            // Mise à jour immédiate de la mini-map
+            Platform.runLater(() -> {
+                miniMapView.updateContent(diagram.getClasses());
+            });
+
             Platform.runLater(this::zoomToFit);
         });
     }
@@ -366,7 +400,11 @@ public class DiagramCanvas extends AnchorPane {
             }
 
             relationManager.updateAllRelationsLater();
-            miniMapView.updateContent(diagram.getClasses());
+
+            // Mise à jour immédiate de la mini-map
+            Platform.runLater(() -> {
+                miniMapView.updateContent(diagram.getClasses());
+            });
 
             // Restaurer la sélection si possible
             if (selectedClass != null && diagram.getClasses().contains(selectedClass)) {
@@ -378,6 +416,7 @@ public class DiagramCanvas extends AnchorPane {
             }
         }
     }
+
 
     public Dimension2D calculateRequiredSize() {
         if (diagram == null || diagram.getClasses().isEmpty()) {

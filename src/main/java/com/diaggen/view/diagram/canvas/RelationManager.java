@@ -20,10 +20,23 @@ public class RelationManager {
 
     private RelationSelectionListener selectionListener;
     private final AtomicBoolean updateScheduled = new AtomicBoolean(false);
+    private Runnable changeListener;
 
     public RelationManager(Pane container, NodeManager nodeManager) {
         this.container = container;
         this.nodeManager = nodeManager;
+    }
+
+    // Méthode pour définir un écouteur de changements
+    public void setChangeListener(Runnable listener) {
+        this.changeListener = listener;
+    }
+
+    // Méthode pour notifier les changements
+    private void notifyChange() {
+        if (changeListener != null) {
+            changeListener.run();
+        }
     }
 
     public RelationLine createRelationLine(DiagramRelation relation) {
@@ -45,6 +58,9 @@ public class RelationManager {
             container.getChildren().add(0, relationLine);
             relationLines.put(relation.getId(), relationLine);
 
+            // Informer que l'état a changé
+            notifyChange();
+
             return relationLine;
         }
 
@@ -60,6 +76,9 @@ public class RelationManager {
             if (selectedRelation == line) {
                 selectRelation(null);
             }
+
+            // Informer que l'état a changé
+            notifyChange();
         }
     }
 
@@ -67,15 +86,21 @@ public class RelationManager {
         for (RelationLine line : relationLines.values()) {
             line.update();
         }
+
+        // Informer que l'état a changé
+        notifyChange();
     }
 
     public void clear() {
         container.getChildren().removeIf(node -> node instanceof RelationLine);
         relationLines.clear();
         selectedRelation = null;
+
+        // Informer que l'état a changé
+        notifyChange();
     }
 
-        public void updateAllRelationsLater() {
+    public void updateAllRelationsLater() {
         if (updateScheduled.compareAndSet(false, true)) {
             Platform.runLater(() -> {
                 try {
@@ -105,6 +130,9 @@ public class RelationManager {
                 selectionListener.onRelationSelected(null);
             }
         }
+
+        // Informer que l'état a changé
+        notifyChange();
     }
 
     public RelationLine getSelectedRelationLine() {

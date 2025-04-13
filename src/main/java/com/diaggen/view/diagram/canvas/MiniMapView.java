@@ -3,6 +3,7 @@ package com.diaggen.view.diagram.canvas;
 import com.diaggen.model.ClassType;
 import com.diaggen.model.DiagramClass;
 import javafx.animation.FadeTransition;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
@@ -29,6 +30,7 @@ import javafx.util.Duration;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MiniMapView extends VBox {
     private final Pane diagramCanvas;
@@ -36,6 +38,9 @@ public class MiniMapView extends VBox {
     private final Pane contentRepresentation = new Pane();
     private final Rectangle viewportRect = new Rectangle();
     private final Label titleLabel = new Label("Aperçu");
+
+    // Ajout d'un flag pour éviter les mises à jour simultanées
+    private final AtomicBoolean isUpdating = new AtomicBoolean(false);
 
     private double miniMapScale = 0.1;
     private boolean isDragging = false;
@@ -153,45 +158,62 @@ public class MiniMapView extends VBox {
     }
 
     public void updateContent(Iterable<DiagramClass> classes) {
-        // Nettoyer le contenu existant
-        contentRepresentation.getChildren().clear();
-        classRectangles.clear();
-        relationLines.clear();
-
-        // Si aucune classe n'est fournie, rétablir à l'état par défaut
-        if (classes == null) {
-            viewportRect.setX(10);
-            viewportRect.setY(10);
-            viewportRect.setWidth(contentRepresentation.getPrefWidth() - 20);
-            viewportRect.setHeight(contentRepresentation.getPrefHeight() - 20);
-            contentRepresentation.getChildren().add(viewportRect);
+        // Vérifier si une mise à jour est déjà en cours
+        if (isUpdating.getAndSet(true)) {
             return;
         }
 
-        // Calculer les limites du diagramme
-        calculateBounds(classes);
+        try {
+            // Tout le traitement se fait dans un thread de l'UI
+            Platform.runLater(() -> {
+                try {
+                    // Nettoyer le contenu existant
+                    contentRepresentation.getChildren().clear();
+                    classRectangles.clear();
+                    relationLines.clear();
 
-        // Calculer l'échelle de la mini-carte
-        double contentWidth = maxX - minX;
-        double contentHeight = maxY - minY;
+                    // Si aucune classe n'est fournie, rétablir à l'état par défaut
+                    if (classes == null) {
+                        viewportRect.setX(10);
+                        viewportRect.setY(10);
+                        viewportRect.setWidth(contentRepresentation.getPrefWidth() - 20);
+                        viewportRect.setHeight(contentRepresentation.getPrefHeight() - 20);
+                        contentRepresentation.getChildren().add(viewportRect);
+                        return;
+                    }
 
-        if (contentWidth <= 0 || contentHeight <= 0) {
-            contentWidth = 800;
-            contentHeight = 600;
+                    // Calculer les limites du diagramme
+                    calculateBounds(classes);
+
+                    // Calculer l'échelle de la mini-carte
+                    double contentWidth = maxX - minX;
+                    double contentHeight = maxY - minY;
+
+                    if (contentWidth <= 0 || contentHeight <= 0) {
+                        contentWidth = 800;
+                        contentHeight = 600;
+                    }
+
+                    double scaleX = (contentRepresentation.getPrefWidth() - 20) / contentWidth;
+                    double scaleY = (contentRepresentation.getPrefHeight() - 20) / contentHeight;
+                    miniMapScale = Math.min(scaleX, scaleY);
+
+                    // Créer les rectangles pour chaque classe
+                    for (DiagramClass diagramClass : classes) {
+                        createClassRectangle(diagramClass);
+                    }
+
+                    // Ajouter le rectangle de viewport
+                    contentRepresentation.getChildren().add(viewportRect);
+                    updateViewportRect();
+                } finally {
+                    isUpdating.set(false);
+                }
+            });
+        } catch (Exception e) {
+            isUpdating.set(false);
+            throw e;
         }
-
-        double scaleX = (contentRepresentation.getPrefWidth() - 20) / contentWidth;
-        double scaleY = (contentRepresentation.getPrefHeight() - 20) / contentHeight;
-        miniMapScale = Math.min(scaleX, scaleY);
-
-        // Créer les rectangles pour chaque classe
-        for (DiagramClass diagramClass : classes) {
-            createClassRectangle(diagramClass);
-        }
-
-        // Ajouter le rectangle de viewport
-        contentRepresentation.getChildren().add(viewportRect);
-        updateViewportRect();
     }
 
     private void calculateBounds(Iterable<DiagramClass> classes) {

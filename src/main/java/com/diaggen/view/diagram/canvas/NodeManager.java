@@ -27,6 +27,7 @@ public class NodeManager {
     private RelationManager relationManager;
     private CommandManager commandManager;
     private final EventBus eventBus;
+    private Runnable changeListener;
 
     public NodeManager(Pane container) {
         this.container = container;
@@ -39,6 +40,18 @@ public class NodeManager {
 
     public void setCommandManager(CommandManager commandManager) {
         this.commandManager = commandManager;
+    }
+
+    // Méthode pour définir un écouteur de changements
+    public void setChangeListener(Runnable listener) {
+        this.changeListener = listener;
+    }
+
+    // Méthode pour notifier les changements
+    private void notifyChange() {
+        if (changeListener != null) {
+            changeListener.run();
+        }
     }
 
     public ClassNode createClassNode(DiagramClass diagramClass) {
@@ -95,6 +108,8 @@ public class NodeManager {
                         }
                         if (relationManager != null) {
                             relationManager.updateAllRelations();
+                            // Informer que l'état a changé
+                            notifyChange();
                         }
                     }
                 }
@@ -106,6 +121,9 @@ public class NodeManager {
         if (relationManager != null) {
             classNode.setPositionChangeListener(() -> relationManager.updateAllRelationsLater());
         }
+
+        // Informer que l'état a changé
+        notifyChange();
 
         return classNode;
     }
@@ -122,6 +140,9 @@ public class NodeManager {
                     selectionListener.onNodeSelected(null);
                 }
             }
+
+            // Informer que l'état a changé
+            notifyChange();
         }
     }
 
@@ -132,6 +153,9 @@ public class NodeManager {
         if (selectionListener != null) {
             selectionListener.onNodeSelected(null);
         }
+
+        // Informer que l'état a changé
+        notifyChange();
     }
 
     public void selectNode(ClassNode node) {
@@ -148,6 +172,9 @@ public class NodeManager {
         if (selectionListener != null) {
             selectionListener.onNodeSelected(node);
         }
+
+        // Informer que l'état a changé
+        notifyChange();
     }
 
     public ClassNode getSelectedNode() {

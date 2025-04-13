@@ -24,6 +24,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import java.util.logging.Level;
@@ -129,8 +130,34 @@ public class MainViewController {
         setupSelectionHandling();
         setupEventBusListeners();
         setupKeyboardShortcuts();
+        setupProperLayering();
 
         LOGGER.log(Level.INFO, "MainViewController initialization complete");
+    }
+
+    private void setupProperLayering() {
+        // Assurez-vous que le conteneur de canvas est correctement limité
+        Rectangle clipRect = new Rectangle();
+        clipRect.widthProperty().bind(diagramCanvasContainer.widthProperty());
+        clipRect.heightProperty().bind(diagramCanvasContainer.heightProperty());
+        diagramCanvasContainer.setClip(clipRect);
+
+        // S'assurer que le diagramCanvas ne peut pas déborder sur la toolbar
+        diagramCanvasContainer.setPickOnBounds(true);
+
+        // Définition d'une hiérarchie d'ordre d'affichage
+        // Les valeurs plus petites sont affichées au-dessus
+        diagramCanvasContainer.setViewOrder(1.0); // Arrière-plan
+
+        // Assurer que les menus et toolbars restent au-dessus
+        if (diagramCanvasContainer.getParent() != null) {
+            diagramCanvasContainer.getParent().setViewOrder(0.5);
+        }
+
+        // S'assurer que le panneau d'édition reste visible
+        if (editorPanel != null) {
+            editorPanel.setViewOrder(0.0); // Premier plan
+        }
     }
 
     private void setupEventBusListeners() {
