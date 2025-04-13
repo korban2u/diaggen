@@ -3,13 +3,17 @@ package com.diaggen.controller;
 import com.diaggen.controller.command.CommandManager;
 import com.diaggen.event.DiagramActivatedEvent;
 import com.diaggen.event.DiagramChangedEvent;
+import com.diaggen.event.EventBus;
 import com.diaggen.layout.LayoutFactory;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramStore;
+import com.diaggen.model.Project;
 import com.diaggen.model.java.JavaCodeParser;
 import com.diaggen.service.ExportService;
 import com.diaggen.service.LayoutService;
 import com.diaggen.util.AlertHelper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.DirectoryChooser;
@@ -47,6 +51,7 @@ public class ExportController extends BaseController {
         this.classController = classController;
         this.diagramController = diagramController;
     }
+
     public void setLayoutService(LayoutService layoutService) {
         this.layoutService = layoutService;
     }
@@ -187,6 +192,12 @@ public class ExportController extends BaseController {
     }
 
     public void importJavaCode() {
+
+        if (diagramStore.getActiveProject() == null) {
+            AlertHelper.showWarning("Aucun projet actif", "Vous devez créer ou sélectionner un projet avant de pouvoir importer du code Java.");
+            return;
+        }
+
         Alert choiceAlert = new Alert(Alert.AlertType.CONFIRMATION);
         choiceAlert.setTitle("Importer du code Java");
         choiceAlert.setHeaderText("Choisir le type d'importation");
@@ -250,13 +261,9 @@ public class ExportController extends BaseController {
             LOGGER.log(Level.INFO, "Applying intelligent layout to imported diagram");
             if (layoutService != null) {
                 layoutService.applyLayout(parsedDiagram, LayoutFactory.LayoutType.FORCE_DIRECTED);
-            } else {
-                if (classController != null) {
-                    classController.arrangeClassesAutomatically();
-                }
             }
-            diagramStore.getDiagrams().add(parsedDiagram);
-            diagramStore.setCurrentFile(null);
+
+            diagramStore.getActiveProject().addDiagram(parsedDiagram);
 
             if (diagramController != null) {
                 LOGGER.log(Level.INFO, "Activating imported diagram using DiagramController");
@@ -273,5 +280,13 @@ public class ExportController extends BaseController {
                     "Le diagramme a été importé avec succès et disposé automatiquement.\n" +
                             "Vous pouvez utiliser la fonction 'Arrangement automatique' pour tester d'autres dispositions.");
         }
+    }
+
+    private ObservableList<ClassDiagram> getActiveDiagrams() {
+        Project activeProject = diagramStore.getActiveProject();
+        if (activeProject != null) {
+            return activeProject.getDiagrams();
+        }
+        return FXCollections.observableArrayList();
     }
 }

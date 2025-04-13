@@ -3,7 +3,7 @@ package com.diaggen.event;
 
 public class ElementSelectedEvent extends DiagramEvent {
     private final String elementId;
-    private final boolean isClass; // true si c'est une classe, false si c'est une relation
+    private final boolean isClass;
 
     public ElementSelectedEvent(String diagramId, String elementId, boolean isClass) {
         super(diagramId);

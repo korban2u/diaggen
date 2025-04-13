@@ -37,7 +37,7 @@ public class PlantUMLExporter implements DiagramExporter {
                 String packageName = diagramClass.getPackageName();
 
                 if (nestedClasses.containsKey(className)) {
-                    continue; // Les classes imbriquées seront gérées séparément
+                    continue;
                 }
 
                 StringBuilder packageContent = packageContents.computeIfAbsent(packageName, k -> new StringBuilder());

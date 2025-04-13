@@ -9,7 +9,7 @@ public class ViewportTransform {
     private final DoubleProperty translateX = new SimpleDoubleProperty(0.0);
     private final DoubleProperty translateY = new SimpleDoubleProperty(0.0);
     private double minScale = 0.1;
-    private double maxScale = 10.0;  // Augmenté pour permettre un zoom plus important
+    private double maxScale = 10.0;
     private double minTranslateX = -100000;
     private double maxTranslateX = 100000;
     private double minTranslateY = -100000;

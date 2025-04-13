@@ -1,34 +1,34 @@
 package com.diaggen.view.controller;
 
+import com.diaggen.controller.ExportController;
 import com.diaggen.controller.LayoutController;
 import com.diaggen.controller.MainController;
+import com.diaggen.controller.ProjectController;
 import com.diaggen.event.DiagramActivatedEvent;
 import com.diaggen.event.DiagramChangedEvent;
 import com.diaggen.event.EventBus;
 import com.diaggen.event.EventListener;
+import com.diaggen.event.ProjectActivatedEvent;
+import com.diaggen.event.ProjectChangedEvent;
 import com.diaggen.layout.LayoutFactory;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramClass;
 import com.diaggen.model.DiagramRelation;
+import com.diaggen.model.Project;
 import com.diaggen.view.diagram.DiagramCanvas;
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Rectangle;
-import javafx.stage.Stage;
 import javafx.stage.Window;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,13 +36,13 @@ public class MainViewController {
     private static final Logger LOGGER = Logger.getLogger(MainViewController.class.getName());
 
     @FXML
-    private ListView<ClassDiagram> diagramListView;
-
-    @FXML
     private StackPane diagramCanvasContainer;
 
     @FXML
     private Label statusLabel;
+
+    @FXML
+    private Label projectInfoLabel;
 
     @FXML
     private VBox editorPanel;
@@ -55,8 +55,12 @@ public class MainViewController {
 
     @FXML
     private Button deleteRelationButton;
+
     @FXML
     private StackPane editorPaneContainer;
+
+    @FXML
+    private ProjectExplorerController projectExplorerController;
 
     private MainController mainController;
     private DiagramCanvas diagramCanvas;
@@ -69,49 +73,29 @@ public class MainViewController {
     private boolean isProcessingEvent = false;
 
     private LayoutController layoutController;
-
-
+    private ProjectController projectController;
+    private ExportController exportController;
 
     @FXML
     public void initialize() {
         LOGGER.log(Level.INFO, "Initializing MainViewController");
-        diagramListView.setCellFactory(param -> new ListCell<>() {
-            @Override
-            protected void updateItem(ClassDiagram item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(item.getName());
-                }
-            }
-        });
 
-        diagramListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        diagramListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null && !isProcessingSelection) {
-                isProcessingSelection = true;
-                try {
-                    handleSelectDiagram(newValue);
-                } finally {
-                    isProcessingSelection = false;
-                }
-            }
-        });
         diagramCanvas = new DiagramCanvas();
         diagramCanvasContainer.getChildren().add(diagramCanvas);
         editorController = new EditorPanelController(editorContent);
+
         editorPanel.visibleProperty().addListener((obs, wasVisible, isVisible) -> {
             editorPaneContainer.setMouseTransparent(!isVisible);
             if (diagramCanvas != null) {
                 double editorWidth = isVisible ? editorPanel.getWidth() : 0;
                 if (editorWidth <= 0 && isVisible) {
-                    editorWidth = 300; // Largeur par défaut du panneau d'édition
+                    editorWidth = 300;
                 }
 
                 diagramCanvas.setEditorPanelState(isVisible, editorWidth);
             }
         });
+
         Platform.runLater(() -> {
             if (editorPanel.getScene() != null) {
                 editorPanel.widthProperty().addListener((obs, oldWidth, newWidth) -> {
@@ -131,6 +115,7 @@ public class MainViewController {
                 diagramCanvas.setEditorPanelState(false, 0);
             }
         });
+
         Label editorTitleLabel = (Label) editorPanel.getChildren().stream()
                 .filter(node -> node instanceof Label && ((Label) node).getText().equals("Éditeur"))
                 .findFirst()
@@ -138,18 +123,19 @@ public class MainViewController {
 
         if (editorTitleLabel != null) {
             HBox titleBox = new HBox();
-            titleBox.setAlignment(Pos.CENTER_LEFT);
+            titleBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
             titleBox.setSpacing(10);
             Label newTitleLabel = new Label("Éditeur");
             newTitleLabel.getStyleClass().add("editor-title");
 
-            titleBox.getChildren().addAll(newTitleLabel, new Region(), closeButton);
-            HBox.setHgrow(titleBox.getChildren().get(1), Priority.ALWAYS);
+            titleBox.getChildren().addAll(newTitleLabel, new javafx.scene.layout.Region(), closeButton);
+            javafx.scene.layout.HBox.setHgrow(titleBox.getChildren().get(1), javafx.scene.layout.Priority.ALWAYS);
             int labelIndex = editorPanel.getChildren().indexOf(editorTitleLabel);
             editorPanel.getChildren().remove(editorTitleLabel);
             editorPanel.getChildren().add(labelIndex, titleBox);
-            titleBox.setPadding(new Insets(10, 15, 10, 15));
+            titleBox.setPadding(new javafx.geometry.Insets(10, 15, 10, 15));
         }
+
         deleteClassButton.setDisable(true);
         deleteRelationButton.setDisable(true);
 
@@ -165,22 +151,45 @@ public class MainViewController {
         this.layoutController = layoutController;
     }
 
+    public void setProjectController(ProjectController projectController) {
+        this.projectController = projectController;
+    }
+
+    public void setExportController(ExportController exportController) {
+        this.exportController = exportController;
+    }
+
     private void setupProperLayering() {
-        Rectangle clipRect = new Rectangle();
-        clipRect.widthProperty().bind(diagramCanvasContainer.widthProperty());
-        clipRect.heightProperty().bind(diagramCanvasContainer.heightProperty());
-        diagramCanvasContainer.setClip(clipRect);
-        diagramCanvasContainer.setPickOnBounds(true);
-        diagramCanvasContainer.setViewOrder(1.0); // Arrière-plan
+        diagramCanvasContainer.setViewOrder(1.0);
         if (diagramCanvasContainer.getParent() != null) {
             diagramCanvasContainer.getParent().setViewOrder(0.5);
         }
         if (editorPanel != null) {
-            editorPanel.setViewOrder(0.0); // Premier plan
+            editorPanel.setViewOrder(0.0);
         }
     }
 
     private void setupEventBusListeners() {
+
+        eventBus.subscribe(ProjectActivatedEvent.class, (EventListener<ProjectActivatedEvent>) event -> {
+            if (isProcessingEvent) return;
+
+            LOGGER.log(Level.INFO, "ProjectActivatedEvent received for project ID: {0}", event.getDiagramId());
+            isProcessingEvent = true;
+            try {
+                Platform.runLater(() -> {
+                    Project activeProject = mainController.getDiagramStore().getActiveProject();
+                    if (activeProject != null) {
+                        projectInfoLabel.setText("Projet: " + activeProject.getName());
+                    } else {
+                        projectInfoLabel.setText("Aucun projet actif");
+                    }
+                });
+            } finally {
+                isProcessingEvent = false;
+            }
+        });
+
         eventBus.subscribe(DiagramActivatedEvent.class, (EventListener<DiagramActivatedEvent>) event -> {
             if (isProcessingEvent) return;
 
@@ -188,43 +197,21 @@ public class MainViewController {
             isProcessingEvent = true;
             try {
                 Platform.runLater(() -> {
-                    ObservableList<ClassDiagram> diagrams = diagramListView.getItems();
-                    ClassDiagram targetDiagram = null;
-
-                    for (ClassDiagram diagram : diagrams) {
-                        if (diagram.getId().equals(event.getDiagramId())) {
-                            targetDiagram = diagram;
-                            break;
-                        }
+                    ClassDiagram diagram = mainController.getDiagramStore().getActiveDiagram();
+                    if (diagram != null) {
+                        diagramCanvas.loadDiagram(diagram);
+                        setStatus("Diagramme actif: " + diagram.getName());
+                    } else {
+                        diagramCanvas.clear();
+                        setStatus("Prêt");
                     }
 
-                    if (targetDiagram != null) {
-                        if (editorController != null) {
-                            editorController.clearEditor();
-                            editorPanel.setVisible(false);
-                            if (diagramCanvas != null) {
-                                diagramCanvas.setEditorPanelState(false, 0);
-                            }
-                        }
-                        selectedClass = null;
-                        selectedRelation = null;
-                        deleteClassButton.setDisable(true);
-                        deleteRelationButton.setDisable(true);
-                        ClassDiagram selectedDiagram = diagramListView.getSelectionModel().getSelectedItem();
-                        if (selectedDiagram != targetDiagram) {
-                            isProcessingSelection = true;
-                            try {
-                                diagramListView.getSelectionModel().select(targetDiagram);
-                            } finally {
-                                isProcessingSelection = false;
-                            }
-                        }
-                        diagramCanvas.loadDiagram(targetDiagram);
-
-                        setStatus("Diagramme actif: " + targetDiagram.getName());
-                        LOGGER.log(Level.INFO, "Diagram activated in UI: {0}", targetDiagram.getName());
+                    Project activeProject = mainController.getDiagramStore().getActiveProject();
+                    if (activeProject != null) {
+                        projectInfoLabel.setText("Projet: " + activeProject.getName() +
+                                (diagram != null ? " | Diagramme: " + diagram.getName() : ""));
                     } else {
-                        LOGGER.log(Level.WARNING, "Could not find diagram with ID: {0}", event.getDiagramId());
+                        projectInfoLabel.setText("Aucun projet actif");
                     }
                 });
             } finally {
@@ -235,10 +222,23 @@ public class MainViewController {
         eventBus.subscribe(DiagramChangedEvent.class, (EventListener<DiagramChangedEvent>) event -> {
             LOGGER.log(Level.FINE, "DiagramChangedEvent received for diagram ID: {0}", event.getDiagramId());
             Platform.runLater(() -> {
-                diagramListView.refresh();
                 if (diagramCanvas.getDiagram() != null &&
                         diagramCanvas.getDiagram().getId().equals(event.getDiagramId())) {
                     diagramCanvas.refresh();
+                }
+            });
+        });
+
+        eventBus.subscribe(ProjectChangedEvent.class, (EventListener<ProjectChangedEvent>) event -> {
+            LOGGER.log(Level.FINE, "ProjectChangedEvent received for project ID: {0}", event.getDiagramId());
+            Platform.runLater(() -> {
+                Project activeProject = mainController.getDiagramStore().getActiveProject();
+                if (activeProject != null) {
+                    projectInfoLabel.setText("Projet: " + activeProject.getName() +
+                            (mainController.getDiagramStore().getActiveDiagram() != null ?
+                                    " | Diagramme: " + mainController.getDiagramStore().getActiveDiagram().getName() : ""));
+                } else {
+                    projectInfoLabel.setText("Aucun projet actif");
                 }
             });
         });
@@ -257,7 +257,7 @@ public class MainViewController {
                 Platform.runLater(() -> {
                     double editorWidth = editorPanel.getWidth();
                     if (editorWidth <= 0) {
-                        editorWidth = 300; // Valeur par défaut
+                        editorWidth = 300;
                     }
                     diagramCanvas.setEditorPanelState(true, editorWidth);
                 });
@@ -289,7 +289,7 @@ public class MainViewController {
                 Platform.runLater(() -> {
                     double editorWidth = editorPanel.getWidth();
                     if (editorWidth <= 0) {
-                        editorWidth = 300; // Valeur par défaut
+                        editorWidth = 300;
                     }
                     diagramCanvas.setEditorPanelState(true, editorWidth);
                 });
@@ -327,47 +327,65 @@ public class MainViewController {
     }
 
     private void setupKeyboardShortcuts() {
-        Scene scene = diagramCanvasContainer.getScene();
-        if (scene != null) {
-            KeyCombination deleteKey = new KeyCodeCombination(KeyCode.DELETE);
-            scene.getAccelerators().put(deleteKey, () -> {
-                if (diagramCanvas.hasSelection()) {
-                    if (selectedClass != null) {
-                        handleDeleteClass();
-                    } else if (selectedRelation != null) {
-                        handleDeleteRelation();
+        Platform.runLater(() -> {
+            Scene scene = diagramCanvasContainer.getScene();
+            if (scene != null) {
+                KeyCombination deleteKey = new KeyCodeCombination(KeyCode.DELETE);
+                scene.getAccelerators().put(deleteKey, () -> {
+                    if (diagramCanvas.hasSelection()) {
+                        if (selectedClass != null) {
+                            handleDeleteClass();
+                        } else if (selectedRelation != null) {
+                            handleDeleteRelation();
+                        }
                     }
-                }
-            });
-            KeyCombination undoKey = new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN);
-            scene.getAccelerators().put(undoKey, this::handleUndo);
+                });
 
-            KeyCombination redoKey = new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN);
-            scene.getAccelerators().put(redoKey, this::handleRedo);
-            KeyCombination zoomInKey = new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.CONTROL_DOWN);
-            scene.getAccelerators().put(zoomInKey, () -> diagramCanvas.getNavigationManager().zoomIn());
+                KeyCombination undoKey = new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN);
+                scene.getAccelerators().put(undoKey, this::handleUndo);
 
-            KeyCombination zoomOutKey = new KeyCodeCombination(KeyCode.MINUS, KeyCombination.CONTROL_DOWN);
-            scene.getAccelerators().put(zoomOutKey, () -> diagramCanvas.getNavigationManager().zoomOut());
+                KeyCombination redoKey = new KeyCodeCombination(KeyCode.Y, KeyCombination.CONTROL_DOWN);
+                scene.getAccelerators().put(redoKey, this::handleRedo);
 
-            KeyCombination resetZoomKey = new KeyCodeCombination(KeyCode.DIGIT0, KeyCombination.CONTROL_DOWN);
-            scene.getAccelerators().put(resetZoomKey, () -> diagramCanvas.getNavigationManager().resetView());
+                KeyCombination zoomInKey = new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.CONTROL_DOWN);
+                scene.getAccelerators().put(zoomInKey, () -> diagramCanvas.getNavigationManager().zoomIn());
 
-            KeyCombination fitToViewKey = new KeyCodeCombination(KeyCode.F, KeyCombination.CONTROL_DOWN);
-            scene.getAccelerators().put(fitToViewKey, () -> diagramCanvas.zoomToFit());
-            KeyCombination addClassKey = new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN);
-            scene.getAccelerators().put(addClassKey, () -> {
-                if (mainController != null) {
-                    mainController.handleAddClass();
-                }
-            });
-            KeyCombination addRelationKey = new KeyCodeCombination(KeyCode.R, KeyCombination.CONTROL_DOWN);
-            scene.getAccelerators().put(addRelationKey, () -> {
-                if (mainController != null) {
-                    mainController.handleAddRelation();
-                }
-            });
-        }
+                KeyCombination zoomOutKey = new KeyCodeCombination(KeyCode.MINUS, KeyCombination.CONTROL_DOWN);
+                scene.getAccelerators().put(zoomOutKey, () -> diagramCanvas.getNavigationManager().zoomOut());
+
+                KeyCombination resetZoomKey = new KeyCodeCombination(KeyCode.DIGIT0, KeyCombination.CONTROL_DOWN);
+                scene.getAccelerators().put(resetZoomKey, () -> diagramCanvas.getNavigationManager().resetView());
+
+                KeyCombination fitToViewKey = new KeyCodeCombination(KeyCode.F, KeyCombination.CONTROL_DOWN);
+                scene.getAccelerators().put(fitToViewKey, () -> diagramCanvas.zoomToFit());
+
+                KeyCombination addClassKey = new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN, KeyCombination.ALT_DOWN);
+                scene.getAccelerators().put(addClassKey, () -> {
+                    if (mainController != null) {
+                        mainController.handleAddClass();
+                    }
+                });
+
+                KeyCombination addRelationKey = new KeyCodeCombination(KeyCode.R, KeyCombination.CONTROL_DOWN);
+                scene.getAccelerators().put(addRelationKey, () -> {
+                    if (mainController != null) {
+                        mainController.handleAddRelation();
+                    }
+                });
+
+                KeyCombination newProjectKey = new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN);
+                scene.getAccelerators().put(newProjectKey, this::handleNewProject);
+
+                KeyCombination newDiagramKey = new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN);
+                scene.getAccelerators().put(newDiagramKey, this::handleNewDiagram);
+
+                KeyCombination saveProjectKey = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
+                scene.getAccelerators().put(saveProjectKey, this::handleSaveProject);
+
+                KeyCombination openProjectKey = new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN);
+                scene.getAccelerators().put(openProjectKey, this::handleOpenProject);
+            }
+        });
     }
 
     public void setMainController(MainController mainController) {
@@ -376,22 +394,11 @@ public class MainViewController {
         if (editorController != null) {
             editorController.setMainController(mainController);
         }
-    }
 
-    public void updateDiagramList(ObservableList<ClassDiagram> diagrams) {
-        LOGGER.log(Level.INFO, "Updating diagram list with {0} diagrams", diagrams.size());
-        diagramListView.setItems(diagrams);
-    }
-
-    public void updateSelectedDiagram(ClassDiagram diagram) {
-        if (diagram != null) {
-            LOGGER.log(Level.INFO, "Updating selected diagram to: {0}", diagram.getName());
-            isProcessingSelection = true;
-            try {
-                diagramListView.getSelectionModel().select(diagram);
-            } finally {
-                isProcessingSelection = false;
-            }
+        if (projectExplorerController != null) {
+            projectExplorerController.setDiagramStore(mainController.getDiagramStore());
+            projectExplorerController.setProjectController(projectController);
+            projectExplorerController.setDiagramController(mainController.getDiagramController());
         }
     }
 
@@ -403,7 +410,7 @@ public class MainViewController {
         statusLabel.setText(status);
     }
 
-        private void updateEditorPanelState(boolean isVisible) {
+    private void updateEditorPanelState(boolean isVisible) {
         if (diagramCanvas == null) return;
 
         double editorWidth = 0;
@@ -419,7 +426,7 @@ public class MainViewController {
         diagramCanvas.setEditorPanelState(isVisible, editorWidth);
     }
 
-        public void deselectAllAndCloseEditor() {
+    public void deselectAllAndCloseEditor() {
         if (diagramCanvas != null) {
             diagramCanvas.deselectAll();
         }
@@ -427,13 +434,6 @@ public class MainViewController {
         if (editorPanel != null) {
             editorPanel.setVisible(false);
             updateEditorPanelState(false);
-        }
-    }
-
-    private void handleSelectDiagram(ClassDiagram diagram) {
-        if (mainController != null && diagram != null) {
-            LOGGER.log(Level.INFO, "handleSelectDiagram called for diagram: {0}", diagram.getName());
-            mainController.handleSelectDiagram(diagram);
         }
     }
 
@@ -445,6 +445,78 @@ public class MainViewController {
         return selectedRelation;
     }
 
+
+    @FXML
+    private void handleNewProject() {
+        if (projectController != null) {
+            LOGGER.log(Level.INFO, "Creating new project");
+            projectController.createNewProjectWithDialog();
+        }
+    }
+
+    @FXML
+    private void handleOpenProject() {
+        if (projectController != null) {
+            LOGGER.log(Level.INFO, "Opening project");
+            projectController.openProject();
+        }
+    }
+
+    @FXML
+    private void handleSaveProject() {
+        if (projectController != null) {
+            LOGGER.log(Level.INFO, "Saving project");
+            projectController.saveProject();
+        }
+    }
+
+    @FXML
+    private void handleSaveProjectAs() {
+        if (projectController != null) {
+            LOGGER.log(Level.INFO, "Saving project as...");
+            projectController.saveProjectAs();
+        }
+    }
+
+    @FXML
+    private void handleImportDiagrams() {
+        if (projectController != null) {
+            LOGGER.log(Level.INFO, "Importing diagrams from another project");
+            projectController.importDiagramsFromProject();
+        }
+    }
+
+    @FXML
+    private void handleExportDiagram() {
+        if (exportController != null) {
+            Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
+            dialog.setTitle("Exporter le diagramme");
+            dialog.setHeaderText("Choisir le format d'exportation");
+            dialog.setContentText("Quel format souhaitez-vous utiliser ?");
+
+            ButtonType pngButton = new ButtonType("PNG");
+            ButtonType svgButton = new ButtonType("SVG");
+            ButtonType pumlButton = new ButtonType("PlantUML");
+            ButtonType javaButton = new ButtonType("Code Java");
+            ButtonType cancelButton = ButtonType.CANCEL;
+
+            dialog.getButtonTypes().setAll(pngButton, svgButton, pumlButton, javaButton, cancelButton);
+
+            dialog.showAndWait().ifPresent(result -> {
+                if (result == pngButton) {
+                    exportController.exportToPNG();
+                } else if (result == svgButton) {
+                    exportController.exportToSVG();
+                } else if (result == pumlButton) {
+                    exportController.exportToPlantUML();
+                } else if (result == javaButton) {
+                    exportController.exportToJavaCode();
+                }
+            });
+        }
+    }
+
+
     @FXML
     private void handleNewDiagram() {
         if (mainController != null) {
@@ -453,45 +525,6 @@ public class MainViewController {
         }
     }
 
-    @FXML
-    private void handleOpenDiagram() {
-        if (mainController != null) {
-            LOGGER.log(Level.INFO, "Opening diagram");
-            mainController.handleOpen();
-        }
-    }
-
-    @FXML
-    private void handleSaveDiagram() {
-        if (mainController != null) {
-            LOGGER.log(Level.INFO, "Saving diagram");
-            mainController.handleSave();
-        }
-    }
-
-    @FXML
-    private void handleSaveAsDiagram() {
-        if (mainController != null) {
-            LOGGER.log(Level.INFO, "Saving diagram as...");
-            mainController.handleSaveAs();
-        }
-    }
-
-    @FXML
-    private void handleEditDiagram() {
-        if (mainController != null) {
-            LOGGER.log(Level.INFO, "Editing diagram properties");
-            mainController.handleEditDiagram();
-        }
-    }
-
-    @FXML
-    private void handleDeleteDiagram() {
-        if (mainController != null) {
-            LOGGER.log(Level.INFO, "Deleting diagram");
-            mainController.handleDeleteDiagram();
-        }
-    }
 
     @FXML
     private void handleAddClass() {
@@ -598,7 +631,7 @@ public class MainViewController {
         alert.setContentText(
                 "Version: 1.0.0\n\n" +
                         "DiagGen est un outil de modélisation UML pour créer\n" +
-                        "et manipuler des diagrammes de classes.\n\n" +
+                        "et gérer des projets contenant des diagrammes de classes.\n\n" +
                         "Développé avec JavaFX " + System.getProperty("javafx.version") + "\n" +
                         "Java " + System.getProperty("java.version") + "\n\n" +
                         "© 2025 Ryan Korban"
@@ -608,7 +641,35 @@ public class MainViewController {
 
     @FXML
     private void handleExit() {
-        Stage stage = (Stage) diagramCanvasContainer.getScene().getWindow();
+
+        if (projectController != null && mainController != null && mainController.getDiagramStore().getActiveProject() != null) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Quitter l'application");
+            alert.setHeaderText("Enregistrer le projet avant de quitter ?");
+            alert.setContentText("Voulez-vous enregistrer le projet actuel avant de quitter ?");
+
+            ButtonType saveButton = new ButtonType("Enregistrer");
+            ButtonType dontSaveButton = new ButtonType("Ne pas enregistrer");
+            ButtonType cancelButton = ButtonType.CANCEL;
+
+            alert.getButtonTypes().setAll(saveButton, dontSaveButton, cancelButton);
+
+            alert.showAndWait().ifPresent(result -> {
+                if (result == saveButton) {
+                    projectController.saveProject();
+                    closeApplication();
+                } else if (result == dontSaveButton) {
+                    closeApplication();
+                }
+
+            });
+        } else {
+            closeApplication();
+        }
+    }
+
+    private void closeApplication() {
+        javafx.stage.Stage stage = (javafx.stage.Stage) diagramCanvasContainer.getScene().getWindow();
         stage.close();
     }
 

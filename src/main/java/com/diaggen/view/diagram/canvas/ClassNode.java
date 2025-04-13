@@ -85,7 +85,7 @@ public class ClassNode extends Region {
             if (!getStyleClass().contains("selected")) {
                 getStyleClass().add("selected");
             }
-            toFront(); // Amener l'élément sélectionné au premier plan
+            toFront();
         } else {
             getStyleClass().remove("selected");
         }

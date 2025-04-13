@@ -21,7 +21,7 @@ public class DiagramClass {
     private final DoubleProperty x;
     private final DoubleProperty y;
     private final ObjectProperty<ClassType> classType;
-    private String diagramId; // Référence à l'ID du diagramme parent
+    private String diagramId;
 
     public DiagramClass(String name, String packageName, ClassType classType) {
         this.id = UUID.randomUUID().toString();

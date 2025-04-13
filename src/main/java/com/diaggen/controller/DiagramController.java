@@ -6,11 +6,13 @@ import com.diaggen.event.DiagramChangedEvent;
 import com.diaggen.event.EventBus;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramStore;
+import com.diaggen.model.Project;
 import com.diaggen.model.persist.DiagramSerializer;
 import com.diaggen.util.AlertHelper;
 import com.diaggen.view.dialog.DialogFactory;
 import javafx.application.Platform;
-import javafx.collections.ListChangeListener;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
@@ -18,6 +20,8 @@ import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,26 +32,35 @@ public class DiagramController extends BaseController {
     private Window ownerWindow;
     private DialogFactory dialogFactory;
 
+    private final Map<String, File> diagramFiles = new HashMap<>();
+
     private boolean isActivating = false;
 
     public DiagramController(DiagramStore diagramStore, CommandManager commandManager) {
         super(diagramStore, commandManager);
         this.dialogFactory = DialogFactory.getInstance();
 
-        diagramStore.getDiagrams().addListener((ListChangeListener<ClassDiagram>) change -> {
-            while (change.next()) {
-                if (change.wasAdded()) {
-                    for (ClassDiagram diagram : change.getAddedSubList()) {
-                        eventBus.publish(new DiagramChangedEvent(diagram.getId(),
-                                DiagramChangedEvent.ChangeType.DIAGRAM_RENAMED, null));
+        diagramStore.activeProjectProperty().addListener((obs, oldProject, newProject) -> {
+            if (newProject != null) {
+
+                newProject.getDiagrams().addListener((javafx.collections.ListChangeListener<ClassDiagram>) change -> {
+                    while (change.next()) {
+                        if (change.wasAdded()) {
+                            for (ClassDiagram diagram : change.getAddedSubList()) {
+                                eventBus.publish(new DiagramChangedEvent(diagram.getId(),
+                                        DiagramChangedEvent.ChangeType.DIAGRAM_RENAMED, null));
+                            }
+                        }
+                        if (change.wasRemoved()) {
+                            for (ClassDiagram diagram : change.getRemoved()) {
+
+                                diagramFiles.remove(diagram.getId());
+                                eventBus.publish(new DiagramChangedEvent(diagram.getId(),
+                                        DiagramChangedEvent.ChangeType.DIAGRAM_CLEARED, null));
+                            }
+                        }
                     }
-                }
-                if (change.wasRemoved()) {
-                    for (ClassDiagram diagram : change.getRemoved()) {
-                        eventBus.publish(new DiagramChangedEvent(diagram.getId(),
-                                DiagramChangedEvent.ChangeType.DIAGRAM_CLEARED, null));
-                    }
-                }
+                });
             }
         });
     }
@@ -57,6 +70,11 @@ public class DiagramController extends BaseController {
     }
 
     public ClassDiagram createNewDiagramWithDialog() {
+
+        if (diagramStore.getActiveProject() == null) {
+            AlertHelper.showWarning("Aucun projet actif", "Vous devez créer ou sélectionner un projet avant de pouvoir créer un diagramme.");
+            return null;
+        }
 
         TextInputDialog dialog = new TextInputDialog("Nouveau diagramme");
         dialog.setTitle("Nouveau diagramme");
@@ -85,6 +103,11 @@ public class DiagramController extends BaseController {
     public ClassDiagram createNewDiagram(String name) {
         LOGGER.log(Level.INFO, "Creating new diagram: {0}", name);
 
+        if (diagramStore.getActiveProject() == null) {
+            LOGGER.log(Level.WARNING, "Cannot create diagram: No active project");
+            return null;
+        }
+
         ClassDiagram diagram = diagramStore.createNewDiagram(name);
 
         eventBus.publish(new DiagramChangedEvent(diagram.getId(),
@@ -94,7 +117,6 @@ public class DiagramController extends BaseController {
 
         return diagram;
     }
-
 
     public void activateDiagram(ClassDiagram diagram, boolean forceActivation) {
         if (diagram == null) {
@@ -123,11 +145,9 @@ public class DiagramController extends BaseController {
             eventBus.publish(new DiagramChangedEvent(diagram.getId(),
                     DiagramChangedEvent.ChangeType.DIAGRAM_RENAMED, null));
         } finally {
-
             isActivating = false;
         }
     }
-
 
     public void activateDiagram(ClassDiagram diagram) {
         activateDiagram(diagram, false);
@@ -150,7 +170,7 @@ public class DiagramController extends BaseController {
             if (result.isPresent() && !result.get().trim().isEmpty()) {
                 newName = result.get().trim();
             } else {
-                return; // Annulation ou nom vide
+                return;
             }
         }
 
@@ -178,28 +198,37 @@ public class DiagramController extends BaseController {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             String diagramId = diagram.getId();
             diagramStore.removeDiagram(diagram);
+
+            diagramFiles.remove(diagramId);
             eventBus.publish(new DiagramChangedEvent(diagramId,
                     DiagramChangedEvent.ChangeType.DIAGRAM_CLEARED, null));
         }
     }
 
     public void saveDiagram() {
-        File currentFile = diagramStore.getCurrentFile();
+        ClassDiagram activeDiagram = diagramStore.getActiveDiagram();
+        if (activeDiagram == null) {
+            AlertHelper.showWarning("Aucun diagramme actif", "Il n'y a pas de diagramme à enregistrer.");
+            return;
+        }
+
+        File currentFile = diagramFiles.get(activeDiagram.getId());
         if (currentFile != null) {
-            saveToFile(currentFile);
+            saveToFile(activeDiagram, currentFile);
         } else {
             saveAsDiagram();
         }
     }
 
     public void saveAsDiagram() {
-        if (diagramStore.getActiveDiagram() == null) {
+        ClassDiagram activeDiagram = diagramStore.getActiveDiagram();
+        if (activeDiagram == null) {
             AlertHelper.showWarning("Aucun diagramme actif", "Il n'y a pas de diagramme à enregistrer.");
             return;
         }
 
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Enregistrer le diagramme");
+        fileChooser.setTitle("Exporter le diagramme");
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Fichiers DiagGen (*.dgn)", "*.dgn"));
 
@@ -208,14 +237,21 @@ public class DiagramController extends BaseController {
             if (!file.getName().endsWith(".dgn")) {
                 file = new File(file.getAbsolutePath() + ".dgn");
             }
-            saveToFile(file);
-            diagramStore.setCurrentFile(file);
+            saveToFile(activeDiagram, file);
+
+            diagramFiles.put(activeDiagram.getId(), file);
         }
     }
 
     public void openDiagram() {
+
+        if (diagramStore.getActiveProject() == null) {
+            AlertHelper.showWarning("Aucun projet actif", "Vous devez créer ou sélectionner un projet avant de pouvoir ouvrir un diagramme.");
+            return;
+        }
+
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Ouvrir un diagramme");
+        fileChooser.setTitle("Importer un diagramme");
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Fichiers DiagGen (*.dgn)", "*.dgn"));
 
@@ -225,8 +261,9 @@ public class DiagramController extends BaseController {
                 DiagramSerializer serializer = new DiagramSerializer();
                 ClassDiagram loadedDiagram = serializer.deserialize(file);
 
-                diagramStore.getDiagrams().add(loadedDiagram);
-                diagramStore.setCurrentFile(file);
+                diagramStore.getActiveProject().addDiagram(loadedDiagram);
+
+                diagramFiles.put(loadedDiagram.getId(), file);
 
                 activateDiagram(loadedDiagram, true);
 
@@ -239,15 +276,25 @@ public class DiagramController extends BaseController {
         }
     }
 
-    private void saveToFile(File file) {
+    private void saveToFile(ClassDiagram diagram, File file) {
         try {
             DiagramSerializer serializer = new DiagramSerializer();
-            serializer.serialize(diagramStore.getActiveDiagram(), file);
+            serializer.serialize(diagram, file);
             LOGGER.log(Level.INFO, "Successfully saved diagram to {0}", file.getName());
+            AlertHelper.showInfo("Exportation réussie", "Le diagramme a été exporté avec succès.");
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Error saving diagram", e);
-            AlertHelper.showError("Erreur lors de l'enregistrement",
-                    "Une erreur est survenue lors de l'enregistrement du diagramme : " + e.getMessage());
+            AlertHelper.showError("Erreur lors de l'exportation",
+                    "Une erreur est survenue lors de l'exportation du diagramme : " + e.getMessage());
+        }
+    }
+
+
+    private ObservableList<ClassDiagram> getActiveDiagrams() {
+        if (diagramStore.getActiveProject() != null) {
+            return diagramStore.getActiveProject().getDiagrams();
+        } else {
+            return FXCollections.observableArrayList();
         }
     }
 }

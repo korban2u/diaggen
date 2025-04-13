@@ -14,7 +14,7 @@ public class DiagramRelation {
     private final StringProperty sourceMultiplicity;
     private final StringProperty targetMultiplicity;
     private final StringProperty label;
-    private String diagramId; // Référence à l'ID du diagramme parent
+    private String diagramId;
 
     public DiagramRelation(DiagramClass sourceClass, DiagramClass targetClass, RelationType relationType,
                            String sourceMultiplicity, String targetMultiplicity, String label) {

@@ -147,4 +147,8 @@ public class MainController {
     public CommandManager getCommandManager() {
         return commandManager;
     }
+
+    public DiagramController getDiagramController() {
+        return diagramController;
+    }
 }

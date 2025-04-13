@@ -26,7 +26,7 @@ public class GridRenderer {
     private final Color originLineColor = Color.rgb(100, 149, 237, 0.5);
     private final Color textColor = Color.rgb(150, 150, 150);
 
-    private int gridSpacing = 1; // Facteur d'espacement adaptatif
+    private int gridSpacing = 1;
 
     public GridRenderer(Canvas canvas, int minorGridSize, int majorGridSize) {
         this.canvas = canvas;

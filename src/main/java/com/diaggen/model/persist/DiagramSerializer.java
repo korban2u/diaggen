@@ -5,6 +5,7 @@ import com.diaggen.model.*;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -28,7 +29,7 @@ public class DiagramSerializer {
         }
     }
 
-    private DiagramDTO convertToDTO(ClassDiagram diagram) {
+    public DiagramDTO convertToDTO(ClassDiagram diagram) {
         DiagramDTO dto = new DiagramDTO();
         dto.setId(diagram.getId());
         dto.setName(diagram.getName());
@@ -92,57 +93,77 @@ public class DiagramSerializer {
         return dto;
     }
 
-    private ClassDiagram convertFromDTO(DiagramDTO dto) {
+    public ClassDiagram convertFromDTO(DiagramDTO dto) {
+
         ClassDiagram diagram = new ClassDiagram(dto.getName());
+
 
         Map<String, DiagramClass> classesMap = new HashMap<>();
 
+        Map<String, String> oldToNewClassIds = new HashMap<>();
+
         for (DiagramClassDTO classDTO : dto.getClasses()) {
             ClassType classType = ClassType.valueOf(classDTO.getClassType());
+
             DiagramClass diagramClass = new DiagramClass(classDTO.getName(), classDTO.getPackageName(), classType);
+
+            oldToNewClassIds.put(classDTO.getId(), diagramClass.getId());
 
             diagramClass.setX(classDTO.getX());
             diagramClass.setY(classDTO.getY());
 
             for (MemberDTO attributeDTO : classDTO.getAttributes()) {
                 Visibility visibility = Visibility.valueOf(attributeDTO.getVisibility());
+
                 Member attribute = new Member(attributeDTO.getName(), attributeDTO.getType(), visibility);
                 diagramClass.addAttribute(attribute);
             }
 
             for (MethodDTO methodDTO : classDTO.getMethods()) {
                 Visibility visibility = Visibility.valueOf(methodDTO.getVisibility());
+
+                java.util.List<Parameter> parameters = new java.util.ArrayList<>();
+                for (ParameterDTO paramDTO : methodDTO.getParameters()) {
+                    Parameter param = new Parameter(paramDTO.getName(), paramDTO.getType());
+                    parameters.add(param);
+                }
+
                 Method method = new Method(
-                    methodDTO.getName(),
-                    methodDTO.getReturnType(),
-                    methodDTO.getParameters().stream()
-                        .map(paramDTO -> new Parameter(paramDTO.getName(), paramDTO.getType()))
-                        .toList(),
-                    visibility,
-                    methodDTO.isAbstract(),
-                    methodDTO.isStatic()
+                        methodDTO.getName(),
+                        methodDTO.getReturnType(),
+                        parameters,
+                        visibility,
+                        methodDTO.isAbstract(),
+                        methodDTO.isStatic()
                 );
+
                 diagramClass.addMethod(method);
             }
 
-            classesMap.put(classDTO.getId(), diagramClass);
+            classesMap.put(diagramClass.getId(), diagramClass);
             diagram.addClass(diagramClass);
         }
 
         for (DiagramRelationDTO relationDTO : dto.getRelations()) {
-            DiagramClass sourceClass = classesMap.get(relationDTO.getSourceClassId());
-            DiagramClass targetClass = classesMap.get(relationDTO.getTargetClassId());
 
-            if (sourceClass != null && targetClass != null) {
+            String newSourceClassId = oldToNewClassIds.get(relationDTO.getSourceClassId());
+            String newTargetClassId = oldToNewClassIds.get(relationDTO.getTargetClassId());
+
+            if (newSourceClassId != null && newTargetClassId != null) {
+                DiagramClass sourceClass = classesMap.get(newSourceClassId);
+                DiagramClass targetClass = classesMap.get(newTargetClassId);
+
                 RelationType relationType = RelationType.valueOf(relationDTO.getRelationType());
+
                 DiagramRelation relation = new DiagramRelation(
-                    sourceClass,
-                    targetClass,
-                    relationType,
-                    relationDTO.getSourceMultiplicity(),
-                    relationDTO.getTargetMultiplicity(),
-                    relationDTO.getLabel()
+                        sourceClass,
+                        targetClass,
+                        relationType,
+                        relationDTO.getSourceMultiplicity(),
+                        relationDTO.getTargetMultiplicity(),
+                        relationDTO.getLabel()
                 );
+
                 diagram.addRelation(relation);
             }
         }
@@ -312,6 +333,3 @@ public class DiagramSerializer {
         public void setLabel(String label) { this.label = label; }
     }
 }
-
-
-

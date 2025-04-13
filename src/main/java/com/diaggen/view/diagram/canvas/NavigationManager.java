@@ -130,7 +130,7 @@ public class NavigationManager {
         double step = KEYBOARD_PAN_STEP / transform.getScale();
 
         if (event.isControlDown()) {
-            step *= 3; // Mouvement plus rapide avec Ctrl enfoncé
+            step *= 3;
         }
 
         switch (event.getCode()) {
@@ -275,8 +275,8 @@ public class NavigationManager {
             hasClasses = true;
             double nodeX = diagramClass.getX();
             double nodeY = diagramClass.getY();
-            double nodeWidth = 200;  // Approximation
-            double nodeHeight = 150; // Approximation
+            double nodeWidth = 200;
+            double nodeHeight = 150;
 
             minX = Math.min(minX, nodeX);
             minY = Math.min(minY, nodeY);

@@ -155,7 +155,7 @@ public class DiagramCanvas extends AnchorPane {
                 AnchorPane.setRightAnchor(miniMapView, newVal.doubleValue()));
 
         if (isEditorVisible) {
-            double requiredOffset = editorPanelWidth + 20.0; // 20px de marge
+            double requiredOffset = editorPanelWidth + 20.0;
             if (getWidth() - requiredOffset < miniMapView.getWidth() + 10) {
                 Timeline timeline = new Timeline(
                         new KeyFrame(Duration.millis(250),
@@ -463,7 +463,7 @@ public class DiagramCanvas extends AnchorPane {
             }
         }
 
-        double margin = 1000;  // Marge très large pour un espace de travail étendu
+        double margin = 1000;
         double width = Math.max(DEFAULT_GRID_WIDTH, maxX - minX + 2 * margin);
         double height = Math.max(DEFAULT_GRID_HEIGHT, maxY - minY + 2 * margin);
 

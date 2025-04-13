@@ -15,11 +15,16 @@
             <!-- Menu Bar -->
             <MenuBar>
                 <Menu text="Fichier">
-                    <MenuItem text="Nouveau" onAction="#handleNewDiagram" accelerator="Ctrl+N"/>
-                    <MenuItem text="Ouvrir..." onAction="#handleOpenDiagram" accelerator="Ctrl+O"/>
+                    <MenuItem text="Nouveau projet" onAction="#handleNewProject" accelerator="Ctrl+Shift+N"/>
+                    <MenuItem text="Ouvrir un projet..." onAction="#handleOpenProject" accelerator="Ctrl+Shift+O"/>
                     <SeparatorMenuItem />
-                    <MenuItem text="Enregistrer" onAction="#handleSaveDiagram" accelerator="Ctrl+S"/>
-                    <MenuItem text="Enregistrer sous..." onAction="#handleSaveAsDiagram" accelerator="Ctrl+Shift+S"/>
+                    <MenuItem text="Enregistrer le projet" onAction="#handleSaveProject" accelerator="Ctrl+S"/>
+                    <MenuItem text="Enregistrer le projet sous..." onAction="#handleSaveProjectAs" accelerator="Ctrl+Shift+S"/>
+                    <SeparatorMenuItem />
+                    <MenuItem text="Nouveau diagramme" onAction="#handleNewDiagram" accelerator="Ctrl+N"/>
+                    <MenuItem text="Importer des diagrammes..." onAction="#handleImportDiagrams"/>
+                    <SeparatorMenuItem />
+                    <MenuItem text="Exporter le diagramme actuel..." onAction="#handleExportDiagram" accelerator="Ctrl+E"/>
                     <SeparatorMenuItem />
                     <MenuItem text="Quitter" onAction="#handleExit" accelerator="Alt+F4"/>
                 </Menu>
@@ -28,20 +33,16 @@
                     <MenuItem text="Rétablir" onAction="#handleRedo" accelerator="Ctrl+Y"/>
                 </Menu>
 
-                <!-- Extrait de MainView.fxml - Menu Layout à ajouter -->
+                <!-- Menu Layout -->
                 <Menu text="Disposition">
-                    <MenuItem text="Arranger automatiquement..." onAction="#handleArrangeClasses" accelerator="Ctrl+L">
-                    </MenuItem>
+                    <MenuItem text="Arranger automatiquement..." onAction="#handleArrangeClasses" accelerator="Ctrl+L"/>
                     <SeparatorMenuItem />
-                    <MenuItem text="Layout Force-Directed" onAction="#handleForceDirectedLayout">
-                    </MenuItem>
-                    <MenuItem text="Layout Hiérarchique" onAction="#handleHierarchicalLayout">
-                    </MenuItem>
-                    <MenuItem text="Layout Grille" onAction="#handleGridLayout">
-                    </MenuItem>
+                    <MenuItem text="Layout Force-Directed" onAction="#handleForceDirectedLayout"/>
+                    <MenuItem text="Layout Hiérarchique" onAction="#handleHierarchicalLayout"/>
+                    <MenuItem text="Layout Grille" onAction="#handleGridLayout"/>
                 </Menu>
                 <Menu text="Diagramme">
-                    <MenuItem text="Ajouter une classe" onAction="#handleAddClass" accelerator="Ctrl+N"/>
+                    <MenuItem text="Ajouter une classe" onAction="#handleAddClass" accelerator="Ctrl+Alt+N"/>
                     <MenuItem text="Supprimer la classe sélectionnée" onAction="#handleDeleteClass" accelerator="Delete"/>
                     <SeparatorMenuItem />
                     <MenuItem text="Ajouter une relation" onAction="#handleAddRelation" accelerator="Ctrl+R"/>
@@ -49,26 +50,27 @@
                     <SeparatorMenuItem />
                     <MenuItem text="Adapter à la vue" onAction="#handleZoomToFit" accelerator="Ctrl+F"/>
                 </Menu>
-                <Menu text="Import/Export">
-                    <MenuItem text="Importer du code Java..." onAction="#handleImportJavaCode"/>
-                    <SeparatorMenuItem />
+                <Menu text="Export">
                     <MenuItem text="Exporter en PNG..." onAction="#handleExportImage"/>
                     <MenuItem text="Exporter en SVG..." onAction="#handleExportSVG"/>
                     <MenuItem text="Exporter en PlantUML..." onAction="#handleExportPlantUML"/>
                     <MenuItem text="Générer du code Java..." onAction="#handleExportJavaCode"/>
+                </Menu>
+                <Menu text="Import">
+                    <MenuItem text="Importer du code Java..." onAction="#handleImportJavaCode"/>
                 </Menu>
                 <Menu text="Aide">
                     <MenuItem text="À propos" onAction="#handleAbout"/>
                 </Menu>
             </MenuBar>
 
-
-
             <!-- Tool Bar -->
             <ToolBar>
-                <Button text="Nouveau" onAction="#handleNewDiagram"/>
-                <Button text="Enregistrer" onAction="#handleSaveDiagram"/>
-                <Button text="Ouvrir" onAction="#handleOpenDiagram"/>
+                <Button text="Nouveau projet" onAction="#handleNewProject"/>
+                <Button text="Ouvrir projet" onAction="#handleOpenProject"/>
+                <Button text="Enregistrer projet" onAction="#handleSaveProject"/>
+                <Separator orientation="VERTICAL"/>
+                <Button text="Nouveau diagramme" onAction="#handleNewDiagram"/>
                 <Separator orientation="VERTICAL"/>
                 <Button text="+ Classe" onAction="#handleAddClass"/>
                 <Button text="- Classe" onAction="#handleDeleteClass" fx:id="deleteClassButton"/>
@@ -89,22 +91,10 @@
 
             <!-- Superposition du menu et du panneau d'édition -->
             <BorderPane pickOnBounds="false">
-                <!-- Zone de liste de diagrammes à gauche -->
+                <!-- Explorateur de projets à gauche -->
                 <left>
-                    <VBox minWidth="200" maxWidth="300" prefWidth="250"
-                          style="-fx-background-color: white; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 5);">
-                        <Label text="Diagrammes"/>
-                        <ListView fx:id="diagramListView" VBox.vgrow="ALWAYS">
-                            <contextMenu>
-                                <ContextMenu>
-                                    <items>
-                                        <MenuItem text="Nouveau diagramme" onAction="#handleNewDiagram"/>
-                                        <MenuItem text="Renommer" onAction="#handleEditDiagram"/>
-                                        <MenuItem text="Supprimer" onAction="#handleDeleteDiagram"/>
-                                    </items>
-                                </ContextMenu>
-                            </contextMenu>
-                        </ListView>
+                    <VBox styleClass="side-panel" minWidth="250" maxWidth="300" prefWidth="250">
+                        <fx:include fx:id="projectExplorer" source="ProjectExplorer.fxml"/>
                     </VBox>
                 </left>
 
@@ -136,11 +126,13 @@
     </center>
 
     <bottom>
-        <HBox fx:id="statusBarContainer" spacing="10">
+        <HBox fx:id="statusBarContainer" spacing="10" styleClass="status-bar">
             <padding>
                 <Insets top="5" right="5" bottom="5" left="5"/>
             </padding>
             <Label fx:id="statusLabel" text="Prêt"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="projectInfoLabel" text="Aucun projet actif"/>
         </HBox>
     </bottom>
 </BorderPane>

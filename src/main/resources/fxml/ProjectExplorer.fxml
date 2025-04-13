@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.diaggen.view.controller.ProjectExplorerController"
+      spacing="10"
+      styleClass="project-explorer">
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+
+    <!-- Section des projets -->
+    <HBox alignment="CENTER_LEFT" spacing="5">
+        <Label text="Projets" styleClass="section-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="addProjectButton" text="+"
+                prefWidth="30" prefHeight="30"
+                styleClass="icon-button"
+                onAction="#handleAddProject">
+            <tooltip>
+                <Tooltip text="Créer un nouveau projet"/>
+            </tooltip>
+        </Button>
+    </HBox>
+
+    <ListView fx:id="projectListView" VBox.vgrow="ALWAYS" prefHeight="200">
+        <placeholder>
+            <Label text="Aucun projet. Cliquez sur + pour en créer un nouveau."/>
+        </placeholder>
+    </ListView>
+
+    <Separator/>
+
+    <!-- Section des diagrammes -->
+    <HBox alignment="CENTER_LEFT" spacing="5">
+        <Label text="Diagrammes" styleClass="section-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="addDiagramButton" text="+"
+                prefWidth="30" prefHeight="30"
+                styleClass="icon-button"
+                onAction="#handleAddDiagram"
+                disable="true">
+            <tooltip>
+                <Tooltip text="Créer un nouveau diagramme"/>
+            </tooltip>
+        </Button>
+        <Button fx:id="importDiagramsButton"
+                prefWidth="30" prefHeight="30"
+                styleClass="icon-button-secondary"
+                onAction="#handleImportDiagrams"
+                disable="true">
+            <graphic>
+                <Region styleClass="icon-import" prefWidth="16" prefHeight="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Importer des diagrammes d'un autre projet"/>
+            </tooltip>
+        </Button>
+    </HBox>
+
+    <ListView fx:id="diagramListView" VBox.vgrow="ALWAYS">
+        <placeholder>
+            <Label text="Sélectionnez un projet pour voir ses diagrammes."/>
+        </placeholder>
+    </ListView>
+
+    <!-- Actions rapides -->
+    <HBox spacing="5" alignment="CENTER">
+        <Button text="Nouveau projet" onAction="#handleAddProject" styleClass="action-button"/>
+        <Button fx:id="newDiagramButton" text="Nouveau diagramme" onAction="#handleAddDiagram" styleClass="action-button" disable="true"/>
+    </HBox>
+</VBox>

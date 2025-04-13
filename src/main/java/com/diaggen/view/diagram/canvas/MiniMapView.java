@@ -65,7 +65,7 @@ public class MiniMapView extends VBox {
         setSpacing(5);
         setPadding(new Insets(5));
         setStyle("-fx-background-color: rgba(255, 255, 255, 0.85); -fx-background-radius: 8; -fx-z-index: 1000;");
-        setViewOrder(-10); // Les valeurs plus petites sont affichées au-dessus
+        setViewOrder(-10);
         DropShadow dropShadow = new DropShadow();
         dropShadow.setRadius(6.0);
         dropShadow.setOffsetX(2.0);
@@ -146,7 +146,7 @@ public class MiniMapView extends VBox {
             TranslateTransition transition = new TranslateTransition(Duration.millis(250), this);
 
             if (isEditorVisible) {
-                double offset = editorWidth + 10; // 10px de marge
+                double offset = editorWidth + 10;
                 transition.setByX(-offset);
             } else {
                 transition.setByX(0);
@@ -167,7 +167,7 @@ public class MiniMapView extends VBox {
     }
     public boolean isFullyVisible() {
         if (getParent() == null) {
-            return true; // On ne peut pas déterminer
+            return true;
         }
 
         Bounds parentBounds = getParent().getBoundsInLocal();
@@ -259,8 +259,8 @@ public class MiniMapView extends VBox {
     private void createClassRectangle(DiagramClass diagramClass) {
         double x = diagramClass.getX();
         double y = diagramClass.getY();
-        double width = 200;  // Approximation
-        double height = 120 + diagramClass.getAttributes().size() * 20 + diagramClass.getMethods().size() * 20;  // Approximation
+        double width = 200;
+        double height = 120 + diagramClass.getAttributes().size() * 20 + diagramClass.getMethods().size() * 20;
 
         Rectangle rect = new Rectangle(
                 (x - minX) * miniMapScale + 10,

@@ -1,0 +1,108 @@
+/* Styles pour l'explorateur de projets */
+
+.project-explorer {
+    -fx-background-color: #f8f8f8;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 0 1 0 0;
+}
+
+.section-title {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 5 0 5 0;
+}
+
+.list-view {
+    -fx-background-color: white;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+}
+
+.list-view .list-cell {
+    -fx-padding: 8px;
+}
+
+.list-view .list-cell:hover {
+    -fx-background-color: #f5f5f5;
+}
+
+.list-view .list-cell:selected {
+    -fx-background-color: #4a89dc;
+    -fx-text-fill: white;
+}
+
+.icon-button {
+    -fx-background-color: #4a89dc;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 50%;
+    -fx-border-radius: 50%;
+    -fx-padding: 0 0 2 0;
+    -fx-cursor: hand;
+}
+
+.icon-button:hover {
+    -fx-background-color: #3a79cc;
+}
+
+.icon-button:pressed {
+    -fx-background-color: #2a69bc;
+}
+
+.icon-button-secondary {
+    -fx-background-color: #6c757d;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 50%;
+    -fx-border-radius: 50%;
+    -fx-padding: 5;
+    -fx-cursor: hand;
+}
+
+.icon-button-secondary:hover {
+    -fx-background-color: #5c656d;
+}
+
+.icon-button-secondary:pressed {
+    -fx-background-color: #4c555d;
+}
+
+.action-button {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #cccccc;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-padding: 5 10;
+    -fx-cursor: hand;
+}
+
+.action-button:hover {
+    -fx-background-color: #e0e0e0;
+}
+
+.action-button:pressed {
+    -fx-background-color: #d0d0d0;
+}
+
+.icon-import {
+    -fx-background-color: white;
+    -fx-shape: "M16 8l-3-3v2H8v2h5v2L16 8z M12.4 1.5c-5 0-9 4-9 9s4 9 9 9 9-4 9-9-4-9-9-9zm0 16.5c-4.1 0-7.5-3.4-7.5-7.5s3.4-7.5 7.5-7.5 7.5 3.4 7.5 7.5-3.4 7.5-7.5 7.5z";
+}
+
+.side-panel {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);
+}
+
+/* Styles pour la barre d'état */
+.status-bar {
+    -fx-background-color: #f5f5f5;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* Effet de transition pour les sections du panneau */
+.list-view, .action-button, .icon-button {
+    -fx-transition: all 0.2s ease;
+}

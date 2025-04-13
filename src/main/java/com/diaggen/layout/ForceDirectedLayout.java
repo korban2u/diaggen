@@ -23,7 +23,7 @@ public class ForceDirectedLayout implements LayoutManager.LayoutAlgorithm {
     private double margin = 50;
 
     private int iterations = 100;
-    private double k = 100.0;  // Spring constant
+    private double k = 100.0;
     private double gravity = 0.1;
     private double damping = 0.9;
     private double maxVelocity = 10.0;
