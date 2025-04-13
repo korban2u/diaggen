@@ -18,6 +18,9 @@ public class RelationManager {
     private final Map<String, RelationLine> relationLines = new HashMap<>();
     private RelationLine selectedRelation;
 
+    private ViewportTransform viewportTransform;
+    private double currentZoomScale = 1.0;
+
     private RelationSelectionListener selectionListener;
     private final AtomicBoolean updateScheduled = new AtomicBoolean(false);
     private Runnable changeListener;
@@ -25,6 +28,24 @@ public class RelationManager {
     public RelationManager(Pane container, NodeManager nodeManager) {
         this.container = container;
         this.nodeManager = nodeManager;
+    }
+
+    // Méthode pour définir le ViewportTransform
+    public void setViewportTransform(ViewportTransform viewportTransform) {
+        this.viewportTransform = viewportTransform;
+
+        // Ajouter un listener pour mettre à jour l'échelle de zoom
+        this.viewportTransform.scaleProperty().addListener((obs, oldVal, newVal) -> {
+            this.currentZoomScale = newVal.doubleValue();
+            updateRelationsZoomScale();
+        });
+    }
+
+    // Mettre à jour l'échelle de zoom pour toutes les relations
+    private void updateRelationsZoomScale() {
+        for (RelationLine line : relationLines.values()) {
+            line.setZoomScale(currentZoomScale);
+        }
     }
 
     // Méthode pour définir un écouteur de changements
@@ -45,20 +66,23 @@ public class RelationManager {
 
         if (sourceNode != null && targetNode != null) {
             RelationLine relationLine = new RelationLine(relation, sourceNode, targetNode);
+
+            // Définir l'échelle de zoom actuelle
+            relationLine.setZoomScale(currentZoomScale);
+
             container.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
                 if (e.getButton() == MouseButton.PRIMARY) {
                     double x = e.getX();
                     double y = e.getY();
                     if (relationLine.isNearLine(x, y)) {
                         selectRelation(relationLine);
-                        e.consume(); // Empêcher la propagation de l'événement
+                        e.consume();
                     }
                 }
             });
             container.getChildren().add(0, relationLine);
             relationLines.put(relation.getId(), relationLine);
 
-            // Informer que l'état a changé
             notifyChange();
 
             return relationLine;
@@ -77,7 +101,6 @@ public class RelationManager {
                 selectRelation(null);
             }
 
-            // Informer que l'état a changé
             notifyChange();
         }
     }
@@ -87,7 +110,6 @@ public class RelationManager {
             line.update();
         }
 
-        // Informer que l'état a changé
         notifyChange();
     }
 
@@ -96,7 +118,6 @@ public class RelationManager {
         relationLines.clear();
         selectedRelation = null;
 
-        // Informer que l'état a changé
         notifyChange();
     }
 
@@ -131,7 +152,6 @@ public class RelationManager {
             }
         }
 
-        // Informer que l'état a changé
         notifyChange();
     }
 

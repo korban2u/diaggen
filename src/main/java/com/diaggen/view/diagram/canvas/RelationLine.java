@@ -18,7 +18,8 @@ public class RelationLine extends Pane {
     private final Label targetMultiplicityLabel;
     private final Label relationLabel;
 
-    private static final double CLICK_TOLERANCE = 5.0;
+    private static final double BASE_CLICK_TOLERANCE = 5.0;
+    private double currentZoomScale = 1.0;
 
     private static final double MULTIPLICITY_OFFSET = 20.0;
 
@@ -48,15 +49,21 @@ public class RelationLine extends Pane {
 
         updateTooltip();
 
-        setPickOnBounds(false); // Ne pas détecter les clics sur la zone rectangulaire entière
+        setPickOnBounds(false);
 
         bindModelToView();
 
         Platform.runLater(this::update);
     }
 
-        private void bindModelToView() {
+    // Nouvelle méthode pour définir l'échelle de zoom
+    public void setZoomScale(double scale) {
+        this.currentZoomScale = scale;
+        // Si nécessaire, ajustez l'épaisseur des lignes ou autres éléments visuels ici
+        arrowRenderer.setZoomScale(scale);
+    }
 
+    private void bindModelToView() {
         relation.sourceMultiplicityProperty().addListener((obs, oldVal, newVal) -> {
             sourceMultiplicityLabel.setText(newVal);
             update();
@@ -73,7 +80,7 @@ public class RelationLine extends Pane {
         });
     }
 
-        private void updateTooltip() {
+    private void updateTooltip() {
         String tooltipText = relation.getRelationType().getDisplayName() + "\n" +
                 "De: " + relation.getSourceClass().getName() +
                 (relation.getSourceMultiplicity().isEmpty() ? "" : " [" + relation.getSourceMultiplicity() + "]") + "\n" +
@@ -93,10 +100,8 @@ public class RelationLine extends Pane {
     }
 
     public void update() {
-
         if (sourceNode.getWidth() <= 0 || sourceNode.getHeight() <= 0 ||
                 targetNode.getWidth() <= 0 || targetNode.getHeight() <= 0) {
-
             Platform.runLater(this::update);
             return;
         }
@@ -120,7 +125,6 @@ public class RelationLine extends Pane {
     }
 
     private void updateLabels(Point2D sourcePoint, Point2D targetPoint) {
-
         sourceMultiplicityLabel.setText(relation.getSourceMultiplicity());
         targetMultiplicityLabel.setText(relation.getTargetMultiplicity());
         relationLabel.setText(relation.getLabel());
@@ -142,13 +146,10 @@ public class RelationLine extends Pane {
         double perpY = ux;
 
         if (!relation.getSourceMultiplicity().isEmpty()) {
-
-
             double offsetX = perpX * MULTIPLICITY_OFFSET;
             double offsetY = perpY * MULTIPLICITY_OFFSET;
 
-
-            double inwardFactor = 0.1; // 10% de la longueur vers l'intérieur
+            double inwardFactor = 0.1;
             double inwardX = ux * (length * inwardFactor);
             double inwardY = uy * (length * inwardFactor);
 
@@ -164,13 +165,10 @@ public class RelationLine extends Pane {
         }
 
         if (!relation.getTargetMultiplicity().isEmpty()) {
-
-
             double offsetX = perpX * MULTIPLICITY_OFFSET;
             double offsetY = perpY * MULTIPLICITY_OFFSET;
 
-
-            double inwardFactor = 0.1; // 10% de la longueur vers l'intérieur
+            double inwardFactor = 0.1;
             double inwardX = -ux * (length * inwardFactor);
             double inwardY = -uy * (length * inwardFactor);
 
@@ -186,11 +184,10 @@ public class RelationLine extends Pane {
         }
 
         if (!relation.getLabel().isEmpty()) {
-
             double midX = (sourcePoint.getX() + targetPoint.getX()) / 2;
             double midY = (sourcePoint.getY() + targetPoint.getY()) / 2;
 
-            double labelOffset = 20.0; // Augmenté pour meilleure visibilité
+            double labelOffset = 20.0;
             midX += perpX * labelOffset;
             midY += perpY * labelOffset;
 
@@ -203,20 +200,22 @@ public class RelationLine extends Pane {
     }
 
     public void setSelected(boolean selected) {
-
         if (selected) {
             if (!getStyleClass().contains("selected")) {
                 getStyleClass().add("selected");
             }
             arrowRenderer.setSelected(true);
-            toFront(); // Amener la relation sélectionnée au premier plan
+            toFront();
         } else {
             getStyleClass().remove("selected");
             arrowRenderer.setSelected(false);
         }
     }
 
-        public boolean isNearLine(double x, double y) {
+    public boolean isNearLine(double x, double y) {
+        // Calculer la tolérance de clic en fonction du niveau de zoom
+        // Plus on dézoome, plus la tolérance est grande
+        double adjustedTolerance = BASE_CLICK_TOLERANCE / Math.sqrt(currentZoomScale);
 
         Point2D sourceCenter = new Point2D(
                 sourceNode.getLayoutX() + sourceNode.getWidth() / 2,
@@ -230,26 +229,22 @@ public class RelationLine extends Pane {
         Point2D targetPoint = targetNode.getConnectionPoint(sourceCenter);
 
         return distanceToLine(x, y, sourcePoint.getX(), sourcePoint.getY(),
-                targetPoint.getX(), targetPoint.getY()) <= CLICK_TOLERANCE;
+                targetPoint.getX(), targetPoint.getY()) <= adjustedTolerance;
     }
 
-        private double distanceToLine(double x, double y, double x1, double y1, double x2, double y2) {
-
+    private double distanceToLine(double x, double y, double x1, double y1, double x2, double y2) {
         double lineLengthSquared = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
 
         if (lineLengthSquared == 0) {
-
             return Math.sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1));
         }
 
         double t = ((x - x1) * (x2 - x1) + (y - y1) * (y2 - y1)) / lineLengthSquared;
 
         if (t < 0) {
-
             return Math.sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1));
         }
         if (t > 1) {
-
             return Math.sqrt((x - x2) * (x - x2) + (y - y2) * (y - y2));
         }
 

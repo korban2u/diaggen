@@ -29,9 +29,17 @@ public class NodeManager {
     private final EventBus eventBus;
     private Runnable changeListener;
 
+    // Ajout d'une référence au ViewportTransform pour gérer correctement le zoom
+    private ViewportTransform viewportTransform;
+
     public NodeManager(Pane container) {
         this.container = container;
         this.eventBus = EventBus.getInstance();
+    }
+
+    // Méthode pour définir le ViewportTransform
+    public void setViewportTransform(ViewportTransform viewportTransform) {
+        this.viewportTransform = viewportTransform;
     }
 
     public void setRelationManager(RelationManager relationManager) {
@@ -71,12 +79,14 @@ public class NodeManager {
             if (e.getButton() == MouseButton.PRIMARY) {
                 isDragging = true;
 
-                double offsetX = e.getSceneX() - dragStartX;
-                double offsetY = e.getSceneY() - dragStartY;
+                // Ajuster le déplacement en fonction du facteur de zoom
+                double scale = viewportTransform != null ? viewportTransform.getScale() : 1.0;
+                double offsetX = (e.getSceneX() - dragStartX) / scale;
+                double offsetY = (e.getSceneY() - dragStartY) / scale;
+
                 double newX = dragStartPoint.getX() + offsetX;
                 double newY = dragStartPoint.getY() + offsetY;
 
-                // Déplacement sans restrictions
                 classNode.setLayoutX(newX);
                 classNode.setLayoutY(newY);
                 if (relationManager != null) {
@@ -108,7 +118,6 @@ public class NodeManager {
                         }
                         if (relationManager != null) {
                             relationManager.updateAllRelations();
-                            // Informer que l'état a changé
                             notifyChange();
                         }
                     }
@@ -122,7 +131,6 @@ public class NodeManager {
             classNode.setPositionChangeListener(() -> relationManager.updateAllRelationsLater());
         }
 
-        // Informer que l'état a changé
         notifyChange();
 
         return classNode;
@@ -141,7 +149,6 @@ public class NodeManager {
                 }
             }
 
-            // Informer que l'état a changé
             notifyChange();
         }
     }
@@ -154,7 +161,6 @@ public class NodeManager {
             selectionListener.onNodeSelected(null);
         }
 
-        // Informer que l'état a changé
         notifyChange();
     }
 
@@ -173,7 +179,6 @@ public class NodeManager {
             selectionListener.onNodeSelected(node);
         }
 
-        // Informer que l'état a changé
         notifyChange();
     }
 

@@ -88,7 +88,9 @@ public class DiagramCanvas extends AnchorPane {
         viewportTransform = new ViewportTransform();
         gridRenderer = new GridRenderer(gridCanvas, 10, 50);
         nodeManager = new NodeManager(contentPane);
+        nodeManager.setViewportTransform(viewportTransform);
         relationManager = new RelationManager(contentPane, nodeManager);
+        relationManager.setViewportTransform(viewportTransform);
         nodeManager.setRelationManager(relationManager);
 
         // Configuration du gestionnaire de navigation avec un espace plus grand

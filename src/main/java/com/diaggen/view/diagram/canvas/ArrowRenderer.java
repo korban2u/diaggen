@@ -14,17 +14,42 @@ public class ArrowRenderer {
     private final Polygon arrowHead = new Polygon();
 
     private static final Color DEFAULT_COLOR = Color.BLACK;
-    private static final Color SELECTED_COLOR = Color.web("#4a89dc"); // Bleu de sélection
+    private static final Color SELECTED_COLOR = Color.web("#4a89dc");
+
+    private double zoomScale = 1.0;
+    private static final double BASE_LINE_WIDTH = 1.8;
 
     public ArrowRenderer() {
-
         line.getStyleClass().add("line");
         arrowHead.getStyleClass().add("arrow-head");
 
-        line.setStrokeWidth(1.8);  // Ligne légèrement plus épaisse
+        line.setStrokeWidth(BASE_LINE_WIDTH);
         arrowHead.setStroke(DEFAULT_COLOR);
 
         arrowGroup.getChildren().addAll(line, arrowHead);
+    }
+
+    // Méthode pour définir l'échelle de zoom
+    public void setZoomScale(double scale) {
+        this.zoomScale = scale;
+        updateLineThickness();
+    }
+
+    // Mettre à jour l'épaisseur de la ligne et du contour de la flèche en fonction du zoom
+    private void updateLineThickness() {
+        // Inversement proportionnel au zoom (plus fin quand on zoome, plus épais quand on dézoome)
+        double adjustedWidth = BASE_LINE_WIDTH / Math.sqrt(zoomScale);
+        // Limiter l'épaisseur maximale
+        adjustedWidth = Math.min(adjustedWidth, 4.0);
+
+        if (line.getStroke() == SELECTED_COLOR) {
+            // Si sélectionné, garder une ligne plus épaisse
+            line.setStrokeWidth(adjustedWidth + 0.7);
+            arrowHead.setStrokeWidth(adjustedWidth + 0.7);
+        } else {
+            line.setStrokeWidth(adjustedWidth);
+            arrowHead.setStrokeWidth(adjustedWidth);
+        }
     }
 
     public Group getArrowGroup() {
@@ -40,7 +65,6 @@ public class ArrowRenderer {
     }
 
     public void updateArrow(Point2D start, Point2D end, RelationType relationType) {
-
         line.getStrokeDashArray().clear();
         if (relationType == RelationType.IMPLEMENTATION ||
                 relationType == RelationType.DEPENDENCY) {
@@ -52,7 +76,6 @@ public class ArrowRenderer {
         double length = Math.sqrt(dx * dx + dy * dy);
 
         if (length == 0) {
-
             return;
         }
 
@@ -91,12 +114,11 @@ public class ArrowRenderer {
     }
 
     private void createInheritanceArrow(Point2D end, double ux, double uy) {
-
         double perpX = -uy;
         double perpY = ux;
 
-        double arrowSize = 14.0;  // Était 10.0
-
+        // Ajuster la taille de la flèche en fonction du zoom
+        double arrowSize = 14.0 / Math.sqrt(zoomScale);
 
         double baseX = end.getX() - ux * arrowSize;
         double baseY = end.getY() - uy * arrowSize;
@@ -108,25 +130,25 @@ public class ArrowRenderer {
         double rightY = baseY - perpY * arrowSize;
 
         arrowHead.getPoints().addAll(
-                end.getX(), end.getY(),  // Pointe
-                leftX, leftY,            // Coin gauche
-                baseX, baseY,            // Milieu de la base
-                rightX, rightY,          // Coin droit
-                end.getX(), end.getY()   // Retour à la pointe pour fermer
+                end.getX(), end.getY(),
+                leftX, leftY,
+                baseX, baseY,
+                rightX, rightY,
+                end.getX(), end.getY()
         );
 
         arrowHead.setFill(Color.WHITE);
-        arrowHead.setStroke(line.getStroke()); // Utiliser la même couleur que la ligne
-        arrowHead.setStrokeWidth(1.8);
+        arrowHead.setStroke(line.getStroke());
+        arrowHead.setStrokeWidth(line.getStrokeWidth());
     }
 
     private void createAssociationArrow(Point2D end, double ux, double uy) {
-
         double perpX = -uy;
         double perpY = ux;
 
-        double arrowSize = 12.0;   // Était 8.0
-        double arrowWidth = 6.0;   // Plus large pour une meilleure visibilité
+        // Ajuster la taille de la flèche en fonction du zoom
+        double arrowSize = 12.0 / Math.sqrt(zoomScale);
+        double arrowWidth = 6.0 / Math.sqrt(zoomScale);
 
         double leftX = end.getX() - ux * arrowSize + perpX * arrowWidth;
         double leftY = end.getY() - uy * arrowSize + perpY * arrowWidth;
@@ -135,12 +157,12 @@ public class ArrowRenderer {
         double rightY = end.getY() - uy * arrowSize - perpY * arrowWidth;
 
         arrowHead.getPoints().addAll(
-                end.getX(), end.getY(),  // Pointe
-                leftX, leftY,            // Coin gauche
-                rightX, rightY           // Coin droit
+                end.getX(), end.getY(),
+                leftX, leftY,
+                rightX, rightY
         );
 
-        arrowHead.setFill(line.getStroke()); // Utiliser la même couleur que la ligne
+        arrowHead.setFill(line.getStroke());
         arrowHead.setStroke(line.getStroke());
     }
 
@@ -153,13 +175,12 @@ public class ArrowRenderer {
     }
 
     private void createDiamondArrow(Point2D end, double ux, double uy, Color fillColor) {
-
         double perpX = -uy;
         double perpY = ux;
 
-        double diamondLength = 16.0;  // Était 12.0
-        double diamondWidth = 10.0;   // Était 8.0
-
+        // Ajuster la taille du diamant en fonction du zoom
+        double diamondLength = 16.0 / Math.sqrt(zoomScale);
+        double diamondWidth = 10.0 / Math.sqrt(zoomScale);
 
         double midX = end.getX() - ux * diamondLength;
         double midY = end.getY() - uy * diamondLength;
@@ -174,28 +195,31 @@ public class ArrowRenderer {
         double rightY = midY - perpY * diamondWidth;
 
         arrowHead.getPoints().addAll(
-                end.getX(), end.getY(),  // Pointe
-                leftX, leftY,            // Coin gauche
-                backX, backY,            // Arrière
-                rightX, rightY,          // Coin droit
-                end.getX(), end.getY()   // Retour à la pointe pour fermer
+                end.getX(), end.getY(),
+                leftX, leftY,
+                backX, backY,
+                rightX, rightY,
+                end.getX(), end.getY()
         );
 
         arrowHead.setFill(fillColor);
-        arrowHead.setStroke(line.getStroke()); // Utiliser la même couleur que la ligne
-        arrowHead.setStrokeWidth(1.8);
+        arrowHead.setStroke(line.getStroke());
+        arrowHead.setStrokeWidth(line.getStrokeWidth());
     }
 
     private double getArrowLength(RelationType relationType) {
+        // Ajuster la longueur de la flèche en fonction du zoom
+        double scaleFactor = 1.0 / Math.sqrt(zoomScale);
+
         switch (relationType) {
             case AGGREGATION:
             case COMPOSITION:
-                return 32.0;  // Était 24.0 (longueur totale du diamant)
+                return 32.0 * scaleFactor;
             case INHERITANCE:
             case IMPLEMENTATION:
-                return 14.0;  // Était 10.0 (longueur du triangle)
+                return 14.0 * scaleFactor;
             default:
-                return 0.0;   // Pour les flèches simples, la ligne va jusqu'à la base de la flèche
+                return 0.0;
         }
     }
 
@@ -208,7 +232,13 @@ public class ArrowRenderer {
             arrowHead.setFill(color);
         }
 
-        line.setStrokeWidth(selected ? 2.5 : 1.8);
-        arrowHead.setStrokeWidth(selected ? 2.5 : 1.8);
+        // Ajuster l'épaisseur des lignes en fonction de la sélection et du zoom
+        if (selected) {
+            line.setStrokeWidth(BASE_LINE_WIDTH / Math.sqrt(zoomScale) + 0.7);
+            arrowHead.setStrokeWidth(BASE_LINE_WIDTH / Math.sqrt(zoomScale) + 0.7);
+        } else {
+            line.setStrokeWidth(BASE_LINE_WIDTH / Math.sqrt(zoomScale));
+            arrowHead.setStrokeWidth(BASE_LINE_WIDTH / Math.sqrt(zoomScale));
+        }
     }
 }
