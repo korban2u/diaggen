@@ -28,22 +28,15 @@ public class ArrowRenderer {
 
         arrowGroup.getChildren().addAll(line, arrowHead);
     }
-
-    // Méthode pour définir l'échelle de zoom
     public void setZoomScale(double scale) {
         this.zoomScale = scale;
         updateLineThickness();
     }
-
-    // Mettre à jour l'épaisseur de la ligne et du contour de la flèche en fonction du zoom
     private void updateLineThickness() {
-        // Inversement proportionnel au zoom (plus fin quand on zoome, plus épais quand on dézoome)
         double adjustedWidth = BASE_LINE_WIDTH / Math.sqrt(zoomScale);
-        // Limiter l'épaisseur maximale
         adjustedWidth = Math.min(adjustedWidth, 4.0);
 
         if (line.getStroke() == SELECTED_COLOR) {
-            // Si sélectionné, garder une ligne plus épaisse
             line.setStrokeWidth(adjustedWidth + 0.7);
             arrowHead.setStrokeWidth(adjustedWidth + 0.7);
         } else {
@@ -116,8 +109,6 @@ public class ArrowRenderer {
     private void createInheritanceArrow(Point2D end, double ux, double uy) {
         double perpX = -uy;
         double perpY = ux;
-
-        // Ajuster la taille de la flèche en fonction du zoom
         double arrowSize = 14.0 / Math.sqrt(zoomScale);
 
         double baseX = end.getX() - ux * arrowSize;
@@ -145,8 +136,6 @@ public class ArrowRenderer {
     private void createAssociationArrow(Point2D end, double ux, double uy) {
         double perpX = -uy;
         double perpY = ux;
-
-        // Ajuster la taille de la flèche en fonction du zoom
         double arrowSize = 12.0 / Math.sqrt(zoomScale);
         double arrowWidth = 6.0 / Math.sqrt(zoomScale);
 
@@ -177,8 +166,6 @@ public class ArrowRenderer {
     private void createDiamondArrow(Point2D end, double ux, double uy, Color fillColor) {
         double perpX = -uy;
         double perpY = ux;
-
-        // Ajuster la taille du diamant en fonction du zoom
         double diamondLength = 16.0 / Math.sqrt(zoomScale);
         double diamondWidth = 10.0 / Math.sqrt(zoomScale);
 
@@ -208,7 +195,6 @@ public class ArrowRenderer {
     }
 
     private double getArrowLength(RelationType relationType) {
-        // Ajuster la longueur de la flèche en fonction du zoom
         double scaleFactor = 1.0 / Math.sqrt(zoomScale);
 
         switch (relationType) {
@@ -231,8 +217,6 @@ public class ArrowRenderer {
         if (arrowHead.getFill() != Color.WHITE) {
             arrowHead.setFill(color);
         }
-
-        // Ajuster l'épaisseur des lignes en fonction de la sélection et du zoom
         if (selected) {
             line.setStrokeWidth(BASE_LINE_WIDTH / Math.sqrt(zoomScale) + 0.7);
             arrowHead.setStrokeWidth(BASE_LINE_WIDTH / Math.sqrt(zoomScale) + 0.7);

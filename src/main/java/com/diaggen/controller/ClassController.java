@@ -28,8 +28,6 @@ public class ClassController extends BaseController {
         super(diagramStore, commandManager);
         this.dialogFactory = dialogFactory;
     }
-
-    // Méthode optionnelle pour configurer le service de layout
     public void setLayoutService(LayoutService layoutService) {
         this.layoutService = layoutService;
     }
@@ -94,20 +92,13 @@ public class ClassController extends BaseController {
         if (diagram == null || diagram.getClasses().isEmpty()) return;
 
         LOGGER.log(Level.INFO, "Starting automatic class arrangement");
-
-        // Utiliser le service de layout si disponible
         if (layoutService != null) {
-            // Déléguer au LayoutService pour un arrangement intelligent
             layoutService.arrangeClasses(diagram, commandManager);
-
-            // Notification pour actualiser l'affichage
             eventBus.publish(new DiagramChangedEvent(diagram.getId(),
                     DiagramChangedEvent.ChangeType.DIAGRAM_RENAMED, null));
 
             return;
         }
-
-        // Implémentation originale comme fallback
         final int GRID_WIDTH = 250;
         final int GRID_HEIGHT = 200;
         final int MAX_COLUMNS = 4;

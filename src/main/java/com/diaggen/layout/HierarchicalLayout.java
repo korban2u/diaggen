@@ -30,25 +30,13 @@ public class HierarchicalLayout implements LayoutManager.LayoutAlgorithm {
         if (diagram == null || diagram.getClasses().isEmpty()) {
             return;
         }
-
-        // Create a graph representation
         Map<String, Node> nodes = createNodes(diagram);
-
-        // Identify roots (classes with no parent)
         List<Node> roots = findRoots(nodes);
-
-        // If there are no clear roots, use classes with the most children
         if (roots.isEmpty()) {
             roots = findClassesWithMostChildren(nodes);
         }
-
-        // Assign levels to nodes (distance from root)
         assignLevels(roots);
-
-        // Position nodes based on levels
         positionNodes(nodes, roots);
-
-        // Apply the final positions to diagram classes
         for (DiagramClass diagramClass : diagram.getClasses()) {
             Node node = nodes.get(diagramClass.getId());
             if (node != null) {
@@ -68,13 +56,9 @@ public class HierarchicalLayout implements LayoutManager.LayoutAlgorithm {
 
     private Map<String, Node> createNodes(ClassDiagram diagram) {
         Map<String, Node> nodes = new HashMap<>();
-
-        // Create nodes for all classes
         for (DiagramClass diagramClass : diagram.getClasses()) {
             nodes.put(diagramClass.getId(), new Node(diagramClass));
         }
-
-        // Add parent-child relationships
         for (DiagramRelation relation : diagram.getRelations()) {
             Node source = nodes.get(relation.getSourceClass().getId());
             Node target = nodes.get(relation.getTargetClass().getId());
@@ -116,8 +100,6 @@ public class HierarchicalLayout implements LayoutManager.LayoutAlgorithm {
         List<Node> roots = new ArrayList<>();
 
         for (Node node : nodes.values()) {
-            // A root is a class that has no parents (inheritance) and is not
-            // implemented by any class
             if (node.parents.isEmpty() && node.implementingClasses.isEmpty() &&
                     !node.aggregatedBy.isEmpty() && !node.compositedBy.isEmpty()) {
                 roots.add(node);
@@ -129,20 +111,15 @@ public class HierarchicalLayout implements LayoutManager.LayoutAlgorithm {
 
     private List<Node> findClassesWithMostChildren(Map<String, Node> nodes) {
         List<Node> candidates = new ArrayList<>(nodes.values());
-
-        // Sort by number of direct children (inheritance and implementation)
         candidates.sort((a, b) -> Integer.compare(
                 b.children.size() + b.implementingClasses.size(),
                 a.children.size() + a.implementingClasses.size()
         ));
-
-        // Return the top 20% nodes with most children, or at least one
         int numRoots = Math.max(1, (int)(nodes.size() * 0.2));
         return candidates.subList(0, Math.min(numRoots, candidates.size()));
     }
 
     private void assignLevels(List<Node> roots) {
-        // Reset levels
         for (Node root : roots) {
             root.level = 0;
             assignLevelsRecursive(root, new HashSet<>());
@@ -155,32 +132,22 @@ public class HierarchicalLayout implements LayoutManager.LayoutAlgorithm {
         }
 
         visited.add(node);
-
-        // Process children (inheritance)
         for (Node child : node.children) {
             child.level = Math.max(child.level, node.level + 1);
             assignLevelsRecursive(child, visited);
         }
-
-        // Process implementing classes
         for (Node impl : node.implementingClasses) {
             impl.level = Math.max(impl.level, node.level + 1);
             assignLevelsRecursive(impl, visited);
         }
-
-        // Process composed classes (different level)
         for (Node comp : node.compositions) {
             comp.level = Math.max(comp.level, node.level);
             assignLevelsRecursive(comp, visited);
         }
-
-        // Process aggregated classes (similar level)
         for (Node agg : node.aggregations) {
             agg.level = Math.max(agg.level, node.level);
             assignLevelsRecursive(agg, visited);
         }
-
-        // Process associated classes (similar level)
         for (Node assoc : node.associations) {
             assoc.level = Math.max(assoc.level, node.level);
             assignLevelsRecursive(assoc, visited);
@@ -188,17 +155,12 @@ public class HierarchicalLayout implements LayoutManager.LayoutAlgorithm {
     }
 
     private void positionNodes(Map<String, Node> nodes, List<Node> roots) {
-        // Group nodes by level
         Map<Integer, List<Node>> levelGroups = new HashMap<>();
 
         for (Node node : nodes.values()) {
             levelGroups.computeIfAbsent(node.level, k -> new ArrayList<>()).add(node);
         }
-
-        // Get maximum level
         int maxLevel = levelGroups.keySet().stream().mapToInt(Integer::intValue).max().orElse(0);
-
-        // Position nodes level by level
         double yPosition = margin;
 
         for (int level = 0; level <= maxLevel; level++) {
@@ -207,15 +169,11 @@ public class HierarchicalLayout implements LayoutManager.LayoutAlgorithm {
             if (levelNodes != null && !levelNodes.isEmpty()) {
                 double xPosition = margin;
                 double maxHeight = 0;
-
-                // Sort nodes to keep related nodes close to each other
                 sortNodesByRelations(levelNodes);
 
                 for (Node node : levelNodes) {
                     node.x = xPosition;
                     node.y = yPosition;
-
-                    // Estimate node size (can be refined)
                     double width = 200;
                     double height = 120 + estimateNodeHeight(node);
 
@@ -226,24 +184,17 @@ public class HierarchicalLayout implements LayoutManager.LayoutAlgorithm {
                 yPosition += maxHeight + verticalSpacing;
             }
         }
-
-        // Center classes horizontally
         centerNodesHorizontally(levelGroups);
-
-        // Adjust for parent-child alignment
         alignParentsAndChildren(nodes);
     }
 
     private double estimateNodeHeight(Node node) {
-        // Estimate based on number of attributes and methods
         DiagramClass diagramClass = node.diagramClass;
         return diagramClass.getAttributes().size() * 20 + diagramClass.getMethods().size() * 20;
     }
 
     private void sortNodesByRelations(List<Node> nodes) {
-        // Attempt to place related nodes next to each other
         nodes.sort((a, b) -> {
-            // First sort by number of relations to show important nodes first
             int relationsA = countRelations(a);
             int relationsB = countRelations(b);
             return Integer.compare(relationsB, relationsA);
@@ -262,14 +213,10 @@ public class HierarchicalLayout implements LayoutManager.LayoutAlgorithm {
     private void centerNodesHorizontally(Map<Integer, List<Node>> levelGroups) {
         for (List<Node> levelNodes : levelGroups.values()) {
             if (levelNodes.isEmpty()) continue;
-
-            // Find rightmost position
             double maxX = levelNodes.stream()
                     .mapToDouble(node -> node.x)
                     .max()
                     .orElse(0);
-
-            // Center all nodes in this level
             double offset = (width - maxX) / 2;
 
             if (offset > 0) {
@@ -281,28 +228,21 @@ public class HierarchicalLayout implements LayoutManager.LayoutAlgorithm {
     }
 
     private void alignParentsAndChildren(Map<String, Node> nodes) {
-        // Iterate through nodes multiple times to propagate adjustments
         for (int i = 0; i < 3; i++) {
             for (Node node : nodes.values()) {
                 if (!node.parents.isEmpty()) {
-                    // Calculate average X position of parents
                     double avgParentX = node.parents.stream()
                             .mapToDouble(parent -> parent.x)
                             .average()
                             .orElse(node.x);
-
-                    // Move slightly toward average parent X
                     node.x = node.x * 0.7 + avgParentX * 0.3;
                 }
 
                 if (!node.children.isEmpty()) {
-                    // Calculate average X position of children
                     double avgChildX = node.children.stream()
                             .mapToDouble(child -> child.x)
                             .average()
                             .orElse(node.x);
-
-                    // Move slightly toward average child X
                     node.x = node.x * 0.7 + avgChildX * 0.3;
                 }
             }

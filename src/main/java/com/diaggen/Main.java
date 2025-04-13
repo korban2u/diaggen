@@ -44,20 +44,14 @@ public class Main extends Application {
         MainViewController viewController = loader.getController();
         DiagramCanvas diagramCanvas = viewController.getDiagramCanvas();
         ExportService exportService = new ExportService(diagramCanvas);
-
-        // Nouveau service pour le layout
         LayoutService layoutService = new LayoutService(diagramCanvas);
 
         ClassController classController = new ClassController(diagramStore, commandManager, dialogFactory);
         DiagramController diagramController = new DiagramController(diagramStore, commandManager);
         RelationController relationController = new RelationController(diagramStore, commandManager, dialogFactory, diagramCanvas);
         ExportController exportController = new ExportController(diagramStore, commandManager, exportService, classController, diagramController);
-
-        // Définir le LayoutService dans les contrôleurs qui en ont besoin
         exportController.setLayoutService(layoutService);
         classController.setLayoutService(layoutService);
-
-        // Nouveau contrôleur pour le layout
         LayoutController layoutController = new LayoutController(diagramStore, commandManager, layoutService);
 
         diagramController.setOwnerWindow(primaryStage);
@@ -66,8 +60,6 @@ public class Main extends Application {
         LOGGER.log(Level.INFO, "Controllers initialized");
         NodeManager nodeManager = diagramCanvas.getNodeManager();
         nodeManager.setCommandManager(commandManager);
-
-        // Utilisation du constructeur standard sans le paramètre LayoutController
         MainController mainController = new MainController(
                 diagramStore,
                 commandManager,
@@ -77,8 +69,6 @@ public class Main extends Application {
                 exportController,
                 diagramCanvas
         );
-
-        // Passage du LayoutController séparément au MainViewController
         viewController.setMainController(mainController);
         viewController.setLayoutController(layoutController);
 

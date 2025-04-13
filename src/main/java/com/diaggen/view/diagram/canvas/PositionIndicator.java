@@ -29,27 +29,19 @@ public class PositionIndicator extends HBox {
 
     public PositionIndicator(ViewportTransform transform) {
         this.transform = transform;
-
-        // Configuration de base
         setSpacing(10);
         setPadding(new Insets(5, 10, 5, 10));
         setAlignment(Pos.CENTER_LEFT);
-
-        // Style visuel
         setBackground(new Background(new BackgroundFill(
                 Color.rgb(245, 245, 245, 0.85), new CornerRadii(4), Insets.EMPTY)));
         setBorder(new Border(new BorderStroke(
                 Color.rgb(200, 200, 200), BorderStrokeStyle.SOLID, new CornerRadii(4), new BorderWidths(1))));
-
-        // Effet d'ombre
         DropShadow dropShadow = new DropShadow();
         dropShadow.setRadius(3.0);
         dropShadow.setOffsetX(1.0);
         dropShadow.setOffsetY(1.0);
         dropShadow.setColor(Color.rgb(0, 0, 0, 0.3));
         setEffect(dropShadow);
-
-        // Labels d'information
         Label coordsTitle = new Label("Position:");
         coordsTitle.setFont(Font.font("System", FontWeight.BOLD, 12));
 
@@ -61,24 +53,15 @@ public class PositionIndicator extends HBox {
 
         scaleLabel = new Label("100%");
         scaleLabel.setFont(Font.font("Monospace", 12));
-
-        // Liaison avec la transformation
         transform.scaleProperty().addListener((obs, oldVal, newVal) -> {
             updateScaleLabel();
         });
-
-        // Ajouter les éléments
         getChildren().addAll(coordsTitle, positionLabel, zoomTitle, scaleLabel);
-
-        // Initialisation
         updateScaleLabel();
-
-        // Configuration de l'animation de fondu
         setupAnimation();
     }
 
     private void setupAnimation() {
-        // Animation de fondu au survol
         FadeTransition fadeIn = new FadeTransition(Duration.millis(200), this);
         fadeIn.setFromValue(0.7);
         fadeIn.setToValue(1.0);

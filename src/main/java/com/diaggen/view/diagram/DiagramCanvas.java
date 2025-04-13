@@ -50,8 +50,6 @@ public class DiagramCanvas extends AnchorPane {
     private final NavigationControls navigationControls;
     private final MiniMapView miniMapView;
     private final PositionIndicator positionIndicator;
-
-    // Propriété pour suivre l'état du panneau d'édition
     private final BooleanProperty editorPanelVisible = new SimpleBooleanProperty(false);
     private double editorPanelWidth = 300.0;
 
@@ -59,8 +57,6 @@ public class DiagramCanvas extends AnchorPane {
     private Runnable onDeleteRequest;
     private Consumer<DiagramClass> classSelectionListener;
     private Consumer<DiagramRelation> relationSelectionListener;
-
-    // Constantes pour la taille de la grille virtuelle - beaucoup plus grande maintenant
     private static final double DEFAULT_GRID_WIDTH = 50000;
     private static final double DEFAULT_GRID_HEIGHT = 50000;
 
@@ -70,21 +66,15 @@ public class DiagramCanvas extends AnchorPane {
         setPrefSize(800, 600);
         canvasContainer.getStyleClass().add("canvas-container");
         canvasContainer.setStyle("-fx-background-color: white;");
-
-        // Configuration du canvas et de la grille
         gridCanvas = new Canvas();
         gridCanvas.widthProperty().bind(canvasContainer.widthProperty());
         gridCanvas.heightProperty().bind(canvasContainer.heightProperty());
-
-        // Configuration des conteneurs principaux
         canvasContainer.getChildren().addAll(gridCanvas, contentPane);
         AnchorPane.setTopAnchor(canvasContainer, 0.0);
         AnchorPane.setRightAnchor(canvasContainer, 0.0);
         AnchorPane.setBottomAnchor(canvasContainer, 0.0);
         AnchorPane.setLeftAnchor(canvasContainer, 0.0);
         getChildren().add(canvasContainer);
-
-        // Initialisation des composants de navigation et visualisation
         viewportTransform = new ViewportTransform();
         gridRenderer = new GridRenderer(gridCanvas, 10, 50);
         nodeManager = new NodeManager(contentPane);
@@ -92,23 +82,15 @@ public class DiagramCanvas extends AnchorPane {
         relationManager = new RelationManager(contentPane, nodeManager);
         relationManager.setViewportTransform(viewportTransform);
         nodeManager.setRelationManager(relationManager);
-
-        // Configuration du gestionnaire de navigation avec un espace plus grand
         navigationManager = new NavigationManager(canvasContainer, viewportTransform);
-
-        // Configuration des contrôles de navigation
         navigationControls = new NavigationControls(
                 viewportTransform,
                 navigationManager,
                 gridRenderer
         );
-
-        // Positionner les contrôles de navigation au centre en bas de l'écran
         AnchorPane.setBottomAnchor(navigationControls, 10.0);
         AnchorPane.setLeftAnchor(navigationControls, null);
         getChildren().add(navigationControls);
-
-        // Ajouter ce code pour centrer horizontalement les contrôles
         widthProperty().addListener((obs, oldVal, newVal) -> {
             Platform.runLater(() -> {
                 double controlWidth = navigationControls.getWidth();
@@ -116,107 +98,65 @@ public class DiagramCanvas extends AnchorPane {
                 AnchorPane.setLeftAnchor(navigationControls, newX);
             });
         });
-
-        // Configuration de la mini-carte
         miniMapView = new MiniMapView(canvasContainer, viewportTransform);
         AnchorPane.setTopAnchor(miniMapView, 10.0);
         AnchorPane.setRightAnchor(miniMapView, 10.0);
         getChildren().add(miniMapView);
-
-        // Configuration de l'indicateur de position
         positionIndicator = new PositionIndicator(viewportTransform);
         AnchorPane.setBottomAnchor(positionIndicator, 60.0);
         AnchorPane.setLeftAnchor(positionIndicator, 10.0);
         getChildren().add(positionIndicator);
-
-        // Configuration du menu contextuel et des raccourcis clavier
         setupContextMenu();
         setupKeyHandlers();
         setupMouseHandlers();
         setupSelectionListeners();
         setupEventBusListeners();
         setupMiniMapUpdates();
-
-        // Ajouter un écouteur pour gérer les changements d'état du panneau d'édition
         editorPanelVisible.addListener((obs, wasVisible, isVisible) -> {
             adjustForEditorPanel(isVisible);
         });
-
-        // Liaison des propriétés du transform
         viewportTransform.scaleProperty().addListener((obs, oldVal, newVal) -> updateTransform());
         viewportTransform.translateXProperty().addListener((obs, oldVal, newVal) -> updateTransform());
         viewportTransform.translateYProperty().addListener((obs, oldVal, newVal) -> updateTransform());
-
-        // Liaison des propriétés du canvas pour le redimensionnement
         canvasContainer.widthProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
         canvasContainer.heightProperty().addListener((obs, oldVal, newVal) -> gridRenderer.drawGrid());
-
-        // Dessin initial de la grille
         Platform.runLater(gridRenderer::drawGrid);
 
         setFocusTraversable(true);
-
-        // S'assurer que contentPane a une taille suffisamment grande pour accueillir un espace très large
         contentPane.setPrefSize(DEFAULT_GRID_WIDTH, DEFAULT_GRID_HEIGHT);
     }
 
-    /**
-     * Met à jour l'état du panneau d'édition
-     *
-     * @param isVisible si le panneau d'édition est visible
-     * @param width la largeur du panneau d'édition en pixels
-     */
-    public void setEditorPanelState(boolean isVisible, double width) {
+        public void setEditorPanelState(boolean isVisible, double width) {
         if (width > 0) {
             this.editorPanelWidth = width;
         }
-
-        // Ne déclencher le changement que si l'état a changé
         if (editorPanelVisible.get() != isVisible) {
             editorPanelVisible.set(isVisible);
         } else if (isVisible) {
-            // Si déjà visible mais la largeur a changé, ajuster quand même
             adjustForEditorPanel(true);
         }
     }
 
-    /**
-     * Ajuste la disposition des éléments en fonction de l'état du panneau d'édition
-     */
-    private void adjustForEditorPanel(boolean isEditorVisible) {
-        // Adapter la mini-map pour qu'elle reste visible
+        private void adjustForEditorPanel(boolean isEditorVisible) {
         adjustMiniMapPosition(isEditorVisible);
     }
 
-    /**
-     * Ajuste la position de la mini-map pour éviter d'être cachée par le panneau d'édition
-     */
-    private void adjustMiniMapPosition(boolean isEditorVisible) {
+        private void adjustMiniMapPosition(boolean isEditorVisible) {
         if (miniMapView == null) return;
-
-        // Créer des propriétés temporaires que nous pouvons animer
         DoubleProperty topAnchor = new SimpleDoubleProperty();
         DoubleProperty rightAnchor = new SimpleDoubleProperty();
-
-        // Définir les valeurs initiales
         Double currentTop = AnchorPane.getTopAnchor(miniMapView);
         Double currentRight = AnchorPane.getRightAnchor(miniMapView);
         topAnchor.set(currentTop != null ? currentTop : 10.0);
         rightAnchor.set(currentRight != null ? currentRight : 10.0);
-
-        // Ajouter des écouteurs pour mettre à jour les ancrages réels
         topAnchor.addListener((obs, oldVal, newVal) ->
                 AnchorPane.setTopAnchor(miniMapView, newVal.doubleValue()));
         rightAnchor.addListener((obs, oldVal, newVal) ->
                 AnchorPane.setRightAnchor(miniMapView, newVal.doubleValue()));
 
         if (isEditorVisible) {
-            // Calculer de combien il faut déplacer la mini-map
             double requiredOffset = editorPanelWidth + 20.0; // 20px de marge
-
-            // Si la mini-map serait déplacée hors de l'écran à gauche
             if (getWidth() - requiredOffset < miniMapView.getWidth() + 10) {
-                // Déplacer la mini-map en bas à gauche à la place
                 Timeline timeline = new Timeline(
                         new KeyFrame(Duration.millis(250),
                                 new KeyValue(topAnchor, getHeight() - miniMapView.getHeight() - 70),
@@ -225,7 +165,6 @@ public class DiagramCanvas extends AnchorPane {
                 );
                 timeline.play();
             } else {
-                // Déplacer la mini-map horizontalement
                 Timeline timeline = new Timeline(
                         new KeyFrame(Duration.millis(250),
                                 new KeyValue(rightAnchor, requiredOffset)
@@ -234,7 +173,6 @@ public class DiagramCanvas extends AnchorPane {
                 timeline.play();
             }
         } else {
-            // Remettre la mini-map à sa position initiale (en haut à droite)
             Timeline timeline = new Timeline(
                     new KeyFrame(Duration.millis(250),
                             new KeyValue(topAnchor, 10.0),
@@ -321,8 +259,6 @@ public class DiagramCanvas extends AnchorPane {
                 e.consume();
             }
         });
-
-        // Mise à jour de l'indicateur de position
         canvasContainer.setOnMouseMoved(e -> {
             positionIndicator.updatePosition(e, canvasContainer);
         });
@@ -360,8 +296,6 @@ public class DiagramCanvas extends AnchorPane {
 
                 if (diagram != null) {
                     eventBus.publish(new ElementSelectedEvent(diagram.getId(), selectedClass.getId(), true));
-
-                    // Mise en évidence dans la mini-carte
                     miniMapView.highlightClass(selectedClass.getId());
                 }
 
@@ -369,7 +303,6 @@ public class DiagramCanvas extends AnchorPane {
                     classSelectionListener.accept(selectedClass);
                 }
             } else {
-                // Supprimer toutes les mises en évidence
                 if (diagram != null) {
                     for (DiagramClass diagramClass : diagram.getClasses()) {
                         miniMapView.unhighlightClass(diagramClass.getId());
@@ -430,8 +363,6 @@ public class DiagramCanvas extends AnchorPane {
 
             relationManager.updateAllRelations();
             requestLayout();
-
-            // Mise à jour immédiate de la mini-map
             Platform.runLater(() -> {
                 miniMapView.updateContent(diagram.getClasses());
             });
@@ -455,8 +386,6 @@ public class DiagramCanvas extends AnchorPane {
             for (ClassNode node : nodeManager.getNodes().values()) {
                 existingClasses.put(node.getDiagramClass().getId(), node.getDiagramClass());
             }
-
-            // Créer les nouveaux nœuds
             for (DiagramClass diagramClass : diagram.getClasses()) {
                 if (!existingClasses.containsKey(diagramClass.getId())) {
                     nodeManager.createClassNode(diagramClass);
@@ -467,15 +396,11 @@ public class DiagramCanvas extends AnchorPane {
                     }
                 }
             }
-
-            // Créer les nouvelles relations
             for (DiagramRelation relation : diagram.getRelations()) {
                 if (!existingRelations.containsKey(relation.getId())) {
                     relationManager.createRelationLine(relation);
                 }
             }
-
-            // Supprimer les classes obsolètes
             for (String classId : new HashMap<>(existingClasses).keySet()) {
                 boolean found = false;
                 for (DiagramClass diagramClass : diagram.getClasses()) {
@@ -488,8 +413,6 @@ public class DiagramCanvas extends AnchorPane {
                     nodeManager.removeClassNode(existingClasses.get(classId));
                 }
             }
-
-            // Supprimer les relations obsolètes
             for (String relationId : new HashMap<>(existingRelations).keySet()) {
                 boolean found = false;
                 for (DiagramRelation relation : diagram.getRelations()) {
@@ -504,13 +427,9 @@ public class DiagramCanvas extends AnchorPane {
             }
 
             relationManager.updateAllRelationsLater();
-
-            // Mise à jour immédiate de la mini-map
             Platform.runLater(() -> {
                 miniMapView.updateContent(diagram.getClasses());
             });
-
-            // Restaurer la sélection si possible
             if (selectedClass != null && diagram.getClasses().contains(selectedClass)) {
                 selectClass(selectedClass);
             } else if (selectedRelation != null && diagram.getRelations().contains(selectedRelation)) {

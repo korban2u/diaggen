@@ -28,16 +28,12 @@ public class NodeManager {
     private CommandManager commandManager;
     private final EventBus eventBus;
     private Runnable changeListener;
-
-    // Ajout d'une référence au ViewportTransform pour gérer correctement le zoom
     private ViewportTransform viewportTransform;
 
     public NodeManager(Pane container) {
         this.container = container;
         this.eventBus = EventBus.getInstance();
     }
-
-    // Méthode pour définir le ViewportTransform
     public void setViewportTransform(ViewportTransform viewportTransform) {
         this.viewportTransform = viewportTransform;
     }
@@ -49,13 +45,9 @@ public class NodeManager {
     public void setCommandManager(CommandManager commandManager) {
         this.commandManager = commandManager;
     }
-
-    // Méthode pour définir un écouteur de changements
     public void setChangeListener(Runnable listener) {
         this.changeListener = listener;
     }
-
-    // Méthode pour notifier les changements
     private void notifyChange() {
         if (changeListener != null) {
             changeListener.run();
@@ -78,8 +70,6 @@ public class NodeManager {
         classNode.setOnMouseDragged(e -> {
             if (e.getButton() == MouseButton.PRIMARY) {
                 isDragging = true;
-
-                // Ajuster le déplacement en fonction du facteur de zoom
                 double scale = viewportTransform != null ? viewportTransform.getScale() : 1.0;
                 double offsetX = (e.getSceneX() - dragStartX) / scale;
                 double offsetY = (e.getSceneY() - dragStartY) / scale;

@@ -26,8 +26,6 @@ public class GridLayout implements LayoutManager.LayoutAlgorithm {
 
         int row = 0;
         int col = 0;
-
-        // Calculate max columns based on available width
         maxColumns = Math.max(1, (int) ((width - 2 * margin) / gridWidth));
 
         for (DiagramClass diagramClass : diagram.getClasses()) {
@@ -51,16 +49,12 @@ public class GridLayout implements LayoutManager.LayoutAlgorithm {
     public void setDimensions(double width, double height) {
         this.width = width;
         this.height = height;
-
-        // Recalculate maxColumns based on new width
         this.maxColumns = Math.max(1, (int) ((width - 2 * margin) / gridWidth));
     }
 
     public void setGridSize(double gridWidth, double gridHeight) {
         this.gridWidth = gridWidth;
         this.gridHeight = gridHeight;
-
-        // Recalculate maxColumns based on new grid width
         this.maxColumns = Math.max(1, (int) ((width - 2 * margin) / gridWidth));
     }
 

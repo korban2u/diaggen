@@ -161,7 +161,6 @@ public class ClassNode extends Region {
                 double parentWidth = parent.getWidth();
                 double parentHeight = parent.getHeight();
                 if (parentWidth > 0 && parentHeight > 0) {
-                    // Permettre un placement beaucoup plus large
                     double margin = 5000;
                     double newX = Math.max(-margin, Math.min(parentWidth + margin, getLayoutX()));
                     double newY = Math.max(-margin, Math.min(parentHeight + margin, getLayoutY()));

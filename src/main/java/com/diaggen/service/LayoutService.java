@@ -32,17 +32,12 @@ public class LayoutService {
         this.diagramContainer = diagramContainer;
     }
 
-    /**
-     * Méthode interactive pour l'arrangement des classes avec choix d'algorithme
-     */
-    public void arrangeClasses(ClassDiagram diagram, CommandManager commandManager) {
+        public void arrangeClasses(ClassDiagram diagram, CommandManager commandManager) {
         if (diagram == null || diagram.getClasses().isEmpty()) {
             return;
         }
 
         LOGGER.log(Level.INFO, "Starting interactive class arrangement");
-
-        // Offrir à l'utilisateur un choix d'algorithmes de layout
         List<String> choices = Arrays.asList(
                 "Force-Directed (Optimal pour liens complexes)",
                 "Hiérarchique (Optimal pour héritage)",
@@ -55,8 +50,6 @@ public class LayoutService {
         dialog.setContentText("Type d'arrangement:");
 
         Optional<String> result = dialog.showAndWait();
-
-        // Créer le layout manager approprié selon la sélection
         result.ifPresent(choice -> {
             LayoutFactory.LayoutType layoutType;
 
@@ -72,10 +65,7 @@ public class LayoutService {
         });
     }
 
-    /**
-     * Applique le layout sélectionné avec gestion des commandes pour undo/redo
-     */
-    public void applyLayoutWithCommands(ClassDiagram diagram, LayoutFactory.LayoutType layoutType,
+        public void applyLayoutWithCommands(ClassDiagram diagram, LayoutFactory.LayoutType layoutType,
                                         CommandManager commandManager) {
         if (diagram == null || diagram.getClasses().isEmpty()) {
             return;
@@ -83,20 +73,12 @@ public class LayoutService {
 
         LOGGER.log(Level.INFO, "Applying {0} layout to diagram {1} with command tracking",
                 new Object[]{layoutType, diagram.getName()});
-
-        // Créer un groupe de commandes pour toutes les commandes de déplacement
         commandManager.startCommandGroup("Arrangement automatique (" + layoutType.name() + ")");
-
-        // Sauvegarder les positions originales pour créer les commandes
         Map<DiagramClass, Point2D> originalPositions = new HashMap<>();
         for (DiagramClass diagramClass : diagram.getClasses()) {
             originalPositions.put(diagramClass, new Point2D(diagramClass.getX(), diagramClass.getY()));
         }
-
-        // Appliquer l'algorithme de layout
         applyLayout(diagram, layoutType);
-
-        // Créer les commandes de déplacement pour chaque classe
         for (DiagramClass diagramClass : diagram.getClasses()) {
             Point2D original = originalPositions.get(diagramClass);
             if (original != null) {
@@ -104,25 +86,18 @@ public class LayoutService {
                 double oldY = original.getY();
                 double newX = diagramClass.getX();
                 double newY = diagramClass.getY();
-
-                // Ne créer des commandes que si la position a effectivement changé
                 if (Math.abs(oldX - newX) > 1 || Math.abs(oldY - newY) > 1) {
                     MoveClassCommand command = new MoveClassCommand(diagramClass, oldX, oldY, newX, newY);
                     commandManager.executeCommand(command);
                 }
             }
         }
-
-        // Terminer le groupe de commandes
         commandManager.endCommandGroup();
 
         LOGGER.log(Level.INFO, "Layout with commands applied successfully");
     }
 
-    /**
-     * Applique le layout sans créer de commandes (pour initialisation)
-     */
-    public void applyLayout(ClassDiagram diagram, LayoutFactory.LayoutType layoutType) {
+        public void applyLayout(ClassDiagram diagram, LayoutFactory.LayoutType layoutType) {
         if (diagram == null || diagram.getClasses().isEmpty()) {
             LOGGER.log(Level.WARNING, "Cannot apply layout to null or empty diagram");
             return;
@@ -130,18 +105,10 @@ public class LayoutService {
 
         LOGGER.log(Level.INFO, "Applying {0} layout to diagram {1}",
                 new Object[]{layoutType, diagram.getName()});
-
-        // Obtenir ou créer le layout manager pour ce diagramme
         LayoutManager layoutManager = getLayoutManager(diagram);
-
-        // Définir l'algorithme de layout
         layoutManager.setAlgorithm(LayoutFactory.createLayout(layoutType));
-
-        // Calculer les dimensions du conteneur
         double width = diagramContainer != null ? diagramContainer.getWidth() : 1000;
         double height = diagramContainer != null ? diagramContainer.getHeight() : 800;
-
-        // Appliquer le layout avec les dimensions du conteneur
         layoutManager.applyLayout(width, height);
 
         LOGGER.log(Level.INFO, "Layout applied successfully");
@@ -171,8 +138,6 @@ public class LayoutService {
         for (DiagramClass diagramClass : diagram.getClasses()) {
             double x = diagramClass.getX();
             double y = diagramClass.getY();
-
-            // Estimez la largeur et la hauteur de la classe
             double width = 200;
             double height = 120 + diagramClass.getAttributes().size() * 20 +
                     diagramClass.getMethods().size() * 20;
@@ -182,8 +147,6 @@ public class LayoutService {
             maxX = Math.max(maxX, x + width);
             maxY = Math.max(maxY, y + height);
         }
-
-        // Ajouter de la marge
         double margin = 100;
         double width = (maxX - minX) + 2 * margin;
         double height = (maxY - minY) + 2 * margin;
@@ -192,7 +155,6 @@ public class LayoutService {
     }
 
     private LayoutManager getLayoutManager(ClassDiagram diagram) {
-        // Créer ou obtenir le layout manager pour ce diagramme
         return layoutManagers.computeIfAbsent(
                 diagram.getId(),
                 id -> new LayoutManager(diagram)
@@ -203,10 +165,7 @@ public class LayoutService {
         layoutManagers.clear();
     }
 
-    /**
-     * Helper class for JavaFX compatibility
-     */
-    public static class Point2D {
+        public static class Point2D {
         private final double x;
         private final double y;
 

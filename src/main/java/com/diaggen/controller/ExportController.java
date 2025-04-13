@@ -29,8 +29,6 @@ public class ExportController extends BaseController {
     private final ClassController classController;
     private final DiagramController diagramController;
     private Window ownerWindow;
-
-    // Ajouter un attribut pour le service de layout
     private LayoutService layoutService;
 
     public ExportController(DiagramStore diagramStore, CommandManager commandManager,
@@ -49,8 +47,6 @@ public class ExportController extends BaseController {
         this.classController = classController;
         this.diagramController = diagramController;
     }
-
-    // Ajouter une méthode pour définir le service de layout
     public void setLayoutService(LayoutService layoutService) {
         this.layoutService = layoutService;
     }
@@ -251,20 +247,14 @@ public class ExportController extends BaseController {
         }
 
         if (parsedDiagram != null) {
-            // Appliquer un layout intelligent avant d'ajouter le diagramme
             LOGGER.log(Level.INFO, "Applying intelligent layout to imported diagram");
-
-            // Utiliser directement le layoutService si disponible
             if (layoutService != null) {
                 layoutService.applyLayout(parsedDiagram, LayoutFactory.LayoutType.FORCE_DIRECTED);
             } else {
-                // Fallback à l'arrangement automatique des classes
                 if (classController != null) {
                     classController.arrangeClassesAutomatically();
                 }
             }
-
-            // Ajouter le diagramme et l'activer
             diagramStore.getDiagrams().add(parsedDiagram);
             diagramStore.setCurrentFile(null);
 

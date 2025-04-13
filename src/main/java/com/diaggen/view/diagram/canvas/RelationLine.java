@@ -55,11 +55,8 @@ public class RelationLine extends Pane {
 
         Platform.runLater(this::update);
     }
-
-    // Nouvelle méthode pour définir l'échelle de zoom
     public void setZoomScale(double scale) {
         this.currentZoomScale = scale;
-        // Si nécessaire, ajustez l'épaisseur des lignes ou autres éléments visuels ici
         arrowRenderer.setZoomScale(scale);
     }
 
@@ -213,8 +210,6 @@ public class RelationLine extends Pane {
     }
 
     public boolean isNearLine(double x, double y) {
-        // Calculer la tolérance de clic en fonction du niveau de zoom
-        // Plus on dézoome, plus la tolérance est grande
         double adjustedTolerance = BASE_CLICK_TOLERANCE / Math.sqrt(currentZoomScale);
 
         Point2D sourceCenter = new Point2D(

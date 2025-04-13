@@ -51,10 +51,7 @@ public class NavigationManager {
     }
 
     private void setupEventHandlers() {
-        // Gestion du zoom avec la molette
         targetPane.addEventFilter(ScrollEvent.SCROLL, this::handleScroll);
-
-        // Gestion du panoramique avec le clic du milieu
         targetPane.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             if ((event.getButton() == MouseButton.MIDDLE) ||
                     (event.getButton() == MouseButton.PRIMARY && (spacePressed || altPressed))) {
@@ -87,8 +84,6 @@ public class NavigationManager {
                 event.consume();
             }
         });
-
-        // Touches pour activer le mode panoramique
         targetPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.SPACE && !spacePressed) {
                 spacePressed = true;
@@ -125,7 +120,6 @@ public class NavigationManager {
     }
 
     private boolean isClickOnBackground(MouseEvent event) {
-        // Vérifie si le clic est sur l'arrière-plan et non sur un élément de diagramme
         Node target = (Node) event.getTarget();
         return target == targetPane ||
                 (target.getClass().getSimpleName().equals("Canvas")) ||
@@ -169,22 +163,17 @@ public class NavigationManager {
 
     private void handleScroll(ScrollEvent event) {
         if (event.isControlDown()) {
-            // Zoom centré sur la position de la souris
             double scaleFactor = event.getDeltaY() > 0 ? ZOOM_FACTOR : 1/ZOOM_FACTOR;
             zoomAt(event.getX(), event.getY(), scaleFactor);
             event.consume();
             return;
         }
-
-        // Navigation horizontale avec Shift + molette
         if (event.isShiftDown()) {
             double panAmount = event.getDeltaY() * panSpeedProperty.get();
             transform.setTranslateX(transform.getTranslateX() + panAmount);
             event.consume();
             return;
         }
-
-        // Navigation verticale standard avec la molette
         double panAmount = event.getDeltaY() * panSpeedProperty.get();
         transform.setTranslateY(transform.getTranslateY() + panAmount);
         event.consume();
@@ -299,8 +288,6 @@ public class NavigationManager {
             resetView();
             return;
         }
-
-        // Ajouter de la marge
         minX -= padding;
         minY -= padding;
         maxX += padding;
@@ -326,8 +313,6 @@ public class NavigationManager {
 
         double translateX = viewportCenterX - contentCenterX * scale;
         double translateY = viewportCenterY - contentCenterY * scale;
-
-        // Animation pour un effet plus fluide
         animateTransform(scale, translateX, translateY);
     }
 

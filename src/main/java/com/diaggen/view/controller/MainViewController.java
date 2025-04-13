@@ -55,8 +55,6 @@ public class MainViewController {
 
     @FXML
     private Button deleteRelationButton;
-
-    // Container du panneau d'édition
     @FXML
     private StackPane editorPaneContainer;
 
@@ -103,17 +101,10 @@ public class MainViewController {
         diagramCanvas = new DiagramCanvas();
         diagramCanvasContainer.getChildren().add(diagramCanvas);
         editorController = new EditorPanelController(editorContent);
-
-        // Configuration pour que l'état du panneau d'édition soit communiqué au diagramCanvas
         editorPanel.visibleProperty().addListener((obs, wasVisible, isVisible) -> {
             editorPaneContainer.setMouseTransparent(!isVisible);
-
-            // Notifier le DiagramCanvas de l'état du panneau d'édition
             if (diagramCanvas != null) {
-                // Mesurer la largeur réelle du panneau
                 double editorWidth = isVisible ? editorPanel.getWidth() : 0;
-
-                // Si la largeur n'est pas encore déterminée, utiliser une valeur par défaut
                 if (editorWidth <= 0 && isVisible) {
                     editorWidth = 300; // Largeur par défaut du panneau d'édition
                 }
@@ -121,8 +112,6 @@ public class MainViewController {
                 diagramCanvas.setEditorPanelState(isVisible, editorWidth);
             }
         });
-
-        // Après le chargement de la scène, surveiller les changements de taille du panneau d'édition
         Platform.runLater(() -> {
             if (editorPanel.getScene() != null) {
                 editorPanel.widthProperty().addListener((obs, oldWidth, newWidth) -> {
@@ -177,25 +166,15 @@ public class MainViewController {
     }
 
     private void setupProperLayering() {
-        // Assurez-vous que le conteneur de canvas est correctement limité
         Rectangle clipRect = new Rectangle();
         clipRect.widthProperty().bind(diagramCanvasContainer.widthProperty());
         clipRect.heightProperty().bind(diagramCanvasContainer.heightProperty());
         diagramCanvasContainer.setClip(clipRect);
-
-        // S'assurer que le diagramCanvas ne peut pas déborder sur la toolbar
         diagramCanvasContainer.setPickOnBounds(true);
-
-        // Définition d'une hiérarchie d'ordre d'affichage
-        // Les valeurs plus petites sont affichées au-dessus
         diagramCanvasContainer.setViewOrder(1.0); // Arrière-plan
-
-        // Assurer que les menus et toolbars restent au-dessus
         if (diagramCanvasContainer.getParent() != null) {
             diagramCanvasContainer.getParent().setViewOrder(0.5);
         }
-
-        // S'assurer que le panneau d'édition reste visible
         if (editorPanel != null) {
             editorPanel.setViewOrder(0.0); // Premier plan
         }
@@ -275,8 +254,6 @@ public class MainViewController {
                 deleteRelationButton.setDisable(true);
                 editorPanel.setVisible(true);
                 editorController.showClassEditor(diagramClass);
-
-                // Après avoir rendu le panneau visible, mettre à jour l'état dans diagramCanvas
                 Platform.runLater(() -> {
                     double editorWidth = editorPanel.getWidth();
                     if (editorWidth <= 0) {
@@ -309,8 +286,6 @@ public class MainViewController {
                 deleteClassButton.setDisable(true);
                 editorPanel.setVisible(true);
                 editorController.showRelationEditor(relation);
-
-                // Après avoir rendu le panneau visible
                 Platform.runLater(() -> {
                     double editorWidth = editorPanel.getWidth();
                     if (editorWidth <= 0) {
@@ -428,34 +403,23 @@ public class MainViewController {
         statusLabel.setText(status);
     }
 
-    /**
-     * Met à jour l'état du panneau d'édition dans DiagramCanvas
-     * Cette méthode est appelée lorsque le panneau d'édition change de visibilité ou de taille
-     */
-    private void updateEditorPanelState(boolean isVisible) {
+        private void updateEditorPanelState(boolean isVisible) {
         if (diagramCanvas == null) return;
 
         double editorWidth = 0;
         if (isVisible) {
             editorWidth = editorPanel.getWidth();
-            // Si la largeur n'est pas encore disponible, utiliser la valeur préférée
             if (editorWidth <= 0) {
                 editorWidth = editorPanel.getPrefWidth();
             }
-            // Valeur par défaut si toujours pas disponible
             if (editorWidth <= 0) {
                 editorWidth = 300;
             }
         }
-
-        // Informer le DiagramCanvas de l'état du panneau d'édition
         diagramCanvas.setEditorPanelState(isVisible, editorWidth);
     }
 
-    /**
-     * Désélectionne tout et ferme le panneau d'édition
-     */
-    public void deselectAllAndCloseEditor() {
+        public void deselectAllAndCloseEditor() {
         if (diagramCanvas != null) {
             diagramCanvas.deselectAll();
         }

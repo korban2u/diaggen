@@ -29,31 +29,21 @@ public class RelationManager {
         this.container = container;
         this.nodeManager = nodeManager;
     }
-
-    // Méthode pour définir le ViewportTransform
     public void setViewportTransform(ViewportTransform viewportTransform) {
         this.viewportTransform = viewportTransform;
-
-        // Ajouter un listener pour mettre à jour l'échelle de zoom
         this.viewportTransform.scaleProperty().addListener((obs, oldVal, newVal) -> {
             this.currentZoomScale = newVal.doubleValue();
             updateRelationsZoomScale();
         });
     }
-
-    // Mettre à jour l'échelle de zoom pour toutes les relations
     private void updateRelationsZoomScale() {
         for (RelationLine line : relationLines.values()) {
             line.setZoomScale(currentZoomScale);
         }
     }
-
-    // Méthode pour définir un écouteur de changements
     public void setChangeListener(Runnable listener) {
         this.changeListener = listener;
     }
-
-    // Méthode pour notifier les changements
     private void notifyChange() {
         if (changeListener != null) {
             changeListener.run();
@@ -66,8 +56,6 @@ public class RelationManager {
 
         if (sourceNode != null && targetNode != null) {
             RelationLine relationLine = new RelationLine(relation, sourceNode, targetNode);
-
-            // Définir l'échelle de zoom actuelle
             relationLine.setZoomScale(currentZoomScale);
 
             container.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {

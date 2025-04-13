@@ -40,11 +40,7 @@ public class MiniMapView extends VBox {
     private final Pane contentRepresentation = new Pane();
     private final Rectangle viewportRect = new Rectangle();
     private final Label titleLabel = new Label("Aperçu");
-
-    // Ajout d'un flag pour éviter les mises à jour simultanées
     private final AtomicBoolean isUpdating = new AtomicBoolean(false);
-
-    // Propriété pour savoir si la mini-map est actuellement déplacée
     private boolean isRepositioning = false;
 
     private double miniMapScale = 0.1;
@@ -58,75 +54,50 @@ public class MiniMapView extends VBox {
     private double minY = 0;
     private double maxX = 0;
     private double maxY = 0;
-
-    // Position originale de la mini-map
     private double originalRightAnchor = 10.0;
     private double originalTopAnchor = 10.0;
 
     public MiniMapView(Pane diagramCanvas, ViewportTransform transform) {
         this.diagramCanvas = diagramCanvas;
         this.transform = transform;
-
-        // Style de base de la mini-carte avec z-index élevé pour rester visible
         setPrefSize(180, 150);
         setMaxSize(180, 150);
         setSpacing(5);
         setPadding(new Insets(5));
         setStyle("-fx-background-color: rgba(255, 255, 255, 0.85); -fx-background-radius: 8; -fx-z-index: 1000;");
-
-        // Assurer que la mini-map reste au-dessus des autres composants
         setViewOrder(-10); // Les valeurs plus petites sont affichées au-dessus
-
-        // Effet d'ombre
         DropShadow dropShadow = new DropShadow();
         dropShadow.setRadius(6.0);
         dropShadow.setOffsetX(2.0);
         dropShadow.setOffsetY(2.0);
         dropShadow.setColor(Color.rgb(0, 0, 0, 0.3));
         setEffect(dropShadow);
-
-        // Titre de la mini-carte
         titleLabel.setFont(Font.font("System", FontWeight.BOLD, 12));
         titleLabel.setStyle("-fx-text-fill: #4a89dc;");
-
-        // Configuration du conteneur de contenu
         contentRepresentation.setPrefSize(170, 100);
         contentRepresentation.setMinSize(170, 100);
         contentRepresentation.setStyle("-fx-background-color: white; -fx-border-color: #e0e0e0; -fx-border-width: 1; -fx-border-radius: 4;");
-
-        // Configuration du rectangle de viewport
         viewportRect.setFill(Color.rgb(74, 137, 220, 0.2));
         viewportRect.setStroke(Color.rgb(74, 137, 220, 0.8));
         viewportRect.setStrokeWidth(1.5);
         viewportRect.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 2, 0, 0, 0);");
-
-        // Ajouter les éléments à la mini-carte
         contentRepresentation.getChildren().add(viewportRect);
         getChildren().addAll(titleLabel, contentRepresentation);
-
-        // Installation des info-bulles
         Tooltip tooltip = new Tooltip("Mini-carte: cliquez pour naviguer\nDrag & drop pour déplacer la vue\nDouble-clic pour agrandir/réduire");
         Tooltip.install(this, tooltip);
-
-        // Ajout des gestionnaires d'événements
         setOnMousePressed(this::handleMousePress);
         setOnMouseDragged(this::handleMouseDrag);
         setOnMouseReleased(this::handleMouseRelease);
         contentRepresentation.setOnMousePressed(this::handleMousePress);
         contentRepresentation.setOnMouseDragged(this::handleMouseDrag);
         contentRepresentation.setOnMouseReleased(this::handleMouseRelease);
-
-        // Configuration des animations de style
         setupAnimations();
-
-        // Liaison aux propriétés du transform
         transform.scaleProperty().addListener((obs, oldVal, newVal) -> updateViewportRect());
         transform.translateXProperty().addListener((obs, oldVal, newVal) -> updateViewportRect());
         transform.translateYProperty().addListener((obs, oldVal, newVal) -> updateViewportRect());
     }
 
     private void setupAnimations() {
-        // Animation d'entrée/sortie lors du survol
         FadeTransition fadeIn = new FadeTransition(Duration.millis(200), this);
         fadeIn.setFromValue(0.7);
         fadeIn.setToValue(1.0);
@@ -138,8 +109,6 @@ public class MiniMapView extends VBox {
         setOpacity(0.7);
         setOnMouseEntered(e -> fadeIn.play());
         setOnMouseExited(e -> fadeOut.play());
-
-        // Effet de clic
         setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
                 toggleExpanded();
@@ -164,14 +133,9 @@ public class MiniMapView extends VBox {
             contentRepresentation.setMinSize(170, 100);
             titleLabel.setText("Aperçu");
         }
-
-        // Mettre à jour le contenu après le redimensionnement
         updateContent(null);
     }
-
-    // Méthode pour repositionner la mini-map lors de l'ouverture du panneau d'édition
     public void repositionForEditorPanel(boolean isEditorVisible, double editorWidth) {
-        // Éviter de repositionner si on est déjà en train de le faire
         if (isRepositioning) {
             return;
         }
@@ -182,11 +146,9 @@ public class MiniMapView extends VBox {
             TranslateTransition transition = new TranslateTransition(Duration.millis(250), this);
 
             if (isEditorVisible) {
-                // Décaler la mini-map vers la gauche
                 double offset = editorWidth + 10; // 10px de marge
                 transition.setByX(-offset);
             } else {
-                // Remettre à la position originale
                 transition.setByX(0);
                 transition.setToX(0);
             }
@@ -195,7 +157,6 @@ public class MiniMapView extends VBox {
             transition.play();
         } catch (Exception e) {
             isRepositioning = false;
-            // Repositionner sans animation en cas d'erreur
             if (isEditorVisible) {
                 double offset = editorWidth + 10;
                 setTranslateX(-offset);
@@ -204,8 +165,6 @@ public class MiniMapView extends VBox {
             }
         }
     }
-
-    // Méthode pour savoir si la mini-map est actuellement visible à l'écran
     public boolean isFullyVisible() {
         if (getParent() == null) {
             return true; // On ne peut pas déterminer
@@ -213,27 +172,20 @@ public class MiniMapView extends VBox {
 
         Bounds parentBounds = getParent().getBoundsInLocal();
         Bounds bounds = getBoundsInParent();
-
-        // Vérifier si la mini-map est complètement dans les limites du parent
         return parentBounds.contains(bounds);
     }
 
     public void updateContent(Iterable<DiagramClass> classes) {
-        // Vérifier si une mise à jour est déjà en cours
         if (isUpdating.getAndSet(true)) {
             return;
         }
 
         try {
-            // Tout le traitement se fait dans un thread de l'UI
             Platform.runLater(() -> {
                 try {
-                    // Nettoyer le contenu existant
                     contentRepresentation.getChildren().clear();
                     classRectangles.clear();
                     relationLines.clear();
-
-                    // Si aucune classe n'est fournie, rétablir à l'état par défaut
                     if (classes == null) {
                         viewportRect.setX(10);
                         viewportRect.setY(10);
@@ -242,11 +194,7 @@ public class MiniMapView extends VBox {
                         contentRepresentation.getChildren().add(viewportRect);
                         return;
                     }
-
-                    // Calculer les limites du diagramme
                     calculateBounds(classes);
-
-                    // Calculer l'échelle de la mini-carte
                     double contentWidth = maxX - minX;
                     double contentHeight = maxY - minY;
 
@@ -258,13 +206,9 @@ public class MiniMapView extends VBox {
                     double scaleX = (contentRepresentation.getPrefWidth() - 20) / contentWidth;
                     double scaleY = (contentRepresentation.getPrefHeight() - 20) / contentHeight;
                     miniMapScale = Math.min(scaleX, scaleY);
-
-                    // Créer les rectangles pour chaque classe
                     for (DiagramClass diagramClass : classes) {
                         createClassRectangle(diagramClass);
                     }
-
-                    // Ajouter le rectangle de viewport
                     contentRepresentation.getChildren().add(viewportRect);
                     updateViewportRect();
                 } finally {
@@ -289,8 +233,6 @@ public class MiniMapView extends VBox {
             hasClasses = true;
             double x = diagramClass.getX();
             double y = diagramClass.getY();
-
-            // Estimer la taille des classes (approximation)
             double width = 200;
             double height = 120 + diagramClass.getAttributes().size() * 20 + diagramClass.getMethods().size() * 20;
 
@@ -306,7 +248,6 @@ public class MiniMapView extends VBox {
             maxX = 800;
             maxY = 600;
         } else {
-            // Ajouter une marge
             double margin = 100;
             minX -= margin;
             minY -= margin;
@@ -316,7 +257,6 @@ public class MiniMapView extends VBox {
     }
 
     private void createClassRectangle(DiagramClass diagramClass) {
-        // Calculer la position et la taille du rectangle
         double x = diagramClass.getX();
         double y = diagramClass.getY();
         double width = 200;  // Approximation
@@ -328,8 +268,6 @@ public class MiniMapView extends VBox {
                 width * miniMapScale,
                 height * miniMapScale
         );
-
-        // Appliquer un style en fonction du type de classe
         if (diagramClass.getClassType() == ClassType.INTERFACE) {
             rect.setFill(Color.rgb(230, 230, 255));
             rect.setStroke(Color.rgb(100, 100, 200));
@@ -345,8 +283,6 @@ public class MiniMapView extends VBox {
         }
 
         rect.setStrokeWidth(1);
-
-        // Ajouter un effet de survol
         rect.setOnMouseEntered(e -> {
             rect.setStrokeWidth(2);
             rect.setStroke(Color.rgb(74, 137, 220));
@@ -380,8 +316,6 @@ public class MiniMapView extends VBox {
         viewportRect.setY((viewportY - minY) * miniMapScale + 10);
         viewportRect.setWidth(contentWidth * miniMapScale);
         viewportRect.setHeight(contentHeight * miniMapScale);
-
-        // S'assurer que le rectangle de viewport ne dépasse pas les limites
         double maxX = contentRepresentation.getPrefWidth() - 20;
         double maxY = contentRepresentation.getPrefHeight() - 20;
 
@@ -427,13 +361,10 @@ public class MiniMapView extends VBox {
 
         double translateX = -(contentX - viewportWidth / 2) * transform.getScale();
         double translateY = -(contentY - viewportHeight / 2) * transform.getScale();
-
-        // Animation pour un déplacement fluide
         animateTransform(translateX, translateY);
     }
 
     private void animateTransform(double targetX, double targetY) {
-        // Transition pour un déplacement plus fluide
         javafx.animation.Timeline timeline = new javafx.animation.Timeline();
 
         javafx.animation.KeyValue kvX = new javafx.animation.KeyValue(transform.translateXProperty(), targetX);
