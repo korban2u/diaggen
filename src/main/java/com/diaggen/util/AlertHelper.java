@@ -61,7 +61,7 @@ public class AlertHelper {
                         "manipuler des diagrammes de classes pour la conception orientée objet.\n\n" +
                         "Développé avec JavaFX " + System.getProperty("javafx.version") + "\n" +
                         "Java " + System.getProperty("java.version") + "\n\n" +
-                        "© 2025 DiagGen Team"
+                        "© 2025 Ryan Korban"
         );
         alert.showAndWait();
     }
