@@ -7,8 +7,12 @@ import javafx.collections.ObservableList;
 
 import java.io.File;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DiagramStore {
+    private static final Logger LOGGER = Logger.getLogger(DiagramStore.class.getName());
+
     private final ObservableList<Project> projects = FXCollections.observableArrayList();
     private final ObjectProperty<Project> activeProject = new SimpleObjectProperty<>();
     private final ObjectProperty<ClassDiagram> activeDiagram = new SimpleObjectProperty<>();
@@ -31,6 +35,10 @@ public class DiagramStore {
         if (project == null || (getActiveDiagram() != null && !project.getDiagrams().contains(getActiveDiagram()))) {
             setActiveDiagram(null);
         }
+
+        // Si on change de projet, on doit mettre à jour le fichier correspondant
+        // Cette méthode ne doit pas définir currentProjectFile car c'est au
+        // ProjectController/ProjectSessionManager de le faire
     }
 
     public ObjectProperty<Project> activeProjectProperty() {
@@ -40,14 +48,18 @@ public class DiagramStore {
     public Project createNewProject(String name) {
         Project project = new Project(name);
         projects.add(project);
+        LOGGER.log(Level.INFO, "New project created: {0}", name);
         return project;
     }
 
     public void removeProject(Project project) {
         if (project == getActiveProject()) {
             setActiveProject(null);
+            // Quand on supprime un projet, on réinitialise son fichier
+            setCurrentProjectFile(null);
         }
         projects.remove(project);
+        LOGGER.log(Level.INFO, "Project removed: {0}", project.getName());
     }
 
     public ClassDiagram getActiveDiagram() {
@@ -56,6 +68,11 @@ public class DiagramStore {
 
     public void setActiveDiagram(ClassDiagram diagram) {
         this.activeDiagram.set(diagram);
+        if (diagram != null) {
+            LOGGER.log(Level.INFO, "Active diagram set: {0}", diagram.getName());
+        } else {
+            LOGGER.log(Level.INFO, "Active diagram cleared");
+        }
     }
 
     public ObjectProperty<ClassDiagram> activeDiagramProperty() {
@@ -69,6 +86,7 @@ public class DiagramStore {
 
         ClassDiagram diagram = new ClassDiagram(name);
         getActiveProject().addDiagram(diagram);
+        LOGGER.log(Level.INFO, "New diagram created: {0}", name);
         return diagram;
     }
 
@@ -79,6 +97,7 @@ public class DiagramStore {
 
         if (getActiveProject() != null) {
             getActiveProject().removeDiagram(diagram);
+            LOGGER.log(Level.INFO, "Diagram removed: {0}", diagram.getName());
         }
     }
 
@@ -87,6 +106,11 @@ public class DiagramStore {
     }
 
     public void setCurrentProjectFile(File file) {
+        if (file != null) {
+            LOGGER.log(Level.INFO, "Current project file set to: {0}", file.getAbsolutePath());
+        } else {
+            LOGGER.log(Level.INFO, "Current project file cleared");
+        }
         this.currentProjectFile = file;
     }
 

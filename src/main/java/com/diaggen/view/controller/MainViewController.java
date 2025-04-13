@@ -29,6 +29,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 
+import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -170,21 +171,13 @@ public class MainViewController {
     }
 
     private void setupEventBusListeners() {
-
         eventBus.subscribe(ProjectActivatedEvent.class, (EventListener<ProjectActivatedEvent>) event -> {
             if (isProcessingEvent) return;
 
             LOGGER.log(Level.INFO, "ProjectActivatedEvent received for project ID: {0}", event.getDiagramId());
             isProcessingEvent = true;
             try {
-                Platform.runLater(() -> {
-                    Project activeProject = mainController.getDiagramStore().getActiveProject();
-                    if (activeProject != null) {
-                        projectInfoLabel.setText("Projet: " + activeProject.getName());
-                    } else {
-                        projectInfoLabel.setText("Aucun projet actif");
-                    }
-                });
+                updateProjectInfo();
             } finally {
                 isProcessingEvent = false;
             }
@@ -206,13 +199,7 @@ public class MainViewController {
                         setStatus("Prêt");
                     }
 
-                    Project activeProject = mainController.getDiagramStore().getActiveProject();
-                    if (activeProject != null) {
-                        projectInfoLabel.setText("Projet: " + activeProject.getName() +
-                                (diagram != null ? " | Diagramme: " + diagram.getName() : ""));
-                    } else {
-                        projectInfoLabel.setText("Aucun projet actif");
-                    }
+                    updateProjectInfo();
                 });
             } finally {
                 isProcessingEvent = false;
@@ -226,20 +213,14 @@ public class MainViewController {
                         diagramCanvas.getDiagram().getId().equals(event.getDiagramId())) {
                     diagramCanvas.refresh();
                 }
+                updateProjectInfo();
             });
         });
 
         eventBus.subscribe(ProjectChangedEvent.class, (EventListener<ProjectChangedEvent>) event -> {
             LOGGER.log(Level.FINE, "ProjectChangedEvent received for project ID: {0}", event.getDiagramId());
             Platform.runLater(() -> {
-                Project activeProject = mainController.getDiagramStore().getActiveProject();
-                if (activeProject != null) {
-                    projectInfoLabel.setText("Projet: " + activeProject.getName() +
-                            (mainController.getDiagramStore().getActiveDiagram() != null ?
-                                    " | Diagramme: " + mainController.getDiagramStore().getActiveDiagram().getName() : ""));
-                } else {
-                    projectInfoLabel.setText("Aucun projet actif");
-                }
+                updateProjectInfo();
             });
         });
     }
@@ -441,10 +422,13 @@ public class MainViewController {
     private void handleNewProject() {
         if (projectController != null) {
             LOGGER.log(Level.INFO, "Creating new project");
-            projectController.createNewProjectWithDialog();
+            Project newProject = projectController.createNewProjectWithDialog();
+            if (newProject != null) {
+                setStatus("Nouveau projet créé : " + newProject.getName());
+                updateProjectInfo();
+            }
         }
     }
-
     @FXML
     private void handleOpenProject() {
         if (projectController != null) {
@@ -458,16 +442,66 @@ public class MainViewController {
         if (projectController != null) {
             LOGGER.log(Level.INFO, "Saving project");
             projectController.saveProject();
+
+            // Mise à jour du status pour indiquer le chemin de sauvegarde
+            Project activeProject = mainController.getDiagramStore().getActiveProject();
+            if (activeProject != null) {
+                File projectFile = mainController.getDiagramStore().getCurrentProjectFile();
+                if (projectFile != null) {
+                    setStatus("Projet sauvegardé : " + projectFile.getAbsolutePath());
+                }
+            }
+            updateProjectInfo();
         }
     }
+
 
     @FXML
     private void handleSaveProjectAs() {
         if (projectController != null) {
             LOGGER.log(Level.INFO, "Saving project as...");
             projectController.saveProjectAs();
+
+            // Mise à jour du status pour indiquer le chemin de sauvegarde
+            Project activeProject = mainController.getDiagramStore().getActiveProject();
+            if (activeProject != null) {
+                File projectFile = mainController.getDiagramStore().getCurrentProjectFile();
+                if (projectFile != null) {
+                    setStatus("Projet sauvegardé sous : " + projectFile.getAbsolutePath());
+                }
+            }
+            updateProjectInfo();
         }
     }
+
+    private void updateProjectInfo() {
+        Platform.runLater(() -> {
+            Project activeProject = mainController != null ? mainController.getDiagramStore().getActiveProject() : null;
+            ClassDiagram activeDiagram = mainController != null ? mainController.getDiagramStore().getActiveDiagram() : null;
+
+            if (activeProject != null) {
+                String modifiedIndicator = projectController != null && projectController.isProjectModified() ? " *" : "";
+                String projectInfo = "Projet: " + activeProject.getName() + modifiedIndicator;
+
+                if (activeDiagram != null) {
+                    projectInfo += " | Diagramme: " + activeDiagram.getName();
+                }
+
+                File projectFile = mainController.getDiagramStore().getCurrentProjectFile();
+                if (projectFile != null) {
+                    projectInfo += " | Fichier: " + projectFile.getName();
+                } else if (projectController != null && projectController.isProjectModified()) {
+                    projectInfo += " | Non sauvegardé";
+                }
+
+                projectInfoLabel.setText(projectInfo);
+            } else {
+                projectInfoLabel.setText("Aucun projet actif");
+            }
+        });
+    }
+
+
 
     @FXML
     private void handleImportDiagrams() {

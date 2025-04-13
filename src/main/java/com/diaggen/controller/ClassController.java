@@ -9,6 +9,7 @@ import com.diaggen.event.DiagramChangedEvent;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramClass;
 import com.diaggen.model.DiagramStore;
+import com.diaggen.model.session.ProjectSessionManager;
 import com.diaggen.service.LayoutService;
 import com.diaggen.view.dialog.DialogFactory;
 import javafx.scene.control.Alert;
@@ -23,11 +24,14 @@ public class ClassController extends BaseController {
     private static final Logger LOGGER = Logger.getLogger(ClassController.class.getName());
     private final DialogFactory dialogFactory;
     private LayoutService layoutService;
+    private final ProjectSessionManager sessionManager;
 
     public ClassController(DiagramStore diagramStore, CommandManager commandManager, DialogFactory dialogFactory) {
         super(diagramStore, commandManager);
         this.dialogFactory = dialogFactory;
+        this.sessionManager = ProjectSessionManager.getInstance();
     }
+
     public void setLayoutService(LayoutService layoutService) {
         this.layoutService = layoutService;
     }
@@ -43,6 +47,10 @@ public class ClassController extends BaseController {
 
             eventBus.publish(new DiagramChangedEvent(currentDiagram.getId(),
                     DiagramChangedEvent.ChangeType.CLASS_ADDED, diagramClass.getId()));
+
+            // Marquer le projet comme modifié
+            sessionManager.markProjectAsModified();
+            LOGGER.log(Level.FINE, "Project marked as modified after class creation");
         });
     }
 
@@ -53,6 +61,10 @@ public class ClassController extends BaseController {
         dialog.showAndWait().ifPresent(updatedClass -> {
             eventBus.publish(new DiagramChangedEvent(getActiveDiagram().getId(),
                     DiagramChangedEvent.ChangeType.CLASS_MODIFIED, diagramClass.getId()));
+
+            // Marquer le projet comme modifié
+            sessionManager.markProjectAsModified();
+            LOGGER.log(Level.FINE, "Project marked as modified after class edit");
         });
     }
 
@@ -73,6 +85,10 @@ public class ClassController extends BaseController {
 
             eventBus.publish(new DiagramChangedEvent(currentDiagram.getId(),
                     DiagramChangedEvent.ChangeType.CLASS_REMOVED, diagramClass.getId()));
+
+            // Marquer le projet comme modifié
+            sessionManager.markProjectAsModified();
+            LOGGER.log(Level.FINE, "Project marked as modified after class removal");
         }
     }
 
@@ -85,6 +101,10 @@ public class ClassController extends BaseController {
 
         eventBus.publish(new ClassMovedEvent(currentDiagram.getId(),
                 diagramClass.getId(), oldX, oldY, newX, newY));
+
+        // Marquer le projet comme modifié
+        sessionManager.markProjectAsModified();
+        LOGGER.log(Level.FINE, "Project marked as modified after class move");
     }
 
     public void arrangeClassesAutomatically() {
@@ -97,8 +117,13 @@ public class ClassController extends BaseController {
             eventBus.publish(new DiagramChangedEvent(diagram.getId(),
                     DiagramChangedEvent.ChangeType.DIAGRAM_RENAMED, null));
 
+            // Marquer le projet comme modifié
+            sessionManager.markProjectAsModified();
+            LOGGER.log(Level.FINE, "Project marked as modified after automatic arrangement");
+
             return;
         }
+
         final int GRID_WIDTH = 250;
         final int GRID_HEIGHT = 200;
         final int MAX_COLUMNS = 4;
@@ -128,6 +153,9 @@ public class ClassController extends BaseController {
 
         eventBus.publish(new DiagramChangedEvent(diagram.getId(),
                 DiagramChangedEvent.ChangeType.DIAGRAM_RENAMED, null));
+
+        // Marquer le projet comme modifié
+        sessionManager.markProjectAsModified();
 
         LOGGER.log(Level.INFO, "Automatic class arrangement completed");
     }

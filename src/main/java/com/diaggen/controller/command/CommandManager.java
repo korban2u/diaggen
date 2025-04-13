@@ -1,81 +1,69 @@
 package com.diaggen.controller.command;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import com.diaggen.model.session.ProjectSessionManager;
 
 import java.util.Stack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CommandManager {
+    private static final Logger LOGGER = Logger.getLogger(CommandManager.class.getName());
 
     private final Stack<Command> undoStack = new Stack<>();
     private final Stack<Command> redoStack = new Stack<>();
+    private final Stack<Command> groupStack = new Stack<>();
+    private boolean inGroup = false;
+    private String currentGroupName = "";
+    private final ProjectSessionManager sessionManager;
 
-    private final BooleanProperty canUndoProperty = new SimpleBooleanProperty(false);
-    private final BooleanProperty canRedoProperty = new SimpleBooleanProperty(false);
-
-    private final ObservableList<String> commandHistory = FXCollections.observableArrayList();
-
-
-    private CommandGroup currentGroup = null;
+    public CommandManager() {
+        // Obtention du gestionnaire de session
+        this.sessionManager = ProjectSessionManager.getInstance();
+    }
 
     public void executeCommand(Command command) {
+        if (command == null) return;
 
-        if (currentGroup != null) {
-            currentGroup.addCommand(command);
-            return;
-        }
-
-        command.execute();
-        undoStack.push(command);
-        redoStack.clear();
-
-        updateProperties();
-        updateCommandHistory();
-    }
-
-    public void startCommandGroup(String description) {
-
-        currentGroup = new CommandGroup(description);
-    }
-
-    public void endCommandGroup() {
-
-        if (currentGroup != null && !currentGroup.isEmpty()) {
-            Command group = currentGroup;
-            currentGroup = null;
-            executeCommand(group);
+        if (inGroup) {
+            groupStack.push(command);
         } else {
-            currentGroup = null;
+            command.execute();
+            undoStack.push(command);
+            redoStack.clear();
         }
-    }
 
-    public void cancelCommandGroup() {
+        // Marquer le projet comme modifié après l'exécution d'une commande
+        sessionManager.markProjectAsModified();
 
-        currentGroup = null;
+        LOGGER.log(Level.FINE, "Command executed: {0}, project marked as modified",
+                new Object[]{command.getClass().getSimpleName()});
     }
 
     public void undo() {
-        if (!undoStack.isEmpty()) {
+        if (canUndo()) {
             Command command = undoStack.pop();
             command.undo();
             redoStack.push(command);
 
-            updateProperties();
-            updateCommandHistory();
+            // Marquer le projet comme modifié après une annulation
+            sessionManager.markProjectAsModified();
+
+            LOGGER.log(Level.FINE, "Command undone: {0}, project marked as modified",
+                    new Object[]{command.getClass().getSimpleName()});
         }
     }
 
     public void redo() {
-        if (!redoStack.isEmpty()) {
+        if (canRedo()) {
             Command command = redoStack.pop();
             command.execute();
             undoStack.push(command);
 
-            updateProperties();
-            updateCommandHistory();
+            // Marquer le projet comme modifié après une restauration
+            sessionManager.markProjectAsModified();
+
+            LOGGER.log(Level.FINE, "Command redone: {0}, project marked as modified",
+                    new Object[]{command.getClass().getSimpleName()});
         }
     }
 
@@ -87,40 +75,56 @@ public class CommandManager {
         return !redoStack.isEmpty();
     }
 
-    public ReadOnlyBooleanProperty canUndoProperty() {
-        return canUndoProperty;
-    }
-
-    public ReadOnlyBooleanProperty canRedoProperty() {
-        return canRedoProperty;
-    }
-
-    public ObservableList<String> getCommandHistory() {
-        return commandHistory;
-    }
-
-    private void updateProperties() {
-        canUndoProperty.set(canUndo());
-        canRedoProperty.set(canRedo());
-    }
-
-    private void updateCommandHistory() {
-        commandHistory.clear();
-
-        for (int i = undoStack.size() - 1; i >= 0; i--) {
-            Command command = undoStack.get(i);
-            commandHistory.add(command.getDescription() + " ✓");
+    public void startCommandGroup(String name) {
+        if (inGroup) {
+            LOGGER.log(Level.WARNING, "Trying to start a command group while already in a group");
+            return;
         }
 
-        for (Command command : redoStack) {
-            commandHistory.add(command.getDescription() + " ↶");
-        }
+        inGroup = true;
+        currentGroupName = name;
+        groupStack.clear();
+        LOGGER.log(Level.FINE, "Command group started: {0}", new Object[]{name});
     }
 
-    public void clear() {
+    public void endCommandGroup() {
+        if (!inGroup) {
+            LOGGER.log(Level.WARNING, "Trying to end a command group while not in a group");
+            return;
+        }
+
+        inGroup = false;
+
+        if (!groupStack.isEmpty()) {
+            // Créer un CommandGroup avec le nom du groupe
+            CommandGroup group = new CommandGroup(currentGroupName);
+
+            // Ajouter toutes les commandes du stack au groupe
+            for (Command cmd : groupStack) {
+                group.addCommand(cmd);
+            }
+
+            undoStack.push(group);
+            redoStack.clear();
+
+            // Marquer le projet comme modifié après la fin d'un groupe de commandes
+            sessionManager.markProjectAsModified();
+
+            // Utiliser un entier comme paramètre pour le log
+            int commandCount = groupStack.size();
+            LOGGER.log(Level.FINE, "Command group ended with {0} commands, project marked as modified",
+                    new Object[]{commandCount});
+        } else {
+            LOGGER.log(Level.FINE, "Command group ended with no commands");
+        }
+
+        // Réinitialiser le nom du groupe
+        currentGroupName = "";
+    }
+
+    public void clearHistory() {
         undoStack.clear();
         redoStack.clear();
-        updateProperties();
-        updateCommandHistory();
+        LOGGER.log(Level.INFO, "Command history cleared");
     }
 }

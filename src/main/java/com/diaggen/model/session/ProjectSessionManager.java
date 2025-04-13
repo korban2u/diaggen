@@ -37,15 +37,34 @@ public class ProjectSessionManager {
 
     /**
      * Définit le projet courant et le marque comme non modifié.
+     * Si le projet est nouveau (file est null), il est explicitement marqué comme modifié
+     * pour inciter à une sauvegarde.
      */
     public void setCurrentProject(Project project, File projectFile) {
         this.currentProject = project;
         this.currentProjectFile = projectFile;
-        this.projectModified = false;
+
+        // Si on n'a pas de fichier associé, c'est un nouveau projet qui doit être sauvegardé
+        this.projectModified = (projectFile == null && project != null);
 
         // N'ajoute le projet aux récents que si un fichier est effectivement associé
         if (projectFile != null && projectFile.exists()) {
             addRecentProject(projectFile.getAbsolutePath());
+            LOGGER.log(Level.INFO, "Project set with file: {0}", projectFile.getAbsolutePath());
+        } else if (project != null) {
+            LOGGER.log(Level.INFO, "Project set without file: {0}", project.getName());
+        }
+    }
+
+    /**
+     * Définit uniquement le fichier du projet courant, sans changer le projet lui-même.
+     */
+    public void setCurrentProjectFile(File file) {
+        this.currentProjectFile = file;
+        if (file != null) {
+            LOGGER.log(Level.INFO, "Current project file updated: {0}", file.getAbsolutePath());
+        } else {
+            LOGGER.log(Level.INFO, "Current project file cleared");
         }
     }
 
@@ -57,6 +76,7 @@ public class ProjectSessionManager {
             File file = new File(projectPath);
             if (file.exists() && file.isFile()) {
                 config.addRecentFile(projectPath, MAX_RECENT_PROJECTS);
+                LOGGER.log(Level.INFO, "Added to recent projects: {0}", projectPath);
             } else {
                 LOGGER.log(Level.WARNING, "Tentative d'ajouter un chemin invalide aux projets récents: {0}", projectPath);
             }
@@ -74,7 +94,13 @@ public class ProjectSessionManager {
             String[] files = recentFilesStr.split(";");
             for (String file : files) {
                 if (!file.trim().isEmpty()) {
-                    recentProjects.add(file.trim());
+                    // Vérifier si le fichier existe toujours
+                    File f = new File(file.trim());
+                    if (f.exists() && f.isFile()) {
+                        recentProjects.add(file.trim());
+                    } else {
+                        LOGGER.log(Level.INFO, "Ignoring non-existent file in recent list: {0}", file.trim());
+                    }
                 }
             }
         }
@@ -102,6 +128,7 @@ public class ProjectSessionManager {
      */
     public void markProjectAsModified() {
         this.projectModified = true;
+        LOGGER.log(Level.FINE, "Project marked as modified");
     }
 
     /**
@@ -109,6 +136,7 @@ public class ProjectSessionManager {
      */
     public void markProjectAsSaved() {
         this.projectModified = false;
+        LOGGER.log(Level.FINE, "Project marked as saved");
     }
 
     /**
@@ -148,8 +176,6 @@ public class ProjectSessionManager {
 
         return true;
     }
-
-
 
     /**
      * Interface pour la callback de sauvegarde

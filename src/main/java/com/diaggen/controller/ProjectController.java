@@ -21,7 +21,9 @@ import javafx.stage.Window;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,6 +33,9 @@ public class ProjectController extends BaseController {
     private Window ownerWindow;
     private final EventBus eventBus = EventBus.getInstance();
     private final ProjectSessionManager sessionManager;
+
+    // Cache des fichiers de projet pour éviter la recherche répétée
+    private final Map<String, File> projectFileCache = new HashMap<>();
 
     public ProjectController(DiagramStore diagramStore, CommandManager commandManager) {
         super(diagramStore, commandManager);
@@ -65,7 +70,12 @@ public class ProjectController extends BaseController {
                 projectName = "Nouveau projet";
             }
 
-            return createNewProject(projectName);
+            Project newProject = createNewProject(projectName);
+
+            // Demander immédiatement où sauvegarder le nouveau projet
+            saveProjectAs();
+
+            return newProject;
         }
 
         return null;
@@ -75,6 +85,13 @@ public class ProjectController extends BaseController {
         LOGGER.log(Level.INFO, "Creating new project: {0}", name);
 
         Project project = diagramStore.createNewProject(name);
+
+        // Important: Réinitialiser le fichier de projet courant pour éviter l'écrasement accidentel
+        diagramStore.setCurrentProjectFile(null);
+        // Effacer également dans le session manager
+        sessionManager.setCurrentProjectFile(null);
+        // Et dans notre cache
+        projectFileCache.remove(project.getId());
 
         eventBus.publish(new ProjectChangedEvent(project.getId(),
                 ProjectChangedEvent.ChangeType.PROJECT_CREATED, null));
@@ -99,19 +116,61 @@ public class ProjectController extends BaseController {
         }
 
         // Vérifie si le projet actuel doit être sauvegardé avant d'activer un autre projet
-        if (diagramStore.getActiveProject() != null && !checkSaveCurrentProject()) {
-            return;
+        Project currentProject = diagramStore.getActiveProject();
+        if (currentProject != null && sessionManager.isProjectModified()) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Projet non sauvegardé");
+            alert.setHeaderText("Le projet \"" + currentProject.getName() + "\" a été modifié");
+            alert.setContentText("Voulez-vous enregistrer les modifications avant de continuer ?");
+
+            if (ownerWindow != null) {
+                alert.initOwner(ownerWindow);
+            }
+
+            ButtonType saveButton = new ButtonType("Enregistrer");
+            ButtonType dontSaveButton = new ButtonType("Ne pas enregistrer");
+            ButtonType cancelButton = ButtonType.CANCEL;
+
+            alert.getButtonTypes().setAll(saveButton, dontSaveButton, cancelButton);
+
+            Optional<ButtonType> result = alert.showAndWait();
+
+            if (result.isPresent()) {
+                if (result.get() == saveButton) {
+                    saveProject();
+                } else if (result.get() == cancelButton) {
+                    return;
+                }
+                // Pour "Ne pas enregistrer", on continue normalement
+            } else {
+                return; // Boîte de dialogue fermée, annuler l'activation
+            }
         }
 
         LOGGER.log(Level.INFO, "Activating project: {0} (ID: {1})", new Object[]{project.getName(), project.getId()});
 
         diagramStore.setActiveProject(project);
 
-        // Met à jour le gestionnaire de session
-        sessionManager.setCurrentProject(project, diagramStore.getCurrentProjectFile());
+        // Obtenir le fichier correspondant au projet
+        File projectFile = getProjectFile(project);
+
+        // Mettre à jour toutes les références au fichier de projet
+        if (projectFile != null) {
+            LOGGER.log(Level.INFO, "Project file found for {0}: {1}",
+                    new Object[]{project.getName(), projectFile.getAbsolutePath()});
+            sessionManager.setCurrentProjectFile(projectFile);
+            diagramStore.setCurrentProjectFile(projectFile);
+            projectFileCache.put(project.getId(), projectFile);
+        } else {
+            LOGGER.log(Level.INFO, "No project file found for: {0}", project.getName());
+            sessionManager.setCurrentProjectFile(null);
+            diagramStore.setCurrentProjectFile(null);
+            projectFileCache.remove(project.getId());
+        }
+
+        sessionManager.setCurrentProject(project, projectFile);
 
         eventBus.publish(new ProjectActivatedEvent(project.getId()));
-
         eventBus.publish(new ProjectChangedEvent(project.getId(),
                 ProjectChangedEvent.ChangeType.PROJECT_ACTIVATED, null));
     }
@@ -176,6 +235,10 @@ public class ProjectController extends BaseController {
 
                 // Réinitialiser le gestionnaire de session
                 sessionManager.setCurrentProject(null, null);
+                sessionManager.setCurrentProjectFile(null);
+
+                // Supprimer du cache
+                projectFileCache.remove(projectId);
             }
 
             diagramStore.removeProject(project);
@@ -185,18 +248,30 @@ public class ProjectController extends BaseController {
     }
 
     public void saveProject() {
-        File currentFile = diagramStore.getCurrentProjectFile();
-        if (currentFile != null) {
-            saveToFile(currentFile);
+        Project activeProject = diagramStore.getActiveProject();
+        if (activeProject == null) {
+            AlertHelper.showWarning("Aucun projet actif", "Il n'y a pas de projet à enregistrer.");
+            return;
+        }
+
+        // Vérifier si nous avons déjà un fichier pour ce projet
+        File projectFile = getProjectFile(activeProject);
+
+        if (projectFile != null && projectFile.exists()) {
+            // Si oui, sauvegarder directement dans ce fichier
+            LOGGER.log(Level.INFO, "Saving directly to existing file: {0}", projectFile.getAbsolutePath());
+            saveToFile(projectFile);
         } else {
+            // Sinon, demander où sauvegarder
+            LOGGER.log(Level.INFO, "No file found for project, asking for save location");
             saveProjectAs();
         }
     }
 
-    public void saveProjectAs() {
+    public boolean saveProjectAs() {
         if (diagramStore.getActiveProject() == null) {
             AlertHelper.showWarning("Aucun projet actif", "Il n'y a pas de projet à enregistrer.");
-            return;
+            return false;
         }
 
         FileChooser fileChooser = new FileChooser();
@@ -204,23 +279,36 @@ public class ProjectController extends BaseController {
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Fichiers DiagGen Projet (*.dgp)", "*.dgp"));
 
+        // Suggestion de nom de fichier basée sur le nom du projet
+        if (diagramStore.getActiveProject() != null) {
+            String suggestedName = diagramStore.getActiveProject().getName().replaceAll("[^a-zA-Z0-9]", "_") + ".dgp";
+            fileChooser.setInitialFileName(suggestedName);
+        }
+
         File file = fileChooser.showSaveDialog(ownerWindow);
         if (file != null) {
             if (!file.getName().endsWith(".dgp")) {
                 file = new File(file.getAbsolutePath() + ".dgp");
             }
             saveToFile(file);
-            diagramStore.setCurrentProjectFile(file);
 
-            // Mise à jour du gestionnaire de session
+            // Mettre à jour toutes les références au fichier
+            diagramStore.setCurrentProjectFile(file);
+            sessionManager.setCurrentProjectFile(file);
             sessionManager.setCurrentProject(diagramStore.getActiveProject(), file);
+
+            // Mettre à jour le cache
+            projectFileCache.put(diagramStore.getActiveProject().getId(), file);
+
+            return true;
         }
+        return false;
     }
 
-    public void openProject() {
+    public boolean openProject() {
         // Vérifie si un projet est en cours d'édition et propose de le sauvegarder
         if (!checkSaveCurrentProject()) {
-            return;
+            return false;
         }
 
         FileChooser fileChooser = new FileChooser();
@@ -230,8 +318,9 @@ public class ProjectController extends BaseController {
 
         File file = fileChooser.showOpenDialog(ownerWindow);
         if (file != null) {
-            openProjectFile(file);
+            return openProjectFile(file);
         }
+        return false;
     }
 
     public boolean openProjectFile(File file) {
@@ -244,7 +333,11 @@ public class ProjectController extends BaseController {
             Project loadedProject = serializer.deserialize(file);
 
             diagramStore.getProjects().add(loadedProject);
+
+            // Mettre à jour toutes les références au fichier
             diagramStore.setCurrentProjectFile(file);
+            sessionManager.setCurrentProjectFile(file);
+            projectFileCache.put(loadedProject.getId(), file);
 
             activateProject(loadedProject, true);
 
@@ -287,53 +380,65 @@ public class ProjectController extends BaseController {
         }
     }
 
-    public void importDiagramsFromProject() {
-        if (diagramStore.getActiveProject() == null) {
-            AlertHelper.showWarning("Aucun projet actif", "Vous devez avoir un projet actif pour importer des diagrammes.");
-            return;
+    // Méthode clé pour obtenir le fichier associé à un projet
+    // Vérifiez dans cet ordre:
+    // 1. Cache
+    // 2. DiagramStore
+    // 3. SessionManager
+    // 4. Projets récents
+    private File getProjectFile(Project project) {
+        if (project == null) return null;
+
+        // 1. Vérifier dans le cache
+        File cachedFile = projectFileCache.get(project.getId());
+        if (cachedFile != null && cachedFile.exists()) {
+            LOGGER.log(Level.FINE, "Project file found in cache: {0}", cachedFile.getAbsolutePath());
+            return cachedFile;
         }
 
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Importer des diagrammes depuis un autre projet");
-        fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Fichiers DiagGen Projet (*.dgp)", "*.dgp"));
-
-        File file = fileChooser.showOpenDialog(ownerWindow);
-        if (file != null) {
-            try {
-                ProjectSerializer serializer = new ProjectSerializer();
-                Project sourceProject = serializer.deserialize(file);
-
-                if (sourceProject.getDiagrams().isEmpty()) {
-                    AlertHelper.showWarning("Aucun diagramme", "Le projet source ne contient aucun diagramme à importer.");
-                    return;
-                }
-
-                DiagramImportDialog dialog = new DiagramImportDialog(ownerWindow, sourceProject.getDiagrams());
-                Optional<List<ClassDiagram>> result = dialog.showAndWait();
-
-                if (result.isPresent() && !result.get().isEmpty()) {
-                    for (ClassDiagram diagram : result.get()) {
-                        ClassDiagram copy = createDiagramCopy(diagram);
-                        diagramStore.getActiveProject().addDiagram(copy);
-                    }
-
-                    AlertHelper.showInfo("Importation réussie",
-                            result.get().size() + " diagramme(s) importé(s) avec succès.");
-
-                    eventBus.publish(new ProjectChangedEvent(diagramStore.getActiveProject().getId(),
-                            ProjectChangedEvent.ChangeType.DIAGRAMS_IMPORTED, null));
-
-                    // Marquer le projet comme modifié
-                    sessionManager.markProjectAsModified();
-                }
-
-            } catch (IOException | ClassNotFoundException e) {
-                LOGGER.log(Level.SEVERE, "Error importing diagrams", e);
-                AlertHelper.showError("Erreur lors de l'importation",
-                        "Une erreur est survenue lors de l'importation des diagrammes : " + e.getMessage());
+        // 2. Vérifier dans DiagramStore si c'est le projet actif
+        if (project.equals(diagramStore.getActiveProject())) {
+            File storeFile = diagramStore.getCurrentProjectFile();
+            if (storeFile != null && storeFile.exists()) {
+                LOGGER.log(Level.FINE, "Project file found in DiagramStore: {0}", storeFile.getAbsolutePath());
+                projectFileCache.put(project.getId(), storeFile);
+                return storeFile;
             }
         }
+
+        // 3. Vérifier dans le SessionManager si c'est le projet actif
+        if (project.equals(sessionManager.getCurrentProject())) {
+            File sessionFile = sessionManager.getCurrentProjectFile();
+            if (sessionFile != null && sessionFile.exists()) {
+                LOGGER.log(Level.FINE, "Project file found in SessionManager: {0}", sessionFile.getAbsolutePath());
+                projectFileCache.put(project.getId(), sessionFile);
+                return sessionFile;
+            }
+        }
+
+        // 4. Chercher dans les projets récents
+        List<String> recentProjects = sessionManager.getRecentProjects();
+        for (String path : recentProjects) {
+            try {
+                File file = new File(path);
+                if (file.exists()) {
+                    ProjectSerializer serializer = new ProjectSerializer();
+                    Project loadedProject = serializer.deserialize(file);
+                    if (loadedProject.getId().equals(project.getId())) {
+                        LOGGER.log(Level.FINE, "Project file found in recent projects: {0}", file.getAbsolutePath());
+                        projectFileCache.put(project.getId(), file);
+                        return file;
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Error checking recent project: {0}", e.getMessage());
+                // Continuer avec le prochain projet récent
+            }
+        }
+
+        // Aucun fichier trouvé
+        LOGGER.log(Level.FINE, "No file found for project: {0}", project.getName());
+        return null;
     }
 
     public boolean checkSaveCurrentProject() {
@@ -405,9 +510,10 @@ public class ProjectController extends BaseController {
     }
 
     private void saveToFile(File file) {
+        Project activeProject = diagramStore.getActiveProject();
         try {
             ProjectSerializer serializer = new ProjectSerializer();
-            serializer.serialize(diagramStore.getActiveProject(), file);
+            serializer.serialize(activeProject, file);
 
             // Enregistrer dans les projets récents
             sessionManager.addRecentProject(file.getAbsolutePath());
@@ -415,12 +521,66 @@ public class ProjectController extends BaseController {
             // Marquer le projet comme sauvegardé
             sessionManager.markProjectAsSaved();
 
+            // Mettre à jour toutes les références au fichier
+            diagramStore.setCurrentProjectFile(file);
+            sessionManager.setCurrentProjectFile(file);
+            projectFileCache.put(activeProject.getId(), file);
+
             LOGGER.log(Level.INFO, "Successfully saved project to {0}", file.getName());
-            AlertHelper.showInfo("Sauvegarde réussie", "Le projet a été enregistré avec succès.");
+            AlertHelper.showInfo("Sauvegarde réussie", "Le projet a été enregistré avec succès dans " + file.getAbsolutePath());
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Error saving project", e);
             AlertHelper.showError("Erreur lors de l'enregistrement",
                     "Une erreur est survenue lors de l'enregistrement du projet : " + e.getMessage());
+        }
+    }
+
+    public void importDiagramsFromProject() {
+        if (diagramStore.getActiveProject() == null) {
+            AlertHelper.showWarning("Aucun projet actif", "Vous devez avoir un projet actif pour importer des diagrammes.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Importer des diagrammes depuis un autre projet");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Fichiers DiagGen Projet (*.dgp)", "*.dgp"));
+
+        File file = fileChooser.showOpenDialog(ownerWindow);
+        if (file != null) {
+            try {
+                ProjectSerializer serializer = new ProjectSerializer();
+                Project sourceProject = serializer.deserialize(file);
+
+                if (sourceProject.getDiagrams().isEmpty()) {
+                    AlertHelper.showWarning("Aucun diagramme", "Le projet source ne contient aucun diagramme à importer.");
+                    return;
+                }
+
+                DiagramImportDialog dialog = new DiagramImportDialog(ownerWindow, sourceProject.getDiagrams());
+                Optional<List<ClassDiagram>> result = dialog.showAndWait();
+
+                if (result.isPresent() && !result.get().isEmpty()) {
+                    for (ClassDiagram diagram : result.get()) {
+                        ClassDiagram copy = createDiagramCopy(diagram);
+                        diagramStore.getActiveProject().addDiagram(copy);
+                    }
+
+                    AlertHelper.showInfo("Importation réussie",
+                            result.get().size() + " diagramme(s) importé(s) avec succès.");
+
+                    eventBus.publish(new ProjectChangedEvent(diagramStore.getActiveProject().getId(),
+                            ProjectChangedEvent.ChangeType.DIAGRAMS_IMPORTED, null));
+
+                    // Marquer le projet comme modifié
+                    sessionManager.markProjectAsModified();
+                }
+
+            } catch (IOException | ClassNotFoundException e) {
+                LOGGER.log(Level.SEVERE, "Error importing diagrams", e);
+                AlertHelper.showError("Erreur lors de l'importation",
+                        "Une erreur est survenue lors de l'importation des diagrammes : " + e.getMessage());
+            }
         }
     }
 }
