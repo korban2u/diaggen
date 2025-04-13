@@ -9,19 +9,29 @@ import com.diaggen.event.DiagramChangedEvent;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramClass;
 import com.diaggen.model.DiagramStore;
+import com.diaggen.service.LayoutService;
 import com.diaggen.view.dialog.DialogFactory;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ClassController extends BaseController {
 
+    private static final Logger LOGGER = Logger.getLogger(ClassController.class.getName());
     private final DialogFactory dialogFactory;
+    private LayoutService layoutService; // Optionnel, peut être null
 
     public ClassController(DiagramStore diagramStore, CommandManager commandManager, DialogFactory dialogFactory) {
         super(diagramStore, commandManager);
         this.dialogFactory = dialogFactory;
+    }
+
+    // Méthode optionnelle pour configurer le service de layout
+    public void setLayoutService(LayoutService layoutService) {
+        this.layoutService = layoutService;
     }
 
     public void createClass() {
@@ -83,6 +93,21 @@ public class ClassController extends BaseController {
         ClassDiagram diagram = getActiveDiagram();
         if (diagram == null || diagram.getClasses().isEmpty()) return;
 
+        LOGGER.log(Level.INFO, "Starting automatic class arrangement");
+
+        // Utiliser le service de layout si disponible
+        if (layoutService != null) {
+            // Déléguer au LayoutService pour un arrangement intelligent
+            layoutService.arrangeClasses(diagram, commandManager);
+
+            // Notification pour actualiser l'affichage
+            eventBus.publish(new DiagramChangedEvent(diagram.getId(),
+                    DiagramChangedEvent.ChangeType.DIAGRAM_RENAMED, null));
+
+            return;
+        }
+
+        // Implémentation originale comme fallback
         final int GRID_WIDTH = 250;
         final int GRID_HEIGHT = 200;
         final int MAX_COLUMNS = 4;
@@ -112,5 +137,7 @@ public class ClassController extends BaseController {
 
         eventBus.publish(new DiagramChangedEvent(diagram.getId(),
                 DiagramChangedEvent.ChangeType.DIAGRAM_RENAMED, null));
+
+        LOGGER.log(Level.INFO, "Automatic class arrangement completed");
     }
 }

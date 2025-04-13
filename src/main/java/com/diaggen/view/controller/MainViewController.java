@@ -1,10 +1,12 @@
 package com.diaggen.view.controller;
 
+import com.diaggen.controller.LayoutController;
 import com.diaggen.controller.MainController;
 import com.diaggen.event.DiagramActivatedEvent;
 import com.diaggen.event.DiagramChangedEvent;
 import com.diaggen.event.EventBus;
 import com.diaggen.event.EventListener;
+import com.diaggen.layout.LayoutFactory;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramClass;
 import com.diaggen.model.DiagramRelation;
@@ -67,6 +69,10 @@ public class MainViewController {
     private DiagramRelation selectedRelation;
     private boolean isProcessingSelection = false;
     private boolean isProcessingEvent = false;
+
+    private LayoutController layoutController;
+
+
 
     @FXML
     public void initialize() {
@@ -164,6 +170,10 @@ public class MainViewController {
         setupProperLayering();
 
         LOGGER.log(Level.INFO, "MainViewController initialization complete");
+    }
+
+    public void setLayoutController(LayoutController layoutController) {
+        this.layoutController = layoutController;
     }
 
     private void setupProperLayering() {
@@ -636,5 +646,55 @@ public class MainViewController {
     private void handleExit() {
         Stage stage = (Stage) diagramCanvasContainer.getScene().getWindow();
         stage.close();
+    }
+
+    @FXML
+    private void handleArrangeClasses() {
+        if (layoutController != null) {
+            LOGGER.log(Level.INFO, "Arranging classes automatically");
+            layoutController.arrangeClasses();
+        }
+    }
+
+    @FXML
+    private void handleForceDirectedLayout() {
+        if (layoutController != null && mainController != null) {
+            LOGGER.log(Level.INFO, "Applying force-directed layout");
+            ClassDiagram activeDiagram = mainController.getDiagramStore().getActiveDiagram();
+            if (activeDiagram != null) {
+                layoutController.applyLayout(
+                        activeDiagram,
+                        LayoutFactory.LayoutType.FORCE_DIRECTED
+                );
+            }
+        }
+    }
+
+    @FXML
+    private void handleHierarchicalLayout() {
+        if (layoutController != null && mainController != null) {
+            LOGGER.log(Level.INFO, "Applying hierarchical layout");
+            ClassDiagram activeDiagram = mainController.getDiagramStore().getActiveDiagram();
+            if (activeDiagram != null) {
+                layoutController.applyLayout(
+                        activeDiagram,
+                        LayoutFactory.LayoutType.HIERARCHICAL
+                );
+            }
+        }
+    }
+
+    @FXML
+    private void handleGridLayout() {
+        if (layoutController != null && mainController != null) {
+            LOGGER.log(Level.INFO, "Applying grid layout");
+            ClassDiagram activeDiagram = mainController.getDiagramStore().getActiveDiagram();
+            if (activeDiagram != null) {
+                layoutController.applyLayout(
+                        activeDiagram,
+                        LayoutFactory.LayoutType.GRID
+                );
+            }
+        }
     }
 }

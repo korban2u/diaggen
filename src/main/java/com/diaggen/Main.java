@@ -4,8 +4,11 @@ import com.diaggen.controller.command.CommandManager;
 import com.diaggen.controller.*;
 import com.diaggen.event.DiagramChangedEvent;
 import com.diaggen.event.EventBus;
+import com.diaggen.layout.LayoutFactory;
+import com.diaggen.layout.LayoutManager;
 import com.diaggen.model.DiagramStore;
 import com.diaggen.service.ExportService;
+import com.diaggen.service.LayoutService;
 import com.diaggen.view.diagram.DiagramCanvas;
 import com.diaggen.view.controller.MainViewController;
 import com.diaggen.view.diagram.canvas.NodeManager;
@@ -41,16 +44,30 @@ public class Main extends Application {
         MainViewController viewController = loader.getController();
         DiagramCanvas diagramCanvas = viewController.getDiagramCanvas();
         ExportService exportService = new ExportService(diagramCanvas);
+
+        // Nouveau service pour le layout
+        LayoutService layoutService = new LayoutService(diagramCanvas);
+
         ClassController classController = new ClassController(diagramStore, commandManager, dialogFactory);
         DiagramController diagramController = new DiagramController(diagramStore, commandManager);
         RelationController relationController = new RelationController(diagramStore, commandManager, dialogFactory, diagramCanvas);
         ExportController exportController = new ExportController(diagramStore, commandManager, exportService, classController, diagramController);
+
+        // Définir le LayoutService dans les contrôleurs qui en ont besoin
+        exportController.setLayoutService(layoutService);
+        classController.setLayoutService(layoutService);
+
+        // Nouveau contrôleur pour le layout
+        LayoutController layoutController = new LayoutController(diagramStore, commandManager, layoutService);
+
         diagramController.setOwnerWindow(primaryStage);
         exportController.setOwnerWindow(primaryStage);
 
         LOGGER.log(Level.INFO, "Controllers initialized");
         NodeManager nodeManager = diagramCanvas.getNodeManager();
         nodeManager.setCommandManager(commandManager);
+
+        // Utilisation du constructeur standard sans le paramètre LayoutController
         MainController mainController = new MainController(
                 diagramStore,
                 commandManager,
@@ -60,7 +77,11 @@ public class Main extends Application {
                 exportController,
                 diagramCanvas
         );
+
+        // Passage du LayoutController séparément au MainViewController
         viewController.setMainController(mainController);
+        viewController.setLayoutController(layoutController);
+
         setupEventListeners(eventBus, diagramCanvas, viewController);
         if (diagramStore.getActiveDiagram() != null) {
             diagramCanvas.loadDiagram(diagramStore.getActiveDiagram());

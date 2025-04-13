@@ -3,10 +3,12 @@ package com.diaggen.controller;
 import com.diaggen.controller.command.CommandManager;
 import com.diaggen.event.DiagramActivatedEvent;
 import com.diaggen.event.DiagramChangedEvent;
+import com.diaggen.layout.LayoutFactory;
 import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramStore;
 import com.diaggen.model.java.JavaCodeParser;
 import com.diaggen.service.ExportService;
+import com.diaggen.service.LayoutService;
 import com.diaggen.util.AlertHelper;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -25,15 +27,18 @@ public class ExportController extends BaseController {
     private static final Logger LOGGER = Logger.getLogger(ExportController.class.getName());
     private final ExportService exportService;
     private final ClassController classController;
-    private final DiagramController diagramController;  // Référence ajoutée au DiagramController
+    private final DiagramController diagramController;
     private Window ownerWindow;
+
+    // Ajouter un attribut pour le service de layout
+    private LayoutService layoutService;
 
     public ExportController(DiagramStore diagramStore, CommandManager commandManager,
                             ExportService exportService, ClassController classController) {
         super(diagramStore, commandManager);
         this.exportService = exportService;
         this.classController = classController;
-        this.diagramController = null; // Sera initialisé plus tard
+        this.diagramController = null;
     }
 
     public ExportController(DiagramStore diagramStore, CommandManager commandManager,
@@ -43,6 +48,11 @@ public class ExportController extends BaseController {
         this.exportService = exportService;
         this.classController = classController;
         this.diagramController = diagramController;
+    }
+
+    // Ajouter une méthode pour définir le service de layout
+    public void setLayoutService(LayoutService layoutService) {
+        this.layoutService = layoutService;
     }
 
     public void setDiagramController(DiagramController diagramController) {
@@ -76,6 +86,7 @@ public class ExportController extends BaseController {
 
             try {
                 exportService.exportDiagram(currentDiagram, "png", file);
+                AlertHelper.showInfo("Exportation réussie", "Le diagramme a été exporté en PNG avec succès.");
             } catch (IOException e) {
                 AlertHelper.showError("Erreur d'exportation",
                         "Erreur lors de l'exportation en PNG: " + e.getMessage());
@@ -103,6 +114,7 @@ public class ExportController extends BaseController {
 
             try {
                 exportService.exportDiagram(currentDiagram, "svg", file);
+                AlertHelper.showInfo("Exportation réussie", "Le diagramme a été exporté en SVG avec succès.");
             } catch (IOException e) {
                 AlertHelper.showError("Erreur d'exportation",
                         "Erreur lors de l'exportation en SVG: " + e.getMessage());
@@ -130,6 +142,7 @@ public class ExportController extends BaseController {
 
             try {
                 exportService.exportDiagram(currentDiagram, "puml", file);
+                AlertHelper.showInfo("Exportation réussie", "Le diagramme a été exporté en PlantUML avec succès.");
             } catch (IOException e) {
                 AlertHelper.showError("Erreur d'exportation",
                         "Erreur lors de l'exportation en PlantUML: " + e.getMessage());
@@ -167,7 +180,7 @@ public class ExportController extends BaseController {
                     try {
                         java.awt.Desktop.getDesktop().open(dir);
                     } catch (IOException e) {
-
+                        LOGGER.log(Level.WARNING, "Impossible d'ouvrir le répertoire: " + e.getMessage());
                     }
                 }
             } catch (IOException e) {
@@ -207,7 +220,6 @@ public class ExportController extends BaseController {
             if (file != null) {
                 try {
                     parsedDiagram = parser.parseFile(file);
-
                     parsedDiagram.setName("Diagramme - " + file.getName());
                 } catch (Exception e) {
                     AlertHelper.showError("Erreur d'importation",
@@ -225,7 +237,6 @@ public class ExportController extends BaseController {
             if (dir != null) {
                 try {
                     parsedDiagram = parser.parseProject(dir.toPath());
-
                     parsedDiagram.setName("Projet - " + dir.getName());
                 } catch (Exception e) {
                     AlertHelper.showError("Erreur d'importation",
@@ -240,7 +251,20 @@ public class ExportController extends BaseController {
         }
 
         if (parsedDiagram != null) {
+            // Appliquer un layout intelligent avant d'ajouter le diagramme
+            LOGGER.log(Level.INFO, "Applying intelligent layout to imported diagram");
 
+            // Utiliser directement le layoutService si disponible
+            if (layoutService != null) {
+                layoutService.applyLayout(parsedDiagram, LayoutFactory.LayoutType.FORCE_DIRECTED);
+            } else {
+                // Fallback à l'arrangement automatique des classes
+                if (classController != null) {
+                    classController.arrangeClassesAutomatically();
+                }
+            }
+
+            // Ajouter le diagramme et l'activer
             diagramStore.getDiagrams().add(parsedDiagram);
             diagramStore.setCurrentFile(null);
 
@@ -248,7 +272,6 @@ public class ExportController extends BaseController {
                 LOGGER.log(Level.INFO, "Activating imported diagram using DiagramController");
                 diagramController.activateDiagram(parsedDiagram, true);
             } else {
-
                 LOGGER.log(Level.INFO, "Activating imported diagram manually (DiagramController not available)");
                 diagramStore.setActiveDiagram(parsedDiagram);
                 eventBus.publish(new DiagramChangedEvent(parsedDiagram.getId(),
@@ -256,7 +279,9 @@ public class ExportController extends BaseController {
                 eventBus.publish(new DiagramActivatedEvent(parsedDiagram.getId()));
             }
 
-            classController.arrangeClassesAutomatically();
+            AlertHelper.showInfo("Importation réussie",
+                    "Le diagramme a été importé avec succès et disposé automatiquement.\n" +
+                            "Vous pouvez utiliser la fonction 'Arrangement automatique' pour tester d'autres dispositions.");
         }
     }
 }

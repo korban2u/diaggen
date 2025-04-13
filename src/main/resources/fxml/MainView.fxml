@@ -4,6 +4,8 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.diaggen.view.controller.MainViewController"
@@ -24,6 +26,19 @@
                 <Menu text="Édition">
                     <MenuItem text="Annuler" onAction="#handleUndo" accelerator="Ctrl+Z"/>
                     <MenuItem text="Rétablir" onAction="#handleRedo" accelerator="Ctrl+Y"/>
+                </Menu>
+
+                <!-- Extrait de MainView.fxml - Menu Layout à ajouter -->
+                <Menu text="Disposition">
+                    <MenuItem text="Arranger automatiquement..." onAction="#handleArrangeClasses" accelerator="Ctrl+L">
+                    </MenuItem>
+                    <SeparatorMenuItem />
+                    <MenuItem text="Layout Force-Directed" onAction="#handleForceDirectedLayout">
+                    </MenuItem>
+                    <MenuItem text="Layout Hiérarchique" onAction="#handleHierarchicalLayout">
+                    </MenuItem>
+                    <MenuItem text="Layout Grille" onAction="#handleGridLayout">
+                    </MenuItem>
                 </Menu>
                 <Menu text="Diagramme">
                     <MenuItem text="Ajouter une classe" onAction="#handleAddClass" accelerator="Ctrl+N"/>
@@ -46,6 +61,8 @@
                     <MenuItem text="À propos" onAction="#handleAbout"/>
                 </Menu>
             </MenuBar>
+
+
 
             <!-- Tool Bar -->
             <ToolBar>
