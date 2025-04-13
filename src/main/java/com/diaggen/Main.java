@@ -1,5 +1,6 @@
 package com.diaggen;
 
+import com.diaggen.config.AppConfig;
 import com.diaggen.controller.command.CommandManager;
 import com.diaggen.controller.*;
 import com.diaggen.event.DiagramChangedEvent;
@@ -103,8 +104,19 @@ public class Main extends Application {
         primaryStage.setMinWidth(900);
         primaryStage.setMinHeight(600);
 
+        viewController.setupWindowCloseHandler();
+
+        primaryStage.show();
+
+        // Charge automatiquement le projet le plus récent ou crée un projet par défaut
         if (diagramStore.getProjects().isEmpty()) {
-            projectController.createNewProject("Projet par défaut");
+            // Si aucun projet récent n'est disponible ou ne peut être chargé, crée un projet par défaut
+            loadMostRecentProject(projectController, diagramStore);
+
+            // Si toujours aucun projet, crée un projet par défaut
+            if (diagramStore.getProjects().isEmpty()) {
+                projectController.createNewProject("Projet par défaut");
+            }
         }
 
         primaryStage.show();
@@ -130,6 +142,22 @@ public class Main extends Application {
             }
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to ensure styles directory structure: " + e.getMessage());
+        }
+    }
+
+    private void loadMostRecentProject(ProjectController projectController, DiagramStore diagramStore) {
+        // Vérifie si la configuration permet le chargement automatique
+        if (!AppConfig.getInstance().isAutoLoadLastProject()) {
+            return;
+        }
+
+        String recentProjectPath = projectController.getMostRecentProject();
+        if (recentProjectPath != null && !recentProjectPath.isEmpty()) {
+            File projectFile = new File(recentProjectPath);
+            if (projectFile.exists()) {
+                LOGGER.log(Level.INFO, "Loading most recent project: {0}", projectFile.getAbsolutePath());
+                projectController.openProjectFile(projectFile);
+            }
         }
     }
 

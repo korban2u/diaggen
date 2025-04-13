@@ -9,8 +9,10 @@ import com.diaggen.model.DiagramStore;
 import com.diaggen.model.Project;
 import com.diaggen.model.persist.DiagramSerializer;
 import com.diaggen.model.persist.ProjectSerializer;
+import com.diaggen.model.session.ProjectSessionManager;
 import com.diaggen.util.AlertHelper;
 import com.diaggen.view.dialog.DiagramImportDialog;
+import com.diaggen.view.dialog.RecentProjectsDialog;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
@@ -28,9 +30,11 @@ public class ProjectController extends BaseController {
     private static final Logger LOGGER = Logger.getLogger(ProjectController.class.getName());
     private Window ownerWindow;
     private final EventBus eventBus = EventBus.getInstance();
+    private final ProjectSessionManager sessionManager;
 
     public ProjectController(DiagramStore diagramStore, CommandManager commandManager) {
         super(diagramStore, commandManager);
+        this.sessionManager = ProjectSessionManager.getInstance();
     }
 
     public void setOwnerWindow(Window ownerWindow) {
@@ -38,6 +42,11 @@ public class ProjectController extends BaseController {
     }
 
     public Project createNewProjectWithDialog() {
+        // Vérifie si un projet est en cours d'édition et propose de le sauvegarder
+        if (!checkSaveCurrentProject()) {
+            return null;
+        }
+
         TextInputDialog dialog = new TextInputDialog("Nouveau projet");
         dialog.setTitle("Nouveau projet");
         dialog.setHeaderText("Créer un nouveau projet");
@@ -72,6 +81,9 @@ public class ProjectController extends BaseController {
 
         activateProject(project, true);
 
+        // Marquer le projet comme modifié car il est nouveau
+        sessionManager.markProjectAsModified();
+
         return project;
     }
 
@@ -86,9 +98,17 @@ public class ProjectController extends BaseController {
             return;
         }
 
+        // Vérifie si le projet actuel doit être sauvegardé avant d'activer un autre projet
+        if (diagramStore.getActiveProject() != null && !checkSaveCurrentProject()) {
+            return;
+        }
+
         LOGGER.log(Level.INFO, "Activating project: {0} (ID: {1})", new Object[]{project.getName(), project.getId()});
 
         diagramStore.setActiveProject(project);
+
+        // Met à jour le gestionnaire de session
+        sessionManager.setCurrentProject(project, diagramStore.getCurrentProjectFile());
 
         eventBus.publish(new ProjectActivatedEvent(project.getId()));
 
@@ -123,6 +143,10 @@ public class ProjectController extends BaseController {
 
         LOGGER.log(Level.INFO, "Renaming project {0} to {1}", new Object[]{project.getName(), newName});
         project.setName(newName);
+
+        // Marquer le projet comme modifié
+        sessionManager.markProjectAsModified();
+
         eventBus.publish(new ProjectChangedEvent(project.getId(),
                 ProjectChangedEvent.ChangeType.PROJECT_RENAMED, null));
     }
@@ -144,6 +168,16 @@ public class ProjectController extends BaseController {
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             String projectId = project.getId();
+
+            if (project.equals(diagramStore.getActiveProject())) {
+                diagramStore.setActiveDiagram(null);
+                diagramStore.setActiveProject(null);
+                diagramStore.setCurrentProjectFile(null);
+
+                // Réinitialiser le gestionnaire de session
+                sessionManager.setCurrentProject(null, null);
+            }
+
             diagramStore.removeProject(project);
             eventBus.publish(new ProjectChangedEvent(projectId,
                     ProjectChangedEvent.ChangeType.PROJECT_DELETED, null));
@@ -177,10 +211,18 @@ public class ProjectController extends BaseController {
             }
             saveToFile(file);
             diagramStore.setCurrentProjectFile(file);
+
+            // Mise à jour du gestionnaire de session
+            sessionManager.setCurrentProject(diagramStore.getActiveProject(), file);
         }
     }
 
     public void openProject() {
+        // Vérifie si un projet est en cours d'édition et propose de le sauvegarder
+        if (!checkSaveCurrentProject()) {
+            return;
+        }
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Ouvrir un projet");
         fileChooser.getExtensionFilters().add(
@@ -188,21 +230,60 @@ public class ProjectController extends BaseController {
 
         File file = fileChooser.showOpenDialog(ownerWindow);
         if (file != null) {
-            try {
-                ProjectSerializer serializer = new ProjectSerializer();
-                Project loadedProject = serializer.deserialize(file);
+            openProjectFile(file);
+        }
+    }
 
-                diagramStore.getProjects().add(loadedProject);
-                diagramStore.setCurrentProjectFile(file);
+    public boolean openProjectFile(File file) {
+        if (file == null || !file.exists()) {
+            return false;
+        }
 
-                activateProject(loadedProject, true);
+        try {
+            ProjectSerializer serializer = new ProjectSerializer();
+            Project loadedProject = serializer.deserialize(file);
 
-                LOGGER.log(Level.INFO, "Successfully loaded project from {0}", file.getName());
-            } catch (IOException | ClassNotFoundException e) {
-                LOGGER.log(Level.SEVERE, "Error loading project", e);
-                AlertHelper.showError("Erreur lors de l'ouverture",
-                        "Une erreur est survenue lors de l'ouverture du projet : " + e.getMessage());
-            }
+            diagramStore.getProjects().add(loadedProject);
+            diagramStore.setCurrentProjectFile(file);
+
+            activateProject(loadedProject, true);
+
+            // Mise à jour des projets récents
+            sessionManager.addRecentProject(file.getAbsolutePath());
+
+            // Projet non modifié car vient d'être chargé
+            sessionManager.markProjectAsSaved();
+
+            LOGGER.log(Level.INFO, "Successfully loaded project from {0}", file.getName());
+            return true;
+        } catch (IOException | ClassNotFoundException e) {
+            LOGGER.log(Level.SEVERE, "Error loading project", e);
+            AlertHelper.showError("Erreur lors de l'ouverture",
+                    "Une erreur est survenue lors de l'ouverture du projet : " + e.getMessage());
+            return false;
+        }
+    }
+
+    public void showRecentProjects() {
+        // Vérifie si un projet est en cours d'édition et propose de le sauvegarder
+        if (!checkSaveCurrentProject()) {
+            return;
+        }
+
+        List<String> recentProjects = sessionManager.getRecentProjects();
+
+        if (recentProjects.isEmpty()) {
+            AlertHelper.showInfo("Aucun projet récent",
+                    "Aucun projet récent n'a été trouvé. Créez un nouveau projet ou ouvrez-en un existant.");
+            return;
+        }
+
+        RecentProjectsDialog dialog = new RecentProjectsDialog(ownerWindow, recentProjects);
+        Optional<String> result = dialog.showAndWait();
+
+        if (result.isPresent()) {
+            File projectFile = new File(result.get());
+            openProjectFile(projectFile);
         }
     }
 
@@ -233,7 +314,6 @@ public class ProjectController extends BaseController {
 
                 if (result.isPresent() && !result.get().isEmpty()) {
                     for (ClassDiagram diagram : result.get()) {
-
                         ClassDiagram copy = createDiagramCopy(diagram);
                         diagramStore.getActiveProject().addDiagram(copy);
                     }
@@ -243,6 +323,9 @@ public class ProjectController extends BaseController {
 
                     eventBus.publish(new ProjectChangedEvent(diagramStore.getActiveProject().getId(),
                             ProjectChangedEvent.ChangeType.DIAGRAMS_IMPORTED, null));
+
+                    // Marquer le projet comme modifié
+                    sessionManager.markProjectAsModified();
                 }
 
             } catch (IOException | ClassNotFoundException e) {
@@ -253,8 +336,61 @@ public class ProjectController extends BaseController {
         }
     }
 
-    private ClassDiagram createDiagramCopy(ClassDiagram original) {
+    public boolean checkSaveCurrentProject() {
+        Project activeProject = diagramStore.getActiveProject();
 
+        if (activeProject != null && sessionManager.isProjectModified()) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Projet non sauvegardé");
+            alert.setHeaderText("Le projet \"" + activeProject.getName() + "\" a été modifié");
+            alert.setContentText("Voulez-vous enregistrer les modifications avant de continuer ?");
+
+            if (ownerWindow != null) {
+                alert.initOwner(ownerWindow);
+            }
+
+            ButtonType saveButton = new ButtonType("Enregistrer");
+            ButtonType dontSaveButton = new ButtonType("Ne pas enregistrer");
+            ButtonType cancelButton = ButtonType.CANCEL;
+
+            alert.getButtonTypes().setAll(saveButton, dontSaveButton, cancelButton);
+
+            Optional<ButtonType> result = alert.showAndWait();
+
+            if (result.isPresent()) {
+                if (result.get() == saveButton) {
+                    saveProject();
+                    return true;
+                } else if (result.get() == dontSaveButton) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean isProjectModified() {
+        return sessionManager.isProjectModified();
+    }
+
+    public void markProjectAsModified() {
+        sessionManager.markProjectAsModified();
+    }
+
+    public String getMostRecentProject() {
+        return sessionManager.getMostRecentProject();
+    }
+
+    public List<String> getRecentProjects() {
+        return sessionManager.getRecentProjects();
+    }
+
+    private ClassDiagram createDiagramCopy(ClassDiagram original) {
         try {
             File tempFile = File.createTempFile("diagram_copy", ".tmp");
             new DiagramSerializer().serialize(original, tempFile);
@@ -272,6 +408,13 @@ public class ProjectController extends BaseController {
         try {
             ProjectSerializer serializer = new ProjectSerializer();
             serializer.serialize(diagramStore.getActiveProject(), file);
+
+            // Enregistrer dans les projets récents
+            sessionManager.addRecentProject(file.getAbsolutePath());
+
+            // Marquer le projet comme sauvegardé
+            sessionManager.markProjectAsSaved();
+
             LOGGER.log(Level.INFO, "Successfully saved project to {0}", file.getName());
             AlertHelper.showInfo("Sauvegarde réussie", "Le projet a été enregistré avec succès.");
         } catch (IOException e) {

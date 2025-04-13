@@ -8,10 +8,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AppConfig {
 
+    private static final Logger LOGGER = Logger.getLogger(AppConfig.class.getName());
     private static final String CONFIG_DIRECTORY = System.getProperty("user.home") + File.separator + ".diaggen";
     private static final String CONFIG_FILE = CONFIG_DIRECTORY + File.separator + "config.properties";
 
@@ -20,6 +22,8 @@ public class AppConfig {
     private static final String KEY_WINDOW_HEIGHT = "window.height";
     private static final String KEY_WINDOW_MAXIMIZED = "window.maximized";
     private static final String KEY_RECENT_FILES = "recent.files";
+    private static final String KEY_LAST_PROJECT = "last.project";
+    private static final String KEY_AUTO_LOAD_LAST_PROJECT = "auto.load.last.project";
 
     private static AppConfig instance;
     private final Properties properties;
@@ -38,12 +42,10 @@ public class AppConfig {
 
     private void load() {
         try {
-
             Path configDir = Paths.get(CONFIG_DIRECTORY);
             if (!Files.exists(configDir)) {
                 Files.createDirectories(configDir);
             }
-
 
             File configFile = new File(CONFIG_FILE);
             if (!configFile.exists()) {
@@ -52,12 +54,11 @@ public class AppConfig {
                 return;
             }
 
-
             try (FileInputStream fis = new FileInputStream(configFile)) {
                 properties.load(fis);
             }
         } catch (IOException e) {
-            System.err.println("Erreur lors du chargement de la configuration: " + e.getMessage());
+            LOGGER.log(Level.WARNING, "Erreur lors du chargement de la configuration: " + e.getMessage());
             setDefaultProperties();
         }
     }
@@ -68,13 +69,15 @@ public class AppConfig {
         properties.setProperty(KEY_WINDOW_HEIGHT, "800");
         properties.setProperty(KEY_WINDOW_MAXIMIZED, "false");
         properties.setProperty(KEY_RECENT_FILES, "");
+        properties.setProperty(KEY_LAST_PROJECT, "");
+        properties.setProperty(KEY_AUTO_LOAD_LAST_PROJECT, "true");
     }
 
     public void save() {
         try (FileOutputStream fos = new FileOutputStream(CONFIG_FILE)) {
             properties.store(fos, "DiagGen Configuration");
         } catch (IOException e) {
-            System.err.println("Erreur lors de l'enregistrement de la configuration: " + e.getMessage());
+            LOGGER.log(Level.WARNING, "Erreur lors de l'enregistrement de la configuration: " + e.getMessage());
         }
     }
 
@@ -121,7 +124,6 @@ public class AppConfig {
     public void addRecentFile(String filePath, int maxFiles) {
         String recentFiles = getRecentFiles();
 
-
         if (recentFiles.contains(filePath)) {
             recentFiles = recentFiles.replace(filePath + ";", "");
             recentFiles = recentFiles.replace(filePath, "");
@@ -142,6 +144,28 @@ public class AppConfig {
         }
 
         properties.setProperty(KEY_RECENT_FILES, recentFiles);
+
+        // Définir aussi comme dernier projet
+        setLastProject(filePath);
+
+        save();
+    }
+
+    public String getLastProject() {
+        return properties.getProperty(KEY_LAST_PROJECT, "");
+    }
+
+    public void setLastProject(String projectPath) {
+        properties.setProperty(KEY_LAST_PROJECT, projectPath);
+        save();
+    }
+
+    public boolean isAutoLoadLastProject() {
+        return Boolean.parseBoolean(properties.getProperty(KEY_AUTO_LOAD_LAST_PROJECT, "true"));
+    }
+
+    public void setAutoLoadLastProject(boolean autoLoad) {
+        properties.setProperty(KEY_AUTO_LOAD_LAST_PROJECT, String.valueOf(autoLoad));
         save();
     }
 }

@@ -17,6 +17,7 @@
                 <Menu text="Fichier">
                     <MenuItem text="Nouveau projet" onAction="#handleNewProject" accelerator="Ctrl+Shift+N"/>
                     <MenuItem text="Ouvrir un projet..." onAction="#handleOpenProject" accelerator="Ctrl+Shift+O"/>
+                    <MenuItem text="Projets récents..." onAction="#handleOpenRecentProjects" accelerator="Ctrl+R"/>
                     <SeparatorMenuItem />
                     <MenuItem text="Enregistrer le projet" onAction="#handleSaveProject" accelerator="Ctrl+S"/>
                     <MenuItem text="Enregistrer le projet sous..." onAction="#handleSaveProjectAs" accelerator="Ctrl+Shift+S"/>

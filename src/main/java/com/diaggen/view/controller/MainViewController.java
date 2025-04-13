@@ -632,28 +632,11 @@ public class MainViewController {
 
     @FXML
     private void handleExit() {
-
-        if (projectController != null && mainController != null && mainController.getDiagramStore().getActiveProject() != null) {
-            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Quitter l'application");
-            alert.setHeaderText("Enregistrer le projet avant de quitter ?");
-            alert.setContentText("Voulez-vous enregistrer le projet actuel avant de quitter ?");
-
-            ButtonType saveButton = new ButtonType("Enregistrer");
-            ButtonType dontSaveButton = new ButtonType("Ne pas enregistrer");
-            ButtonType cancelButton = ButtonType.CANCEL;
-
-            alert.getButtonTypes().setAll(saveButton, dontSaveButton, cancelButton);
-
-            alert.showAndWait().ifPresent(result -> {
-                if (result == saveButton) {
-                    projectController.saveProject();
-                    closeApplication();
-                } else if (result == dontSaveButton) {
-                    closeApplication();
-                }
-
-            });
+        if (projectController != null && mainController != null) {
+            boolean canExit = projectController.checkSaveCurrentProject();
+            if (canExit) {
+                closeApplication();
+            }
         } else {
             closeApplication();
         }
@@ -662,6 +645,25 @@ public class MainViewController {
     private void closeApplication() {
         javafx.stage.Stage stage = (javafx.stage.Stage) diagramCanvasContainer.getScene().getWindow();
         stage.close();
+    }
+
+    public void setupWindowCloseHandler() {
+        Platform.runLater(() -> {
+            if (diagramCanvasContainer.getScene() != null && diagramCanvasContainer.getScene().getWindow() instanceof javafx.stage.Stage) {
+                javafx.stage.Stage stage = (javafx.stage.Stage) diagramCanvasContainer.getScene().getWindow();
+
+                stage.setOnCloseRequest(event -> {
+                    event.consume(); // Empêche la fermeture automatique
+                    handleExit();    // Utilise notre logique de sortie personnalisée
+                });
+            }
+        });
+    }
+
+    public void handleOpenRecentProjects() {
+        if (projectController != null) {
+            projectController.showRecentProjects();
+        }
     }
 
     @FXML

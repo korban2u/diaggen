@@ -1,11 +1,10 @@
 package com.diaggen.event;
 
-
 public class DiagramChangedEvent extends DiagramEvent {
     public enum ChangeType {
         CLASS_ADDED, CLASS_MODIFIED, CLASS_REMOVED, CLASS_SELECTED,
         RELATION_ADDED, RELATION_MODIFIED, RELATION_REMOVED, RELATION_SELECTED,
-        DIAGRAM_RENAMED, DIAGRAM_CLEARED
+        DIAGRAM_RENAMED, DIAGRAM_CLEARED, DIAGRAM_CREATED, DIAGRAM_DELETED
     }
 
     private final ChangeType changeType;
