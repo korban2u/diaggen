@@ -144,8 +144,6 @@ public class AppConfig {
         }
 
         properties.setProperty(KEY_RECENT_FILES, recentFiles);
-
-        // Définir aussi comme dernier projet
         setLastProject(filePath);
 
         save();

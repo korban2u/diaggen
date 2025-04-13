@@ -370,27 +370,17 @@ public class ProjectExplorerController {
 
     public void refreshUI() {
         LOGGER.log(Level.INFO, "Refreshing ProjectExplorer UI");
-
-        // Vérification de l'état des boutons d'import et d'ajout
         Project activeProject = diagramStore != null ? diagramStore.getActiveProject() : null;
         boolean projectSelected = (activeProject != null);
-
-        // Activer/désactiver les boutons selon qu'un projet est actif ou non
         addDiagramButton.setDisable(!projectSelected);
         importDiagramsButton.setDisable(!projectSelected);
         newDiagramButton.setDisable(!projectSelected);
-
-        // Sélectionner le projet actif dans la liste
         if (projectSelected && projectListView != null) {
             projectListView.getSelectionModel().select(activeProject);
         }
-
-        // Mettre à jour la liste des diagrammes
         if (projectSelected) {
             updateDiagramList(activeProject);
         }
-
-        // Rafraîchir les listes
         if (projectListView != null) {
             projectListView.refresh();
         }

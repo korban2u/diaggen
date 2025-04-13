@@ -76,8 +76,6 @@ public class DiagramController extends BaseController {
 
         ClassDiagram diagram = diagramStore.createNewDiagram(name);
         activateDiagram(diagram);
-
-        // Marquer le projet comme modifié
         sessionManager.markProjectAsModified();
         LOGGER.log(Level.FINE, "Project marked as modified after diagram creation");
 
@@ -126,8 +124,6 @@ public class DiagramController extends BaseController {
 
         String oldName = diagram.getName();
         diagram.setName(newName);
-
-        // Marquer le projet comme modifié
         sessionManager.markProjectAsModified();
         LOGGER.log(Level.FINE, "Project marked as modified after diagram rename");
 
@@ -156,12 +152,8 @@ public class DiagramController extends BaseController {
             }
 
             diagramStore.removeDiagram(diagram);
-
-            // Marquer le projet comme modifié
             sessionManager.markProjectAsModified();
             LOGGER.log(Level.FINE, "Project marked as modified after diagram removal");
-
-            // Utiliser le nouveau type DIAGRAM_DELETED au lieu de DIAGRAM_DELETED
             eventBus.publish(new DiagramChangedEvent(diagramId,
                     DiagramChangedEvent.ChangeType.DIAGRAM_DELETED, null));
         }
@@ -172,8 +164,6 @@ public class DiagramController extends BaseController {
 
         ClassDiagram copy = diagram.createCopy();
         diagramStore.getActiveProject().addDiagram(copy);
-
-        // Marquer le projet comme modifié
         sessionManager.markProjectAsModified();
         LOGGER.log(Level.FINE, "Project marked as modified after diagram duplication");
 
@@ -228,8 +218,6 @@ public class DiagramController extends BaseController {
                 }
 
                 activeProject.addDiagram(loadedDiagram);
-
-                // Marquer le projet comme modifié
                 sessionManager.markProjectAsModified();
                 LOGGER.log(Level.FINE, "Project marked as modified after diagram import");
 

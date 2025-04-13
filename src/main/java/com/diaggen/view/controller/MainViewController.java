@@ -442,8 +442,6 @@ public class MainViewController {
         if (projectController != null) {
             LOGGER.log(Level.INFO, "Saving project");
             projectController.saveProject();
-
-            // Mise à jour du status pour indiquer le chemin de sauvegarde
             Project activeProject = mainController.getDiagramStore().getActiveProject();
             if (activeProject != null) {
                 File projectFile = mainController.getDiagramStore().getCurrentProjectFile();
@@ -461,8 +459,6 @@ public class MainViewController {
         if (projectController != null) {
             LOGGER.log(Level.INFO, "Saving project as...");
             projectController.saveProjectAs();
-
-            // Mise à jour du status pour indiquer le chemin de sauvegarde
             Project activeProject = mainController.getDiagramStore().getActiveProject();
             if (activeProject != null) {
                 File projectFile = mainController.getDiagramStore().getCurrentProjectFile();
@@ -687,9 +683,8 @@ public class MainViewController {
                 javafx.stage.Stage stage = (javafx.stage.Stage) diagramCanvasContainer.getScene().getWindow();
 
                 stage.setOnCloseRequest(event -> {
-                    event.consume(); // Empêche la fermeture automatique
-                    handleExit();    // Utilise notre logique de sortie personnalisée
-                });
+                    event.consume();
+                    handleExit();                });
             }
         });
     }
@@ -752,14 +747,10 @@ public class MainViewController {
 
     public void configureAllControllers() {
         LOGGER.log(Level.INFO, "Configuring all controllers");
-
-        // S'assurer que tous les contrôleurs nécessaires sont injectés dans ProjectExplorerController
         if (projectExplorerController != null && mainController != null && projectController != null) {
             projectExplorerController.setDiagramStore(mainController.getDiagramStore());
             projectExplorerController.setProjectController(projectController);
             projectExplorerController.setDiagramController(mainController.getDiagramController());
-
-            // Rafraîchir les UI components qui dépendent de ces contrôleurs
             Platform.runLater(() -> {
                 projectExplorerController.refreshUI();
             });

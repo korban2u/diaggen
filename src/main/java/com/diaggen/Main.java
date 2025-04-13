@@ -81,14 +81,10 @@ public class Main extends Application {
                 exportController,
                 diagramCanvas
         );
-
-        // Injecter tous les contrôleurs
         viewController.setProjectController(projectController);
         viewController.setExportController(exportController);
         viewController.setMainController(mainController);
         viewController.setLayoutController(layoutController);
-
-        // Configurer tous les contrôleurs une fois qu'ils sont tous injectés
         viewController.configureAllControllers();
 
         setupEventListeners(eventBus, diagramCanvas, viewController);
@@ -107,13 +103,8 @@ public class Main extends Application {
         viewController.setupWindowCloseHandler();
 
         primaryStage.show();
-
-        // Charge automatiquement le projet le plus récent ou crée un projet par défaut
         if (diagramStore.getProjects().isEmpty()) {
-            // Si aucun projet récent n'est disponible ou ne peut être chargé, crée un projet par défaut
             loadMostRecentProject(projectController, diagramStore);
-
-            // Si toujours aucun projet, crée un projet par défaut
             if (diagramStore.getProjects().isEmpty()) {
                 projectController.createNewProject("Projet par défaut");
             }
@@ -146,7 +137,6 @@ public class Main extends Application {
     }
 
     private void loadMostRecentProject(ProjectController projectController, DiagramStore diagramStore) {
-        // Vérifie si la configuration permet le chargement automatique
         if (!AppConfig.getInstance().isAutoLoadLastProject()) {
             return;
         }

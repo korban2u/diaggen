@@ -47,8 +47,6 @@ public class ClassController extends BaseController {
 
             eventBus.publish(new DiagramChangedEvent(currentDiagram.getId(),
                     DiagramChangedEvent.ChangeType.CLASS_ADDED, diagramClass.getId()));
-
-            // Marquer le projet comme modifié
             sessionManager.markProjectAsModified();
             LOGGER.log(Level.FINE, "Project marked as modified after class creation");
         });
@@ -61,8 +59,6 @@ public class ClassController extends BaseController {
         dialog.showAndWait().ifPresent(updatedClass -> {
             eventBus.publish(new DiagramChangedEvent(getActiveDiagram().getId(),
                     DiagramChangedEvent.ChangeType.CLASS_MODIFIED, diagramClass.getId()));
-
-            // Marquer le projet comme modifié
             sessionManager.markProjectAsModified();
             LOGGER.log(Level.FINE, "Project marked as modified after class edit");
         });
@@ -85,8 +81,6 @@ public class ClassController extends BaseController {
 
             eventBus.publish(new DiagramChangedEvent(currentDiagram.getId(),
                     DiagramChangedEvent.ChangeType.CLASS_REMOVED, diagramClass.getId()));
-
-            // Marquer le projet comme modifié
             sessionManager.markProjectAsModified();
             LOGGER.log(Level.FINE, "Project marked as modified after class removal");
         }
@@ -101,8 +95,6 @@ public class ClassController extends BaseController {
 
         eventBus.publish(new ClassMovedEvent(currentDiagram.getId(),
                 diagramClass.getId(), oldX, oldY, newX, newY));
-
-        // Marquer le projet comme modifié
         sessionManager.markProjectAsModified();
         LOGGER.log(Level.FINE, "Project marked as modified after class move");
     }
@@ -116,8 +108,6 @@ public class ClassController extends BaseController {
             layoutService.arrangeClasses(diagram, commandManager);
             eventBus.publish(new DiagramChangedEvent(diagram.getId(),
                     DiagramChangedEvent.ChangeType.DIAGRAM_RENAMED, null));
-
-            // Marquer le projet comme modifié
             sessionManager.markProjectAsModified();
             LOGGER.log(Level.FINE, "Project marked as modified after automatic arrangement");
 
@@ -153,8 +143,6 @@ public class ClassController extends BaseController {
 
         eventBus.publish(new DiagramChangedEvent(diagram.getId(),
                 DiagramChangedEvent.ChangeType.DIAGRAM_RENAMED, null));
-
-        // Marquer le projet comme modifié
         sessionManager.markProjectAsModified();
 
         LOGGER.log(Level.INFO, "Automatic class arrangement completed");

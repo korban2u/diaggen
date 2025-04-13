@@ -35,10 +35,6 @@ public class DiagramStore {
         if (project == null || (getActiveDiagram() != null && !project.getDiagrams().contains(getActiveDiagram()))) {
             setActiveDiagram(null);
         }
-
-        // Si on change de projet, on doit mettre à jour le fichier correspondant
-        // Cette méthode ne doit pas définir currentProjectFile car c'est au
-        // ProjectController/ProjectSessionManager de le faire
     }
 
     public ObjectProperty<Project> activeProjectProperty() {
@@ -55,7 +51,6 @@ public class DiagramStore {
     public void removeProject(Project project) {
         if (project == getActiveProject()) {
             setActiveProject(null);
-            // Quand on supprime un projet, on réinitialise son fichier
             setCurrentProjectFile(null);
         }
         projects.remove(project);

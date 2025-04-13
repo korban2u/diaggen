@@ -17,7 +17,6 @@ public class CommandManager {
     private final ProjectSessionManager sessionManager;
 
     public CommandManager() {
-        // Obtention du gestionnaire de session
         this.sessionManager = ProjectSessionManager.getInstance();
     }
 
@@ -31,8 +30,6 @@ public class CommandManager {
             undoStack.push(command);
             redoStack.clear();
         }
-
-        // Marquer le projet comme modifié après l'exécution d'une commande
         sessionManager.markProjectAsModified();
 
         LOGGER.log(Level.FINE, "Command executed: {0}, project marked as modified",
@@ -44,8 +41,6 @@ public class CommandManager {
             Command command = undoStack.pop();
             command.undo();
             redoStack.push(command);
-
-            // Marquer le projet comme modifié après une annulation
             sessionManager.markProjectAsModified();
 
             LOGGER.log(Level.FINE, "Command undone: {0}, project marked as modified",
@@ -58,8 +53,6 @@ public class CommandManager {
             Command command = redoStack.pop();
             command.execute();
             undoStack.push(command);
-
-            // Marquer le projet comme modifié après une restauration
             sessionManager.markProjectAsModified();
 
             LOGGER.log(Level.FINE, "Command redone: {0}, project marked as modified",
@@ -96,29 +89,20 @@ public class CommandManager {
         inGroup = false;
 
         if (!groupStack.isEmpty()) {
-            // Créer un CommandGroup avec le nom du groupe
             CommandGroup group = new CommandGroup(currentGroupName);
-
-            // Ajouter toutes les commandes du stack au groupe
             for (Command cmd : groupStack) {
                 group.addCommand(cmd);
             }
 
             undoStack.push(group);
             redoStack.clear();
-
-            // Marquer le projet comme modifié après la fin d'un groupe de commandes
             sessionManager.markProjectAsModified();
-
-            // Utiliser un entier comme paramètre pour le log
             int commandCount = groupStack.size();
             LOGGER.log(Level.FINE, "Command group ended with {0} commands, project marked as modified",
                     new Object[]{commandCount});
         } else {
             LOGGER.log(Level.FINE, "Command group ended with no commands");
         }
-
-        // Réinitialiser le nom du groupe
         currentGroupName = "";
     }
 

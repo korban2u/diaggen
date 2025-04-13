@@ -78,15 +78,11 @@ public class RecentProjectsDialog extends Dialog<String> {
             } else {
                 File file = new File(projectPath);
                 String fileName = file.getName();
-
-                // Extraire le nom du projet (sans extension)
                 String projectName = fileName;
                 int dotIndex = fileName.lastIndexOf('.');
                 if (dotIndex > 0) {
                     projectName = fileName.substring(0, dotIndex);
                 }
-
-                // Formatage de la date de modification
                 LocalDateTime lastModified = LocalDateTime.ofInstant(
                         file.lastModified() > 0
                                 ? java.time.Instant.ofEpochMilli(file.lastModified())

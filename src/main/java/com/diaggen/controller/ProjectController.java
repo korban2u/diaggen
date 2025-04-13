@@ -33,8 +33,6 @@ public class ProjectController extends BaseController {
     private Window ownerWindow;
     private final EventBus eventBus = EventBus.getInstance();
     private final ProjectSessionManager sessionManager;
-
-    // Cache des fichiers de projet pour éviter la recherche répétée
     private final Map<String, File> projectFileCache = new HashMap<>();
 
     public ProjectController(DiagramStore diagramStore, CommandManager commandManager) {
@@ -47,7 +45,6 @@ public class ProjectController extends BaseController {
     }
 
     public Project createNewProjectWithDialog() {
-        // Vérifie si un projet est en cours d'édition et propose de le sauvegarder
         if (!checkSaveCurrentProject()) {
             return null;
         }
@@ -71,8 +68,6 @@ public class ProjectController extends BaseController {
             }
 
             Project newProject = createNewProject(projectName);
-
-            // Demander immédiatement où sauvegarder le nouveau projet
             saveProjectAs();
 
             return newProject;
@@ -85,20 +80,14 @@ public class ProjectController extends BaseController {
         LOGGER.log(Level.INFO, "Creating new project: {0}", name);
 
         Project project = diagramStore.createNewProject(name);
-
-        // Important: Réinitialiser le fichier de projet courant pour éviter l'écrasement accidentel
         diagramStore.setCurrentProjectFile(null);
-        // Effacer également dans le session manager
         sessionManager.setCurrentProjectFile(null);
-        // Et dans notre cache
         projectFileCache.remove(project.getId());
 
         eventBus.publish(new ProjectChangedEvent(project.getId(),
                 ProjectChangedEvent.ChangeType.PROJECT_CREATED, null));
 
         activateProject(project, true);
-
-        // Marquer le projet comme modifié car il est nouveau
         sessionManager.markProjectAsModified();
 
         return project;
@@ -114,8 +103,6 @@ public class ProjectController extends BaseController {
             LOGGER.log(Level.INFO, "Project is already active, skipping activation: {0}", project.getName());
             return;
         }
-
-        // Vérifie si le projet actuel doit être sauvegardé avant d'activer un autre projet
         Project currentProject = diagramStore.getActiveProject();
         if (currentProject != null && sessionManager.isProjectModified()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -141,20 +128,14 @@ public class ProjectController extends BaseController {
                 } else if (result.get() == cancelButton) {
                     return;
                 }
-                // Pour "Ne pas enregistrer", on continue normalement
             } else {
-                return; // Boîte de dialogue fermée, annuler l'activation
-            }
+                return;            }
         }
 
         LOGGER.log(Level.INFO, "Activating project: {0} (ID: {1})", new Object[]{project.getName(), project.getId()});
 
         diagramStore.setActiveProject(project);
-
-        // Obtenir le fichier correspondant au projet
         File projectFile = getProjectFile(project);
-
-        // Mettre à jour toutes les références au fichier de projet
         if (projectFile != null) {
             LOGGER.log(Level.INFO, "Project file found for {0}: {1}",
                     new Object[]{project.getName(), projectFile.getAbsolutePath()});
@@ -202,8 +183,6 @@ public class ProjectController extends BaseController {
 
         LOGGER.log(Level.INFO, "Renaming project {0} to {1}", new Object[]{project.getName(), newName});
         project.setName(newName);
-
-        // Marquer le projet comme modifié
         sessionManager.markProjectAsModified();
 
         eventBus.publish(new ProjectChangedEvent(project.getId(),
@@ -232,12 +211,8 @@ public class ProjectController extends BaseController {
                 diagramStore.setActiveDiagram(null);
                 diagramStore.setActiveProject(null);
                 diagramStore.setCurrentProjectFile(null);
-
-                // Réinitialiser le gestionnaire de session
                 sessionManager.setCurrentProject(null, null);
                 sessionManager.setCurrentProjectFile(null);
-
-                // Supprimer du cache
                 projectFileCache.remove(projectId);
             }
 
@@ -253,16 +228,12 @@ public class ProjectController extends BaseController {
             AlertHelper.showWarning("Aucun projet actif", "Il n'y a pas de projet à enregistrer.");
             return;
         }
-
-        // Vérifier si nous avons déjà un fichier pour ce projet
         File projectFile = getProjectFile(activeProject);
 
         if (projectFile != null && projectFile.exists()) {
-            // Si oui, sauvegarder directement dans ce fichier
             LOGGER.log(Level.INFO, "Saving directly to existing file: {0}", projectFile.getAbsolutePath());
             saveToFile(projectFile);
         } else {
-            // Sinon, demander où sauvegarder
             LOGGER.log(Level.INFO, "No file found for project, asking for save location");
             saveProjectAs();
         }
@@ -278,8 +249,6 @@ public class ProjectController extends BaseController {
         fileChooser.setTitle("Enregistrer le projet");
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Fichiers DiagGen Projet (*.dgp)", "*.dgp"));
-
-        // Suggestion de nom de fichier basée sur le nom du projet
         if (diagramStore.getActiveProject() != null) {
             String suggestedName = diagramStore.getActiveProject().getName().replaceAll("[^a-zA-Z0-9]", "_") + ".dgp";
             fileChooser.setInitialFileName(suggestedName);
@@ -291,13 +260,9 @@ public class ProjectController extends BaseController {
                 file = new File(file.getAbsolutePath() + ".dgp");
             }
             saveToFile(file);
-
-            // Mettre à jour toutes les références au fichier
             diagramStore.setCurrentProjectFile(file);
             sessionManager.setCurrentProjectFile(file);
             sessionManager.setCurrentProject(diagramStore.getActiveProject(), file);
-
-            // Mettre à jour le cache
             projectFileCache.put(diagramStore.getActiveProject().getId(), file);
 
             return true;
@@ -306,7 +271,6 @@ public class ProjectController extends BaseController {
     }
 
     public boolean openProject() {
-        // Vérifie si un projet est en cours d'édition et propose de le sauvegarder
         if (!checkSaveCurrentProject()) {
             return false;
         }
@@ -333,18 +297,12 @@ public class ProjectController extends BaseController {
             Project loadedProject = serializer.deserialize(file);
 
             diagramStore.getProjects().add(loadedProject);
-
-            // Mettre à jour toutes les références au fichier
             diagramStore.setCurrentProjectFile(file);
             sessionManager.setCurrentProjectFile(file);
             projectFileCache.put(loadedProject.getId(), file);
 
             activateProject(loadedProject, true);
-
-            // Mise à jour des projets récents
             sessionManager.addRecentProject(file.getAbsolutePath());
-
-            // Projet non modifié car vient d'être chargé
             sessionManager.markProjectAsSaved();
 
             LOGGER.log(Level.INFO, "Successfully loaded project from {0}", file.getName());
@@ -358,7 +316,6 @@ public class ProjectController extends BaseController {
     }
 
     public void showRecentProjects() {
-        // Vérifie si un projet est en cours d'édition et propose de le sauvegarder
         if (!checkSaveCurrentProject()) {
             return;
         }
@@ -379,24 +336,13 @@ public class ProjectController extends BaseController {
             openProjectFile(projectFile);
         }
     }
-
-    // Méthode clé pour obtenir le fichier associé à un projet
-    // Vérifiez dans cet ordre:
-    // 1. Cache
-    // 2. DiagramStore
-    // 3. SessionManager
-    // 4. Projets récents
     private File getProjectFile(Project project) {
         if (project == null) return null;
-
-        // 1. Vérifier dans le cache
         File cachedFile = projectFileCache.get(project.getId());
         if (cachedFile != null && cachedFile.exists()) {
             LOGGER.log(Level.FINE, "Project file found in cache: {0}", cachedFile.getAbsolutePath());
             return cachedFile;
         }
-
-        // 2. Vérifier dans DiagramStore si c'est le projet actif
         if (project.equals(diagramStore.getActiveProject())) {
             File storeFile = diagramStore.getCurrentProjectFile();
             if (storeFile != null && storeFile.exists()) {
@@ -405,8 +351,6 @@ public class ProjectController extends BaseController {
                 return storeFile;
             }
         }
-
-        // 3. Vérifier dans le SessionManager si c'est le projet actif
         if (project.equals(sessionManager.getCurrentProject())) {
             File sessionFile = sessionManager.getCurrentProjectFile();
             if (sessionFile != null && sessionFile.exists()) {
@@ -415,8 +359,6 @@ public class ProjectController extends BaseController {
                 return sessionFile;
             }
         }
-
-        // 4. Chercher dans les projets récents
         List<String> recentProjects = sessionManager.getRecentProjects();
         for (String path : recentProjects) {
             try {
@@ -432,11 +374,8 @@ public class ProjectController extends BaseController {
                 }
             } catch (Exception e) {
                 LOGGER.log(Level.WARNING, "Error checking recent project: {0}", e.getMessage());
-                // Continuer avec le prochain projet récent
             }
         }
-
-        // Aucun fichier trouvé
         LOGGER.log(Level.FINE, "No file found for project: {0}", project.getName());
         return null;
     }
@@ -514,14 +453,8 @@ public class ProjectController extends BaseController {
         try {
             ProjectSerializer serializer = new ProjectSerializer();
             serializer.serialize(activeProject, file);
-
-            // Enregistrer dans les projets récents
             sessionManager.addRecentProject(file.getAbsolutePath());
-
-            // Marquer le projet comme sauvegardé
             sessionManager.markProjectAsSaved();
-
-            // Mettre à jour toutes les références au fichier
             diagramStore.setCurrentProjectFile(file);
             sessionManager.setCurrentProjectFile(file);
             projectFileCache.put(activeProject.getId(), file);
@@ -571,8 +504,6 @@ public class ProjectController extends BaseController {
 
                     eventBus.publish(new ProjectChangedEvent(diagramStore.getActiveProject().getId(),
                             ProjectChangedEvent.ChangeType.DIAGRAMS_IMPORTED, null));
-
-                    // Marquer le projet comme modifié
                     sessionManager.markProjectAsModified();
                 }
 
