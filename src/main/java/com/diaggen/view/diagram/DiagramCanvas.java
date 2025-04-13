@@ -8,7 +8,14 @@ import com.diaggen.model.ClassDiagram;
 import com.diaggen.model.DiagramClass;
 import com.diaggen.model.DiagramRelation;
 import com.diaggen.view.diagram.canvas.*;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Dimension2D;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -22,6 +29,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.util.Duration;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +50,10 @@ public class DiagramCanvas extends AnchorPane {
     private final NavigationControls navigationControls;
     private final MiniMapView miniMapView;
     private final PositionIndicator positionIndicator;
+
+    // Propriété pour suivre l'état du panneau d'édition
+    private final BooleanProperty editorPanelVisible = new SimpleBooleanProperty(false);
+    private double editorPanelWidth = 300.0;
 
     private Runnable onAddClassRequest;
     private Runnable onDeleteRequest;
@@ -123,6 +135,11 @@ public class DiagramCanvas extends AnchorPane {
         setupEventBusListeners();
         setupMiniMapUpdates();
 
+        // Ajouter un écouteur pour gérer les changements d'état du panneau d'édition
+        editorPanelVisible.addListener((obs, wasVisible, isVisible) -> {
+            adjustForEditorPanel(isVisible);
+        });
+
         // Liaison des propriétés du transform
         viewportTransform.scaleProperty().addListener((obs, oldVal, newVal) -> updateTransform());
         viewportTransform.translateXProperty().addListener((obs, oldVal, newVal) -> updateTransform());
@@ -139,6 +156,91 @@ public class DiagramCanvas extends AnchorPane {
 
         // S'assurer que contentPane a une taille suffisamment grande pour accueillir un espace très large
         contentPane.setPrefSize(DEFAULT_GRID_WIDTH, DEFAULT_GRID_HEIGHT);
+    }
+
+    /**
+     * Met à jour l'état du panneau d'édition
+     *
+     * @param isVisible si le panneau d'édition est visible
+     * @param width la largeur du panneau d'édition en pixels
+     */
+    public void setEditorPanelState(boolean isVisible, double width) {
+        if (width > 0) {
+            this.editorPanelWidth = width;
+        }
+
+        // Ne déclencher le changement que si l'état a changé
+        if (editorPanelVisible.get() != isVisible) {
+            editorPanelVisible.set(isVisible);
+        } else if (isVisible) {
+            // Si déjà visible mais la largeur a changé, ajuster quand même
+            adjustForEditorPanel(true);
+        }
+    }
+
+    /**
+     * Ajuste la disposition des éléments en fonction de l'état du panneau d'édition
+     */
+    private void adjustForEditorPanel(boolean isEditorVisible) {
+        // Adapter la mini-map pour qu'elle reste visible
+        adjustMiniMapPosition(isEditorVisible);
+    }
+
+    /**
+     * Ajuste la position de la mini-map pour éviter d'être cachée par le panneau d'édition
+     */
+    private void adjustMiniMapPosition(boolean isEditorVisible) {
+        if (miniMapView == null) return;
+
+        // Créer des propriétés temporaires que nous pouvons animer
+        DoubleProperty topAnchor = new SimpleDoubleProperty();
+        DoubleProperty rightAnchor = new SimpleDoubleProperty();
+
+        // Définir les valeurs initiales
+        Double currentTop = AnchorPane.getTopAnchor(miniMapView);
+        Double currentRight = AnchorPane.getRightAnchor(miniMapView);
+        topAnchor.set(currentTop != null ? currentTop : 10.0);
+        rightAnchor.set(currentRight != null ? currentRight : 10.0);
+
+        // Ajouter des écouteurs pour mettre à jour les ancrages réels
+        topAnchor.addListener((obs, oldVal, newVal) ->
+                AnchorPane.setTopAnchor(miniMapView, newVal.doubleValue()));
+        rightAnchor.addListener((obs, oldVal, newVal) ->
+                AnchorPane.setRightAnchor(miniMapView, newVal.doubleValue()));
+
+        if (isEditorVisible) {
+            // Calculer de combien il faut déplacer la mini-map
+            double requiredOffset = editorPanelWidth + 20.0; // 20px de marge
+
+            // Si la mini-map serait déplacée hors de l'écran à gauche
+            if (getWidth() - requiredOffset < miniMapView.getWidth() + 10) {
+                // Déplacer la mini-map en bas à gauche à la place
+                Timeline timeline = new Timeline(
+                        new KeyFrame(Duration.millis(250),
+                                new KeyValue(topAnchor, getHeight() - miniMapView.getHeight() - 70),
+                                new KeyValue(rightAnchor, getWidth() - editorPanelWidth - miniMapView.getWidth() - 20)
+                        )
+                );
+                timeline.play();
+            } else {
+                // Déplacer la mini-map horizontalement
+                Timeline timeline = new Timeline(
+                        new KeyFrame(Duration.millis(250),
+                                new KeyValue(rightAnchor, requiredOffset)
+                        )
+                );
+                timeline.play();
+            }
+        } else {
+            // Remettre la mini-map à sa position initiale (en haut à droite)
+            Timeline timeline = new Timeline(
+                    new KeyFrame(Duration.millis(250),
+                            new KeyValue(topAnchor, 10.0),
+                            new KeyValue(rightAnchor, 10.0)
+                    )
+            );
+            timeline.play();
+        }
     }
 
     private void setupMiniMapUpdates() {
@@ -416,7 +518,6 @@ public class DiagramCanvas extends AnchorPane {
             }
         }
     }
-
 
     public Dimension2D calculateRequiredSize() {
         if (diagram == null || diagram.getClasses().isEmpty()) {

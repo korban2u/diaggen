@@ -54,6 +54,10 @@ public class MainViewController {
     @FXML
     private Button deleteRelationButton;
 
+    // Container du panneau d'édition
+    @FXML
+    private StackPane editorPaneContainer;
+
     private MainController mainController;
     private DiagramCanvas diagramCanvas;
     private EditorPanelController editorController;
@@ -93,16 +97,43 @@ public class MainViewController {
         diagramCanvas = new DiagramCanvas();
         diagramCanvasContainer.getChildren().add(diagramCanvas);
         editorController = new EditorPanelController(editorContent);
-        StackPane editorPaneContainer = (StackPane) editorPanel.getParent().getParent();
+
+        // Configuration pour que l'état du panneau d'édition soit communiqué au diagramCanvas
         editorPanel.visibleProperty().addListener((obs, wasVisible, isVisible) -> {
             editorPaneContainer.setMouseTransparent(!isVisible);
+
+            // Notifier le DiagramCanvas de l'état du panneau d'édition
+            if (diagramCanvas != null) {
+                // Mesurer la largeur réelle du panneau
+                double editorWidth = isVisible ? editorPanel.getWidth() : 0;
+
+                // Si la largeur n'est pas encore déterminée, utiliser une valeur par défaut
+                if (editorWidth <= 0 && isVisible) {
+                    editorWidth = 300; // Largeur par défaut du panneau d'édition
+                }
+
+                diagramCanvas.setEditorPanelState(isVisible, editorWidth);
+            }
         });
+
+        // Après le chargement de la scène, surveiller les changements de taille du panneau d'édition
+        Platform.runLater(() -> {
+            if (editorPanel.getScene() != null) {
+                editorPanel.widthProperty().addListener((obs, oldWidth, newWidth) -> {
+                    if (editorPanel.isVisible() && diagramCanvas != null && newWidth.doubleValue() > 0) {
+                        diagramCanvas.setEditorPanelState(true, newWidth.doubleValue());
+                    }
+                });
+            }
+        });
+
         Button closeButton = new Button("×");
         closeButton.getStyleClass().add("close-button");
         closeButton.setOnAction(e -> {
             editorPanel.setVisible(false);
             if (diagramCanvas != null) {
                 diagramCanvas.deselectAll();
+                diagramCanvas.setEditorPanelState(false, 0);
             }
         });
         Label editorTitleLabel = (Label) editorPanel.getChildren().stream()
@@ -182,6 +213,9 @@ public class MainViewController {
                         if (editorController != null) {
                             editorController.clearEditor();
                             editorPanel.setVisible(false);
+                            if (diagramCanvas != null) {
+                                diagramCanvas.setEditorPanelState(false, 0);
+                            }
                         }
                         selectedClass = null;
                         selectedRelation = null;
@@ -232,12 +266,24 @@ public class MainViewController {
                 editorPanel.setVisible(true);
                 editorController.showClassEditor(diagramClass);
 
+                // Après avoir rendu le panneau visible, mettre à jour l'état dans diagramCanvas
+                Platform.runLater(() -> {
+                    double editorWidth = editorPanel.getWidth();
+                    if (editorWidth <= 0) {
+                        editorWidth = 300; // Valeur par défaut
+                    }
+                    diagramCanvas.setEditorPanelState(true, editorWidth);
+                });
+
                 setStatus("Classe sélectionnée: " + diagramClass.getName());
             } else {
                 selectedClass = null;
                 deleteClassButton.setDisable(true);
                 if (selectedRelation == null) {
                     editorPanel.setVisible(false);
+                    if (diagramCanvas != null) {
+                        diagramCanvas.setEditorPanelState(false, 0);
+                    }
                 }
 
                 setStatus("Prêt");
@@ -254,6 +300,15 @@ public class MainViewController {
                 editorPanel.setVisible(true);
                 editorController.showRelationEditor(relation);
 
+                // Après avoir rendu le panneau visible
+                Platform.runLater(() -> {
+                    double editorWidth = editorPanel.getWidth();
+                    if (editorWidth <= 0) {
+                        editorWidth = 300; // Valeur par défaut
+                    }
+                    diagramCanvas.setEditorPanelState(true, editorWidth);
+                });
+
                 setStatus("Relation sélectionnée: " + relation.getRelationType().getDisplayName() +
                         " entre " + relation.getSourceClass().getName() +
                         " et " + relation.getTargetClass().getName());
@@ -262,6 +317,9 @@ public class MainViewController {
                 deleteRelationButton.setDisable(true);
                 if (selectedClass == null) {
                     editorPanel.setVisible(false);
+                    if (diagramCanvas != null) {
+                        diagramCanvas.setEditorPanelState(false, 0);
+                    }
                 }
 
                 setStatus("Prêt");
@@ -358,6 +416,44 @@ public class MainViewController {
 
     public void setStatus(String status) {
         statusLabel.setText(status);
+    }
+
+    /**
+     * Met à jour l'état du panneau d'édition dans DiagramCanvas
+     * Cette méthode est appelée lorsque le panneau d'édition change de visibilité ou de taille
+     */
+    private void updateEditorPanelState(boolean isVisible) {
+        if (diagramCanvas == null) return;
+
+        double editorWidth = 0;
+        if (isVisible) {
+            editorWidth = editorPanel.getWidth();
+            // Si la largeur n'est pas encore disponible, utiliser la valeur préférée
+            if (editorWidth <= 0) {
+                editorWidth = editorPanel.getPrefWidth();
+            }
+            // Valeur par défaut si toujours pas disponible
+            if (editorWidth <= 0) {
+                editorWidth = 300;
+            }
+        }
+
+        // Informer le DiagramCanvas de l'état du panneau d'édition
+        diagramCanvas.setEditorPanelState(isVisible, editorWidth);
+    }
+
+    /**
+     * Désélectionne tout et ferme le panneau d'édition
+     */
+    public void deselectAllAndCloseEditor() {
+        if (diagramCanvas != null) {
+            diagramCanvas.deselectAll();
+        }
+
+        if (editorPanel != null) {
+            editorPanel.setVisible(false);
+            updateEditorPanelState(false);
+        }
     }
 
     private void handleSelectDiagram(ClassDiagram diagram) {

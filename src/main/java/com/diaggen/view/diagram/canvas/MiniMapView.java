@@ -3,7 +3,9 @@ package com.diaggen.view.diagram.canvas;
 import com.diaggen.model.ClassType;
 import com.diaggen.model.DiagramClass;
 import javafx.animation.FadeTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
@@ -42,6 +44,9 @@ public class MiniMapView extends VBox {
     // Ajout d'un flag pour éviter les mises à jour simultanées
     private final AtomicBoolean isUpdating = new AtomicBoolean(false);
 
+    // Propriété pour savoir si la mini-map est actuellement déplacée
+    private boolean isRepositioning = false;
+
     private double miniMapScale = 0.1;
     private boolean isDragging = false;
     private boolean isExpanded = false;
@@ -54,16 +59,23 @@ public class MiniMapView extends VBox {
     private double maxX = 0;
     private double maxY = 0;
 
+    // Position originale de la mini-map
+    private double originalRightAnchor = 10.0;
+    private double originalTopAnchor = 10.0;
+
     public MiniMapView(Pane diagramCanvas, ViewportTransform transform) {
         this.diagramCanvas = diagramCanvas;
         this.transform = transform;
 
-        // Style de base de la mini-carte
+        // Style de base de la mini-carte avec z-index élevé pour rester visible
         setPrefSize(180, 150);
         setMaxSize(180, 150);
         setSpacing(5);
         setPadding(new Insets(5));
-        setStyle("-fx-background-color: rgba(255, 255, 255, 0.85); -fx-background-radius: 8;");
+        setStyle("-fx-background-color: rgba(255, 255, 255, 0.85); -fx-background-radius: 8; -fx-z-index: 1000;");
+
+        // Assurer que la mini-map reste au-dessus des autres composants
+        setViewOrder(-10); // Les valeurs plus petites sont affichées au-dessus
 
         // Effet d'ombre
         DropShadow dropShadow = new DropShadow();
@@ -93,7 +105,7 @@ public class MiniMapView extends VBox {
         getChildren().addAll(titleLabel, contentRepresentation);
 
         // Installation des info-bulles
-        Tooltip tooltip = new Tooltip("Mini-carte: cliquez pour naviguer\nDrag & drop pour déplacer la vue");
+        Tooltip tooltip = new Tooltip("Mini-carte: cliquez pour naviguer\nDrag & drop pour déplacer la vue\nDouble-clic pour agrandir/réduire");
         Tooltip.install(this, tooltip);
 
         // Ajout des gestionnaires d'événements
@@ -155,6 +167,55 @@ public class MiniMapView extends VBox {
 
         // Mettre à jour le contenu après le redimensionnement
         updateContent(null);
+    }
+
+    // Méthode pour repositionner la mini-map lors de l'ouverture du panneau d'édition
+    public void repositionForEditorPanel(boolean isEditorVisible, double editorWidth) {
+        // Éviter de repositionner si on est déjà en train de le faire
+        if (isRepositioning) {
+            return;
+        }
+
+        isRepositioning = true;
+
+        try {
+            TranslateTransition transition = new TranslateTransition(Duration.millis(250), this);
+
+            if (isEditorVisible) {
+                // Décaler la mini-map vers la gauche
+                double offset = editorWidth + 10; // 10px de marge
+                transition.setByX(-offset);
+            } else {
+                // Remettre à la position originale
+                transition.setByX(0);
+                transition.setToX(0);
+            }
+
+            transition.setOnFinished(e -> isRepositioning = false);
+            transition.play();
+        } catch (Exception e) {
+            isRepositioning = false;
+            // Repositionner sans animation en cas d'erreur
+            if (isEditorVisible) {
+                double offset = editorWidth + 10;
+                setTranslateX(-offset);
+            } else {
+                setTranslateX(0);
+            }
+        }
+    }
+
+    // Méthode pour savoir si la mini-map est actuellement visible à l'écran
+    public boolean isFullyVisible() {
+        if (getParent() == null) {
+            return true; // On ne peut pas déterminer
+        }
+
+        Bounds parentBounds = getParent().getBoundsInLocal();
+        Bounds bounds = getBoundsInParent();
+
+        // Vérifier si la mini-map est complètement dans les limites du parent
+        return parentBounds.contains(bounds);
     }
 
     public void updateContent(Iterable<DiagramClass> classes) {
