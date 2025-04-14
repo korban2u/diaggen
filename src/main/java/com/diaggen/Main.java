@@ -20,6 +20,7 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,6 +33,8 @@ public class Main extends Application {
     private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
+
+
         launch(args);
     }
 
@@ -97,7 +100,23 @@ public class Main extends Application {
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/project-explorer.css")).toExternalForm());
 
         primaryStage.setTitle("DiagGen - Générateur de diagrammes de classe");
-        primaryStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/icon.png"))));
+
+        // Utiliser l'icône générée par le ResourceInitializer si disponible, sinon utiliser l'icône par défaut
+        try {
+            InputStream iconStream = getClass().getResourceAsStream("/images/diagram-icon.png");
+            if (iconStream != null) {
+                primaryStage.getIcons().add(new Image(iconStream));
+            } else {
+                // Fallback à l'icône par défaut
+                InputStream defaultIconStream = getClass().getResourceAsStream("/images/icon.png");
+                if (defaultIconStream != null) {
+                    primaryStage.getIcons().add(new Image(defaultIconStream));
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Impossible de charger l'icône de l'application", e);
+        }
+
         primaryStage.setScene(scene);
         primaryStage.setMinWidth(900);
         primaryStage.setMinHeight(600);

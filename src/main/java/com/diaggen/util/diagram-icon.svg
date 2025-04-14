@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <style>
+      .box-base {
+        fill: #ffffff;
+        stroke: #4a89dc;
+        stroke-width: 6;
+      }
+      .box-header {
+        fill: #f5f8ff;
+        stroke: #4a89dc;
+        stroke-width: 3;
+      }
+      .box-line {
+        stroke: #4a89dc;
+        stroke-width: 3;
+      }
+      .connection-line {
+        fill: none;
+        stroke: #4a89dc;
+        stroke-width: 6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .arrow-head {
+        fill: #4a89dc;
+      }
+      .text-placeholder {
+        fill: #7a8baa;
+      }
+    </style>
+  </defs>
+  
+  <!-- Classe 1 -->
+  <rect class="box-base" x="60" y="100" width="140" height="160" rx="8" ry="8" />
+  <rect class="box-header" x="60" y="100" width="140" height="40" rx="8" ry="8" />
+  <line class="box-line" x1="60" y1="140" x2="200" y2="140" />
+  <line class="box-line" x1="60" y1="200" x2="200" y2="200" />
+  
+  <!-- Texte placeholder classe 1 -->
+  <rect class="text-placeholder" x="90" y="115" width="80" height="10" rx="3" ry="3" />
+  <rect class="text-placeholder" x="75" y="160" width="110" height="8" rx="3" ry="3" />
+  <rect class="text-placeholder" x="75" y="175" width="90" height="8" rx="3" ry="3" />
+  <rect class="text-placeholder" x="75" y="220" width="110" height="8" rx="3" ry="3" />
+  <rect class="text-placeholder" x="75" y="235" width="90" height="8" rx="3" ry="3" />
+  
+  <!-- Classe 2 -->
+  <rect class="box-base" x="320" y="100" width="140" height="160" rx="8" ry="8" />
+  <rect class="box-header" x="320" y="100" width="140" height="40" rx="8" ry="8" />
+  <line class="box-line" x1="320" y1="140" x2="460" y2="140" />
+  <line class="box-line" x1="320" y1="200" x2="460" y2="200" />
+  
+  <!-- Texte placeholder classe 2 -->
+  <rect class="text-placeholder" x="350" y="115" width="80" height="10" rx="3" ry="3" />
+  <rect class="text-placeholder" x="335" y="160" width="110" height="8" rx="3" ry="3" />
+  <rect class="text-placeholder" x="335" y="175" width="90" height="8" rx="3" ry="3" />
+  <rect class="text-placeholder" x="335" y="220" width="110" height="8" rx="3" ry="3" />
+  <rect class="text-placeholder" x="335" y="235" width="90" height="8" rx="3" ry="3" />
+  
+  <!-- Classe 3 -->
+  <rect class="box-base" x="190" y="320" width="140" height="160" rx="8" ry="8" />
+  <rect class="box-header" x="190" y="320" width="140" height="40" rx="8" ry="8" />
+  <line class="box-line" x1="190" y1="360" x2="330" y2="360" />
+  <line class="box-line" x1="190" y1="420" x2="330" y2="420" />
+  
+  <!-- Texte placeholder classe 3 -->
+  <rect class="text-placeholder" x="220" y="335" width="80" height="10" rx="3" ry="3" />
+  <rect class="text-placeholder" x="205" y="380" width="110" height="8" rx="3" ry="3" />
+  <rect class="text-placeholder" x="205" y="395" width="90" height="8" rx="3" ry="3" />
+  <rect class="text-placeholder" x="205" y="440" width="110" height="8" rx="3" ry="3" />
+  <rect class="text-placeholder" x="205" y="455" width="90" height="8" rx="3" ry="3" />
+  
+  <!-- Connexions -->
+  <path class="connection-line" d="M200 180 L260 180 L260 320" />
+  <path class="connection-line" d="M320 180 L260 180" />
+  <polygon class="arrow-head" points="260,310 254,295 266,295" />
+</svg>

@@ -11,6 +11,7 @@ import com.diaggen.model.DiagramClass;
 import com.diaggen.model.DiagramRelation;
 import com.diaggen.model.Project;
 import com.diaggen.view.diagram.DiagramCanvas;
+import com.diaggen.view.diagram.DiagramPlaceholderView;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
@@ -54,6 +55,7 @@ public class MainViewController {
     private ProjectExplorerController projectExplorerController;
     private MainController mainController;
     private DiagramCanvas diagramCanvas;
+    private DiagramPlaceholderView placeholderView;
     private EditorPanelController editorController;
     private DiagramClass selectedClass;
     private DiagramRelation selectedRelation;
@@ -68,7 +70,15 @@ public class MainViewController {
         LOGGER.log(Level.INFO, "Initializing MainViewController");
 
         diagramCanvas = new DiagramCanvas();
-        diagramCanvasContainer.getChildren().add(diagramCanvas);
+        placeholderView = new DiagramPlaceholderView();
+
+        // Initialiser les composants dans le conteneur
+        diagramCanvasContainer.getChildren().addAll(diagramCanvas, placeholderView);
+        placeholderView.setVisible(false); // Caché par défaut
+
+        // Configuration du bouton de création de diagramme
+        placeholderView.getCreateDiagramButton().setOnAction(e -> handleNewDiagram());
+
         editorController = new EditorPanelController(editorContent);
 
         editorPanel.visibleProperty().addListener((obs, wasVisible, isVisible) -> {
@@ -131,7 +141,47 @@ public class MainViewController {
         setupKeyboardShortcuts();
         setupProperLayering();
 
+        // Appliquer l'état initial
+        updateDiagramDisplay();
+
         LOGGER.log(Level.INFO, "MainViewController initialization complete");
+    }
+
+    private void updateDiagramDisplay() {
+        if (mainController == null) {
+            // Si mainController n'est pas encore initialisé, on affiche simplement le placeholder
+            diagramCanvas.setVisible(false);
+            placeholderView.updateForProject(null);
+            placeholderView.setVisible(true);
+            setStatus("Initialisation...");
+            return;
+        }
+
+        ClassDiagram diagram = mainController.getDiagramStore().getActiveDiagram();
+        Project activeProject = mainController.getDiagramStore().getActiveProject();
+
+        if (diagram != null) {
+            // Un diagramme est sélectionné - afficher le canvas
+            diagramCanvas.loadDiagram(diagram);
+            diagramCanvas.setVisible(true);
+            placeholderView.setVisible(false);
+            setStatus("Diagramme actif: " + diagram.getName());
+        } else {
+            // Aucun diagramme sélectionné - afficher le placeholder
+            // D'abord s'assurer que le canvas est vide
+            diagramCanvas.clear();
+            diagramCanvas.setVisible(false);
+
+            // Mettre à jour le placeholder selon que nous avons un projet actif ou non
+            placeholderView.updateForProject(activeProject);
+            placeholderView.setVisible(true);
+
+            if (activeProject != null) {
+                setStatus("Projet actif: " + activeProject.getName() + " - Aucun diagramme sélectionné");
+            } else {
+                setStatus("Aucun projet actif");
+            }
+        }
     }
 
     public void setLayoutController(LayoutController layoutController) {
@@ -163,7 +213,10 @@ public class MainViewController {
             LOGGER.log(Level.INFO, "ProjectActivatedEvent received for project ID: {0}", event.getDiagramId());
             isProcessingEvent = true;
             try {
-                updateProjectInfo();
+                Platform.runLater(() -> {
+                    updateDiagramDisplay();
+                    updateProjectInfo();
+                });
             } finally {
                 isProcessingEvent = false;
             }
@@ -176,15 +229,7 @@ public class MainViewController {
             isProcessingEvent = true;
             try {
                 Platform.runLater(() -> {
-                    ClassDiagram diagram = mainController.getDiagramStore().getActiveDiagram();
-                    if (diagram != null) {
-                        diagramCanvas.loadDiagram(diagram);
-                        setStatus("Diagramme actif: " + diagram.getName());
-                    } else {
-                        diagramCanvas.clear();
-                        setStatus("Prêt");
-                    }
-
+                    updateDiagramDisplay();
                     updateProjectInfo();
                 });
             } finally {
@@ -358,6 +403,8 @@ public class MainViewController {
     public void setMainController(MainController mainController) {
         LOGGER.log(Level.INFO, "Setting MainController");
         this.mainController = mainController;
+        // Mise à jour de l'affichage après initialisation du contrôleur
+        Platform.runLater(this::updateDiagramDisplay);
     }
 
     public DiagramCanvas getDiagramCanvas() {
