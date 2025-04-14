@@ -7,6 +7,7 @@ import com.diaggen.event.EventBus;
 import com.diaggen.model.DiagramClass;
 import javafx.geometry.Point2D;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 
 import java.util.HashMap;
@@ -55,76 +56,127 @@ public class NodeManager {
         }
     }
 
-    public ClassNode createClassNode(DiagramClass diagramClass) {
+    public void createClassNode(DiagramClass diagramClass) {
         ClassNode classNode = new ClassNode(diagramClass);
-        classNode.setOnMousePressed(e -> {
-            if (e.getButton() == MouseButton.PRIMARY) {
-                selectNode(classNode);
-                dragStartX = e.getSceneX();
-                dragStartY = e.getSceneY();
-                dragStartPoint = new Point2D(classNode.getLayoutX(), classNode.getLayoutY());
-                isDragging = false;
-                e.consume();
-            }
-        });
 
-        classNode.setOnMouseDragged(e -> {
-            if (e.getButton() == MouseButton.PRIMARY) {
-                isDragging = true;
-                double scale = viewportTransform != null ? viewportTransform.getScale() : 1.0;
-                double offsetX = (e.getSceneX() - dragStartX) / scale;
-                double offsetY = (e.getSceneY() - dragStartY) / scale;
+        setupMouseHandlers(diagramClass, classNode);
+        addNodeToContainer(classNode, diagramClass);
 
-                double newX = dragStartPoint.getX() + offsetX;
-                double newY = dragStartPoint.getY() + offsetY;
+        notifyChange();
+    }
 
-                classNode.setLayoutX(newX);
-                classNode.setLayoutY(newY);
-                if (relationManager != null) {
-                    relationManager.updateAllRelationsLater();
-                }
+    private void setupMouseHandlers(DiagramClass diagramClass, ClassNode classNode) {
+        classNode.setOnMousePressed(e -> handleMousePressed(e, classNode));
+        classNode.setOnMouseDragged(e -> handleMouseDragged(e, classNode));
+        classNode.setOnMouseReleased(e -> handleMouseReleased(e, diagramClass, classNode));
 
-                e.consume();
-            }
-        });
-
-        classNode.setOnMouseReleased(e -> {
-            if (e.getButton() == MouseButton.PRIMARY) {
-                if (isDragging) {
-                    double oldX = dragStartPoint.getX();
-                    double oldY = dragStartPoint.getY();
-                    double newX = classNode.getLayoutX();
-                    double newY = classNode.getLayoutY();
-                    if (Math.abs(oldX - newX) > 2 || Math.abs(oldY - newY) > 2) {
-                        if (commandManager != null) {
-                            MoveClassCommand command = new MoveClassCommand(diagramClass, oldX, oldY, newX, newY);
-                            commandManager.executeCommand(command);
-                            String diagramId = diagramClass.getDiagramId();
-                            if (diagramId != null) {
-                                eventBus.publish(new ClassMovedEvent(diagramId, diagramClass.getId(), oldX, oldY, newX, newY));
-                            }
-                        } else {
-                            diagramClass.setX(newX);
-                            diagramClass.setY(newY);
-                        }
-                        if (relationManager != null) {
-                            relationManager.updateAllRelations();
-                            notifyChange();
-                        }
-                    }
-                }
-                isDragging = false;
-            }
-        });
-        container.getChildren().add(classNode);
-        classNodes.put(diagramClass.getId(), classNode);
         if (relationManager != null) {
             classNode.setPositionChangeListener(() -> relationManager.updateAllRelationsLater());
         }
+    }
 
-        notifyChange();
+    private void handleMousePressed(MouseEvent e, ClassNode classNode) {
+        if (e.getButton() != MouseButton.PRIMARY) {
+            return;
+        }
 
-        return classNode;
+        selectNode(classNode);
+        dragStartX = e.getSceneX();
+        dragStartY = e.getSceneY();
+        dragStartPoint = new Point2D(classNode.getLayoutX(), classNode.getLayoutY());
+        isDragging = false;
+        e.consume();
+    }
+
+    private void handleMouseDragged(MouseEvent e, ClassNode classNode) {
+        if (e.getButton() != MouseButton.PRIMARY) {
+            return;
+        }
+
+        isDragging = true;
+        moveNodeToNewPosition(e, classNode);
+        updateRelationsDuringDrag();
+        e.consume();
+    }
+
+    private void moveNodeToNewPosition(MouseEvent e, ClassNode classNode) {
+        double scale = viewportTransform != null ? viewportTransform.getScale() : 1.0;
+        double offsetX = (e.getSceneX() - dragStartX) / scale;
+        double offsetY = (e.getSceneY() - dragStartY) / scale;
+
+        double newX = dragStartPoint.getX() + offsetX;
+        double newY = dragStartPoint.getY() + offsetY;
+
+        classNode.setLayoutX(newX);
+        classNode.setLayoutY(newY);
+    }
+
+    private void updateRelationsDuringDrag() {
+        if (relationManager != null) {
+            relationManager.updateAllRelationsLater();
+        }
+    }
+
+    private void handleMouseReleased(MouseEvent e, DiagramClass diagramClass, ClassNode classNode) {
+        if (e.getButton() != MouseButton.PRIMARY || !isDragging) {
+            isDragging = false;
+            return;
+        }
+
+        processNodeMovement(diagramClass, classNode);
+        isDragging = false;
+    }
+
+    private void processNodeMovement(DiagramClass diagramClass, ClassNode classNode) {
+        double oldX = dragStartPoint.getX();
+        double oldY = dragStartPoint.getY();
+        double newX = classNode.getLayoutX();
+        double newY = classNode.getLayoutY();
+
+        if (!isSignificantMove(oldX, oldY, newX, newY)) {
+            return;
+        }
+
+        updateModelPosition(diagramClass, oldX, oldY, newX, newY);
+        updateRelationsAfterMove();
+    }
+
+    private boolean isSignificantMove(double oldX, double oldY, double newX, double newY) {
+        return Math.abs(oldX - newX) > 2 || Math.abs(oldY - newY) > 2;
+    }
+
+    private void updateModelPosition(DiagramClass diagramClass, double oldX, double oldY, double newX, double newY) {
+        if (commandManager != null) {
+            executePositionCommand(diagramClass, oldX, oldY, newX, newY);
+            publishMoveEvent(diagramClass, oldX, oldY, newX, newY);
+        } else {
+            diagramClass.setX(newX);
+            diagramClass.setY(newY);
+        }
+    }
+
+    private void executePositionCommand(DiagramClass diagramClass, double oldX, double oldY, double newX, double newY) {
+        MoveClassCommand command = new MoveClassCommand(diagramClass, oldX, oldY, newX, newY);
+        commandManager.executeCommand(command);
+    }
+
+    private void publishMoveEvent(DiagramClass diagramClass, double oldX, double oldY, double newX, double newY) {
+        String diagramId = diagramClass.getDiagramId();
+        if (diagramId != null) {
+            eventBus.publish(new ClassMovedEvent(diagramId, diagramClass.getId(), oldX, oldY, newX, newY));
+        }
+    }
+
+    private void updateRelationsAfterMove() {
+        if (relationManager != null) {
+            relationManager.updateAllRelations();
+            notifyChange();
+        }
+    }
+
+    private void addNodeToContainer(ClassNode classNode, DiagramClass diagramClass) {
+        container.getChildren().add(classNode);
+        classNodes.put(diagramClass.getId(), classNode);
     }
 
     public void removeClassNode(DiagramClass diagramClass) {
@@ -145,7 +197,7 @@ public class NodeManager {
     }
 
     public void clear() {
-        container.getChildren().removeIf(node -> node instanceof ClassNode);
+        container.getChildren().removeIf(ClassNode.class::isInstance);
         classNodes.clear();
         selectedNode = null;
         if (selectionListener != null) {

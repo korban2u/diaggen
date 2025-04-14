@@ -100,14 +100,11 @@ public class Main extends Application {
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/project-explorer.css")).toExternalForm());
 
         primaryStage.setTitle("DiagGen - Générateur de diagrammes de classe");
-
-        // Utiliser l'icône générée par le ResourceInitializer si disponible, sinon utiliser l'icône par défaut
         try {
             InputStream iconStream = getClass().getResourceAsStream("/images/diagram-icon.png");
             if (iconStream != null) {
                 primaryStage.getIcons().add(new Image(iconStream));
             } else {
-                // Fallback à l'icône par défaut
                 InputStream defaultIconStream = getClass().getResourceAsStream("/images/icon.png");
                 if (defaultIconStream != null) {
                     primaryStage.getIcons().add(new Image(defaultIconStream));
@@ -125,7 +122,7 @@ public class Main extends Application {
 
         primaryStage.show();
         if (diagramStore.getProjects().isEmpty()) {
-            loadMostRecentProject(projectController, diagramStore);
+            loadMostRecentProject(projectController);
             if (diagramStore.getProjects().isEmpty()) {
                 projectController.createNewProject("Projet par défaut");
             }
@@ -157,7 +154,7 @@ public class Main extends Application {
         }
     }
 
-    private void loadMostRecentProject(ProjectController projectController, DiagramStore diagramStore) {
+    private void loadMostRecentProject(ProjectController projectController) {
         if (!AppConfig.getInstance().isAutoLoadLastProject()) {
             return;
         }

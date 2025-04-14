@@ -71,12 +71,8 @@ public class MainViewController {
 
         diagramCanvas = new DiagramCanvas();
         placeholderView = new DiagramPlaceholderView();
-
-        // Initialiser les composants dans le conteneur
         diagramCanvasContainer.getChildren().addAll(diagramCanvas, placeholderView);
         placeholderView.setVisible(false); // Caché par défaut
-
-        // Configuration du bouton de création de diagramme
         placeholderView.getCreateDiagramButton().setOnAction(e -> handleNewDiagram());
 
         editorController = new EditorPanelController(editorContent);
@@ -140,8 +136,6 @@ public class MainViewController {
         setupEventBusListeners();
         setupKeyboardShortcuts();
         setupProperLayering();
-
-        // Appliquer l'état initial
         updateDiagramDisplay();
 
         LOGGER.log(Level.INFO, "MainViewController initialization complete");
@@ -149,7 +143,6 @@ public class MainViewController {
 
     private void updateDiagramDisplay() {
         if (mainController == null) {
-            // Si mainController n'est pas encore initialisé, on affiche simplement le placeholder
             diagramCanvas.setVisible(false);
             placeholderView.updateForProject(null);
             placeholderView.setVisible(true);
@@ -161,18 +154,13 @@ public class MainViewController {
         Project activeProject = mainController.getDiagramStore().getActiveProject();
 
         if (diagram != null) {
-            // Un diagramme est sélectionné - afficher le canvas
             diagramCanvas.loadDiagram(diagram);
             diagramCanvas.setVisible(true);
             placeholderView.setVisible(false);
             setStatus("Diagramme actif: " + diagram.getName());
         } else {
-            // Aucun diagramme sélectionné - afficher le placeholder
-            // D'abord s'assurer que le canvas est vide
             diagramCanvas.clear();
             diagramCanvas.setVisible(false);
-
-            // Mettre à jour le placeholder selon que nous avons un projet actif ou non
             placeholderView.updateForProject(activeProject);
             placeholderView.setVisible(true);
 
@@ -403,7 +391,6 @@ public class MainViewController {
     public void setMainController(MainController mainController) {
         LOGGER.log(Level.INFO, "Setting MainController");
         this.mainController = mainController;
-        // Mise à jour de l'affichage après initialisation du contrôleur
         Platform.runLater(this::updateDiagramDisplay);
     }
 

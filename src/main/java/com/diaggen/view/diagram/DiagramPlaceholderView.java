@@ -26,14 +26,10 @@ public class DiagramPlaceholderView extends VBox {
         setAlignment(Pos.CENTER);
         setSpacing(30);
         setStyle("-fx-background-color: #f5f5f5;");
-
-        // Créer et configurer l'ImageView
         ImageView iconView = new ImageView();
         iconView.setFitHeight(120);
         iconView.setFitWidth(120);
         iconView.setPreserveRatio(true);
-
-        // Charger l'image
         try {
             Image image = new Image(getClass().getResourceAsStream("/images/diagram-icon.png"));
             iconView.setImage(image);
