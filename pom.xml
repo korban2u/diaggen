@@ -114,6 +114,27 @@
                     </buildArgs>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.panteleyev</groupId>
+                <artifactId>jpackage-maven-plugin</artifactId>
+                <version>1.5.2</version>
+                <configuration>
+                    <name>DiagGen</name>
+                    <appVersion>1.0.0</appVersion>
+                    <vendor>YourName</vendor>
+                    <destination>target/dist</destination>
+                    <module>com.diaggen/com.diaggen.Main</module>
+                    <runtimeImage>target/jlink-image</runtimeImage>
+                    <javaOptions>
+                        <option>-Dfile.encoding=UTF-8</option>
+                    </javaOptions>
+                    <linuxShortcut>true</linuxShortcut>
+                    <linuxMenuGroup>Development</linuxMenuGroup>
+                    <windowsMenu>true</windowsMenu>
+                    <windowsMenuGroup>DiagGen</windowsMenuGroup>
+                    <macPackageIdentifier>com.yourcompany.diaggen</macPackageIdentifier>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
