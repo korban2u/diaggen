@@ -7,6 +7,8 @@ DiagGen est une application Java moderne permettant de créer, éditer et export
 ## Fonctionnalités
 
 - Création de diagrammes de classe UML
+- Sauvegarde des projets
+- Gestion des projets récents 
 - Support complet des relations (association, agrégation, composition, héritage, implémentation, dépendance)
 - Génération de code Java à partir des diagrammes
 - Import de code Java existant pour créer des diagrammes
