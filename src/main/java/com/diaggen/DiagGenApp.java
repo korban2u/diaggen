@@ -13,7 +13,6 @@ import com.diaggen.view.diagram.DiagramCanvas;
 import com.diaggen.view.diagram.canvas.NodeManager;
 import com.diaggen.view.dialog.DialogFactory;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
