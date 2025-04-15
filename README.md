@@ -1,0 +1,80 @@
+# DiagGen - Générateur de diagrammes de classe UML
+
+![DiagGen Logo](src/main/resources/images/diagram-icon.png)
+
+DiagGen est une application Java permettant de créer, éditer et exporter des diagrammes de classe UML de façon intuitive et efficace.
+
+## Fonctionnalités
+
+- Création de diagrammes de classe UML
+- Support complet des relations (association, agrégation, composition, héritage, implémentation, dépendance)
+- Génération de code Java à partir des diagrammes
+- Import de code Java existant pour créer des diagrammes
+- Organisation automatique des diagrammes avec plusieurs algorithmes de layout
+- Export vers PNG, SVG et PlantUML
+- Gestion de projets multi-diagrammes
+- Interface utilisateur intuitive basée sur JavaFX
+
+## Captures d'écran
+
+![Capture d'écran de DiagGen](docs/images/screenshot1.png)
+
+## Installation
+
+### Prérequis
+
+- Java 21 ou supérieur
+
+### Téléchargement
+
+Téléchargez la dernière version de DiagGen depuis la [page des releases](https://github.com/Yeahboys04/diaggen/releases).
+
+### Installation selon votre système
+
+#### Windows
+- Exécutez le fichier .msi et suivez les instructions d'installation.
+
+#### macOS
+- Montez le fichier .dmg et glissez DiagGen dans votre dossier Applications.
+
+#### Linux
+- Installez le package .deb avec `sudo dpkg -i diaggen_1.0.0.deb`
+- Ou le package .rpm avec `sudo rpm -i diaggen-1.0.0.rpm`
+
+## Utilisation
+
+### Démarrage
+
+Lancez DiagGen depuis votre menu d'applications ou l'icône du bureau.
+
+### Création d'un diagramme
+
+1. Créez un nouveau projet via `Fichier > Nouveau projet`
+2. Ajoutez un diagramme via `Fichier > Nouveau diagramme`
+3. Ajoutez des classes avec le bouton `+ Classe` ou via `Diagramme > Ajouter une classe`
+4. Créez des relations avec le bouton `+ Relation`
+
+### Import de code Java
+
+Vous pouvez importer du code Java existant via `Import > Importer du code Java...`
+
+### Export du diagramme
+
+Plusieurs formats d'export sont disponibles via le menu `Export`:
+- PNG
+- SVG
+- PlantUML
+- Code Java
+
+## Développement
+
+### Prérequis
+
+- JDK 21
+- Maven 3.8+
+- JavaFX 21
+
+### Compilation
+
+```bash
+mvn clean install
