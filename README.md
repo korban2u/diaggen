@@ -124,6 +124,7 @@ package.bat
 - Maven
 
 ## Licence
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Ce projet est sous licence [MIT](LICENSE).
 
