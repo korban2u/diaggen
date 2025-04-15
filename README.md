@@ -28,7 +28,7 @@ DiagGen est une application Java moderne permettant de créer, éditer et export
 
 ### Téléchargement
 
-Téléchargez la dernière version de DiagGen depuis la [page des releases](https://github.com/Yeahboys04/diaggen/releases).
+Téléchargez la dernière version de DiagGen depuis la [page des releases](https://github.com/korban2u/diaggen/releases).
 ### Installation selon votre système
 
 #### Windows
