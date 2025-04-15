@@ -2,7 +2,7 @@
 
 ![DiagGen Logo](src/main/resources/images/diagram-icon.png)
 
-DiagGen est une application Java permettant de créer, éditer et exporter des diagrammes de classe UML de façon intuitive et efficace.
+DiagGen est une application Java moderne permettant de créer, éditer et exporter des diagrammes de classe UML de façon intuitive et efficace.
 
 ## Fonctionnalités
 
@@ -33,13 +33,15 @@ Téléchargez la dernière version de DiagGen depuis la [page des releases](http
 
 #### Windows
 - Exécutez le fichier .msi et suivez les instructions d'installation.
+- Vous pourrez choisir le répertoire d'installation pendant le processus.
 
 #### macOS
-- Montez le fichier .dmg et glissez DiagGen dans votre dossier Applications.
+- Montez le fichier .dmg et glissez DiagGen dans votre dossier Applications ou tout autre dossier de votre choix.
 
 #### Linux
 - Installez le package .deb avec `sudo dpkg -i diaggen_1.0.0.deb`
 - Ou le package .rpm avec `sudo rpm -i diaggen-1.0.0.rpm`
+- Pour une installation personnalisée, utilisez la version tar.gz avec le script d'installation inclus.
 
 ## Utilisation
 
@@ -66,6 +68,23 @@ Plusieurs formats d'export sont disponibles via le menu `Export`:
 - PlantUML
 - Code Java
 
+## Raccourcis clavier
+
+| Action | Raccourci |
+|--------|-----------|
+| Nouveau projet | Ctrl+Shift+N |
+| Nouveau diagramme | Ctrl+N |
+| Enregistrer | Ctrl+S |
+| Enregistrer sous | Ctrl+Shift+S |
+| Ajouter une classe | Ctrl+Alt+N |
+| Supprimer l'élément sélectionné | Delete |
+| Annuler | Ctrl+Z |
+| Rétablir | Ctrl+Y |
+| Zoom avant | Ctrl+= |
+| Zoom arrière | Ctrl+- |
+| Réinitialiser le zoom | Ctrl+0 |
+| Adapter à la vue | Ctrl+F |
+
 ## Développement
 
 ### Prérequis
@@ -78,3 +97,36 @@ Plusieurs formats d'export sont disponibles via le menu `Export`:
 
 ```bash
 mvn clean install
+```
+
+### Exécution en mode développement
+
+```bash
+mvn javafx:run
+```
+
+### Création d'un package d'installation
+
+```bash
+# Windows
+package.bat
+
+# macOS/Linux
+./package.sh
+```
+
+## Technologies utilisées
+
+- Java 21
+- JavaFX 21
+- JavaParser
+- ControlsFX
+- Maven
+
+## Licence
+
+Ce projet est sous licence [MIT](LICENSE).
+
+## Auteur
+
+- Ryan Korban
