@@ -18,6 +18,7 @@ DiagGen est une application Java moderne permettant de créer, éditer et export
 ## Captures d'écran
 
 ![Capture d'écran de DiagGen](docs/images/screenshot1.png)
+![Capture d'écran de DiagGen](docs/images/screenshot2.png)
 
 ## Installation
 
