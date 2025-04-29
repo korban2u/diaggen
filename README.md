@@ -37,14 +37,6 @@ Téléchargez la dernière version de DiagGen depuis la [page des releases](http
 - Exécutez le fichier .msi et suivez les instructions d'installation.
 - Vous pourrez choisir le répertoire d'installation pendant le processus.
 
-#### macOS
-- Montez le fichier .dmg et glissez DiagGen dans votre dossier Applications ou tout autre dossier de votre choix.
-
-#### Linux
-- Installez le package .deb avec `sudo dpkg -i diaggen_1.0.0.deb`
-- Ou le package .rpm avec `sudo rpm -i diaggen-1.0.0.rpm`
-- Pour une installation personnalisée, utilisez la version tar.gz avec le script d'installation inclus.
-
 ## Utilisation
 
 ### Démarrage
